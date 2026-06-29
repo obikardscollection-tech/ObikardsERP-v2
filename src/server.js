@@ -1,5 +1,6 @@
 const express = require("express");
 const cors = require("cors");
+const inventoryRoutes = require("./routes/inventory");
 
 const app = express();
 const PORT = 3000;
@@ -14,6 +15,8 @@ app.get("/", (req, res) => {
     status: "OK"
   });
 });
+
+app.use("/inventory", inventoryRoutes);
 
 app.listen(PORT, () => {
   console.log(`🚀 Obikards ERP démarré sur http://localhost:${PORT}`);
