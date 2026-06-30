@@ -4,19 +4,21 @@ generator client {
 
 datasource db {
   provider  = "postgresql"
-  url        = env("DATABASE_URL")
-  directUrl  = env("DIRECT_URL")
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 model Inventory {
-  id          String   @id @default(cuid())
-  sku         String   @unique
-  category    String
-  title       String
-  purchasePrice Float?
-  salePrice     Float?
-  quantity    Int      @default(1)
-  status      String   @default("IN_STOCK")
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id             String   @id @default(cuid())
+  sku            String   @unique
+  category       String
+  title          String
+  purchasePrice  Float?
+  salePrice      Float?
+  quantity       Int      @default(1)
+  status         String   @default("IN_STOCK")
+  location       String?
+  notes          String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 }

@@ -1,5 +1,6 @@
 const express = require("express");
 const cors = require("cors");
+
 const inventoryRoutes = require("./routes/inventory");
 
 const app = express();
@@ -12,7 +13,7 @@ app.get("/", (req, res) => {
   res.json({
     app: "Obikards ERP",
     version: "0.1.0",
-    status: "OK"
+    status: "OK",
   });
 });
 
