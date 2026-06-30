@@ -9,16 +9,70 @@ datasource db {
 }
 
 model Inventory {
-  id            String   @id @default(cuid())
-  sku           String   @unique
-  category      String
-  title         String
-  purchasePrice Float?
-  salePrice     Float?
-  quantity      Int      @default(1)
-  status        String   @default("IN_STOCK")
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  location      String?
-  notes         String?
+  id                String   @id @default(cuid())
+
+  // Identification
+  sku               String   @unique
+  category          String
+  title             String
+
+  // Informations générales
+  sport             String?
+  year              Int?
+  brand             String?
+  series            String?
+  product           String?
+  player            String?
+  team              String?
+  cardNumber        String?
+
+  // Caractéristiques
+  rookie            Boolean  @default(false)
+  autograph         Boolean  @default(false)
+  patch             Boolean  @default(false)
+  memorabilia       Boolean  @default(false)
+  numbered          Boolean  @default(false)
+  serialNumber      String?
+  caseHit           Boolean  @default(false)
+  sp                Boolean  @default(false)
+  ssp               Boolean  @default(false)
+  variant           String?
+  parallel          String?
+
+  // Gradation
+  graded            Boolean  @default(false)
+  gradeCompany      String?
+  grade             String?
+  certification     String?
+
+  // Achat
+  purchasePrice     Float?
+  shippingCost      Float?
+  customsCost       Float?
+  taxes             Float?
+  purchaseDate      DateTime?
+  supplier          String?
+  purchaseSource    String?
+  origin            String?
+
+  // Vente
+  salePrice         Float?
+  minimumPrice      Float?
+  goal              String?
+  confidence        String?
+
+  // Stock
+  quantity          Int      @default(1)
+  status            String   @default("IN_STOCK")
+  location          String?
+  priority          String?
+  notes             String?
+
+  // Photos
+  frontPhoto        String?
+  backPhoto         String?
+  extraPhotos       Json?
+
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 }
