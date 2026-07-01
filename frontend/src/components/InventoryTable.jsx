@@ -1,7 +1,10 @@
+import InventoryActions from "./inventory/InventoryActions";
+
 export default function InventoryTable({
   items = [],
   onEdit,
   onDelete,
+  onAdjustStock,
   sortField,
   sortDirection,
   onSort,
@@ -158,20 +161,13 @@ export default function InventoryTable({
                   </span>
                 </td>
 
-                <td className="p-4 space-x-3">
-                  <button
-                    onClick={() => onEdit(item)}
-                    className="text-blue-600 hover:text-blue-800 hover:underline"
-                  >
-                    Modifier
-                  </button>
-
-                  <button
-                    onClick={() => onDelete(item)}
-                    className="text-red-600 hover:text-red-800 hover:underline"
-                  >
-                    Supprimer
-                  </button>
+                <td className="p-4">
+                  <InventoryActions
+                    item={item}
+                    onEdit={onEdit}
+                    onDelete={onDelete}
+                    onAdjustStock={onAdjustStock}
+                  />
                 </td>
               </tr>
             ))

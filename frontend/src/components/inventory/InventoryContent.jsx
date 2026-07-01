@@ -26,6 +26,7 @@ export default function InventoryContent({
 
   onEdit,
   onDelete,
+  onAdjustStock,
 
   sortField,
   sortDirection,
@@ -70,6 +71,7 @@ export default function InventoryContent({
           items={sortedItems}
           onEdit={onEdit}
           onDelete={onDelete}
+          onAdjustStock={onAdjustStock}
           sortField={sortField}
           sortDirection={sortDirection}
           onSort={onSort}

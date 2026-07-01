@@ -2,11 +2,13 @@ import { useState } from "react";
 
 import Sidebar from "./components/Sidebar";
 import AddInventoryDrawer from "./components/drawer/AddInventoryDrawer";
+import StockAdjustmentModal from "./components/inventory/stock/StockAdjustmentModal";
 
 import InventoryHeader from "./components/inventory/InventoryHeader";
 import InventoryContent from "./components/inventory/InventoryContent";
 
 import useInventory from "./hooks/useInventory";
+import useStock from "./hooks/useStock";
 
 function App() {
   const {
@@ -31,6 +33,17 @@ function App() {
     handleToggleSelect,
     handleToggleSelectAll,
   } = useInventory();
+
+  const {
+    loading: stockLoading,
+    stockModalOpen,
+    selectedStockItem,
+    movements,
+    historyLoading,
+    openStockModal,
+    closeStockModal,
+    submitStock,
+  } = useStock(loadInventory);
 
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
@@ -77,6 +90,7 @@ function App() {
           loadInventory={loadInventory}
           onEdit={handleEdit}
           onDelete={handleDelete}
+          onAdjustStock={openStockModal}
           sortField={sortField}
           sortDirection={sortDirection}
           onSort={handleSort}
@@ -90,6 +104,16 @@ function App() {
         item={selectedItem}
         onClose={handleCloseDrawer}
         onCreated={loadInventory}
+      />
+
+      <StockAdjustmentModal
+        open={stockModalOpen}
+        item={selectedStockItem}
+        onClose={closeStockModal}
+        onSubmit={submitStock}
+        movements={movements}
+        historyLoading={historyLoading}
+        loading={stockLoading}
       />
     </div>
   );
