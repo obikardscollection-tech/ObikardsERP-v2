@@ -1,6 +1,7 @@
 export default function InventoryTable({
   items = [],
   onEdit,
+  onDelete,
 }) {
   return (
     <div className="bg-white rounded-xl shadow overflow-hidden">
@@ -67,13 +68,14 @@ export default function InventoryTable({
                 <td className="p-4 space-x-3">
                   <button
                     onClick={() => onEdit(item)}
-                    className="text-blue-600 hover:underline"
+                    className="text-blue-600 hover:text-blue-800 hover:underline"
                   >
                     Modifier
                   </button>
 
                   <button
-                    className="text-red-600 hover:underline"
+                    onClick={() => onDelete(item)}
+                    className="text-red-600 hover:text-red-800 hover:underline"
                   >
                     Supprimer
                   </button>

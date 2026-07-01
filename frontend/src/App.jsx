@@ -1,9 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import axios from "axios";
 
 import Sidebar from "./components/Sidebar";
 import InventoryTable from "./components/InventoryTable";
 import AddInventoryDrawer from "./components/drawer/AddInventoryDrawer";
+import InventoryToolbar from "./components/inventory/InventoryToolbar";
 
 function App() {
   const [items, setItems] = useState([]);
@@ -11,6 +12,10 @@ function App() {
 
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
+
+  const [searchTerm, setSearchTerm] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
 
   async function loadInventory() {
     try {
@@ -33,6 +38,48 @@ function App() {
     loadInventory();
   }, []);
 
+  const categories = useMemo(() => {
+    return [...new Set(
+      items
+        .map((item) => item.category)
+        .filter(Boolean)
+    )].sort();
+  }, [items]);
+
+  const filteredItems = useMemo(() => {
+    return items.filter((item) => {
+      const search = searchTerm.trim().toLowerCase();
+
+      const matchesSearch =
+        !search ||
+        Object.values(item).some((value) =>
+          String(value ?? "")
+            .toLowerCase()
+            .includes(search)
+        );
+
+      const matchesCategory =
+        !categoryFilter ||
+        item.category === categoryFilter;
+
+      const matchesStatus =
+        !statusFilter ||
+        item.status === statusFilter;
+
+      return (
+        matchesSearch &&
+        matchesCategory &&
+        matchesStatus
+      );
+    });
+  }, [items, searchTerm, categoryFilter, statusFilter]);
+
+  function resetFilters() {
+    setSearchTerm("");
+    setCategoryFilter("");
+    setStatusFilter("");
+  }
+
   function handleCreate() {
     setSelectedItem(null);
     setDrawerOpen(true);
@@ -41,6 +88,25 @@ function App() {
   function handleEdit(item) {
     setSelectedItem(item);
     setDrawerOpen(true);
+  }
+
+  async function handleDelete(item) {
+    const confirmed = window.confirm(
+      `Supprimer définitivement :\n\n${item.title}\n(${item.sku}) ?`
+    );
+
+    if (!confirmed) return;
+
+    try {
+      await axios.delete(
+        `http://localhost:3000/inventory/${item.id}`
+      );
+
+      await loadInventory();
+    } catch (error) {
+      console.error(error);
+      alert("Impossible de supprimer la carte.");
+    }
   }
 
   function handleCloseDrawer() {
@@ -60,7 +126,7 @@ function App() {
             </h1>
 
             <p className="text-gray-500 mt-1">
-              {items.length} article(s)
+              {filteredItems.length} article(s)
             </p>
           </div>
 
@@ -72,14 +138,26 @@ function App() {
           </button>
         </div>
 
+        <InventoryToolbar
+          searchTerm={searchTerm}
+          onSearchChange={setSearchTerm}
+          categoryFilter={categoryFilter}
+          onCategoryChange={setCategoryFilter}
+          statusFilter={statusFilter}
+          onStatusChange={setStatusFilter}
+          categories={categories}
+          onReset={resetFilters}
+        />
+
         {loading ? (
           <div className="bg-white rounded-xl shadow p-8 text-center">
             Chargement...
           </div>
         ) : (
           <InventoryTable
-            items={items}
+            items={filteredItems}
             onEdit={handleEdit}
+            onDelete={handleDelete}
           />
         )}
       </main>
