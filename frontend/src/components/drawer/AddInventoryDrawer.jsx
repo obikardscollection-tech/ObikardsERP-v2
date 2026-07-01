@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import axios from "axios";
 
 import GeneralSection from "./sections/GeneralSection";
@@ -72,9 +72,74 @@ export default function AddInventoryDrawer({
   open,
   onClose,
   onCreated,
+  item,
 }) {
   const [form, setForm] = useState(initialForm);
   const [saving, setSaving] = useState(false);
+
+  const isEdit = !!item;
+
+  useEffect(() => {
+    if (!open) return;
+
+    if (item) {
+      setForm({
+  ...initialForm,
+
+  ...item,
+
+  sport: item.sport ?? "",
+  year: item.year ?? "",
+  brand: item.brand ?? "",
+  series: item.series ?? "",
+  product: item.product ?? "",
+  player: item.player ?? "",
+  team: item.team ?? "",
+  cardNumber: item.cardNumber ?? "",
+
+  rookie: !!item.rookie,
+  autograph: !!item.autograph,
+  patch: !!item.patch,
+  memorabilia: !!item.memorabilia,
+  numbered: !!item.numbered,
+  serialNumber: item.serialNumber ?? "",
+  caseHit: !!item.caseHit,
+  sp: !!item.sp,
+  ssp: !!item.ssp,
+  variant: item.variant ?? "",
+  parallel: item.parallel ?? "",
+
+  graded: !!item.graded,
+  gradeCompany: item.gradeCompany ?? "",
+  grade: item.grade ?? "",
+  certification: item.certification ?? "",
+
+  purchasePrice: item.purchasePrice ?? "",
+  shippingCost: item.shippingCost ?? "",
+  customsCost: item.customsCost ?? "",
+  taxes: item.taxes ?? "",
+  purchaseDate: item.purchaseDate
+    ? item.purchaseDate.substring(0, 10)
+    : "",
+  supplier: item.supplier ?? "",
+  purchaseSource: item.purchaseSource ?? "",
+  origin: item.origin ?? "",
+
+  askingPrice: item.salePrice ?? "",
+  minimumPrice: item.minimumPrice ?? "",
+  goal: item.goal ?? "",
+  confidence: item.confidence ?? "",
+
+  quantity: item.quantity ?? 1,
+  status: item.status ?? "IN_STOCK",
+  location: item.location ?? "",
+  priority: item.priority ?? "",
+  notes: item.notes ?? "",
+});
+    } else {
+      setForm(initialForm);
+    }
+  }, [item, open]);
 
   if (!open) return null;
 
@@ -82,15 +147,22 @@ export default function AddInventoryDrawer({
     try {
       setSaving(true);
 
-      await axios.post(
-  "http://localhost:3000/inventory",
-  form
-);
+      if (isEdit) {
+        await axios.put(
+          `http://localhost:3000/inventory/${item.id}`,
+          form
+        );
+      } else {
+        await axios.post(
+          "http://localhost:3000/inventory",
+          form
+        );
+      }
 
       setForm(initialForm);
 
       if (onCreated) {
-        onCreated();
+        await onCreated();
       }
 
       onClose();
@@ -112,7 +184,7 @@ export default function AddInventoryDrawer({
     setForm(initialForm);
     onClose();
   }
-   return (
+    return (
     <div className="fixed inset-0 z-50">
       <div
         className="absolute inset-0 bg-black/40"
@@ -123,11 +195,13 @@ export default function AddInventoryDrawer({
         <div className="sticky top-0 bg-white border-b px-8 py-6 flex justify-between items-center z-10">
           <div>
             <h1 className="text-2xl font-bold">
-              Ajouter une carte
+              {isEdit ? "Modifier une carte" : "Ajouter une carte"}
             </h1>
 
             <p className="text-sm text-gray-500 mt-1">
-              SKU généré automatiquement
+              {isEdit
+                ? item?.sku
+                : "SKU généré automatiquement"}
             </p>
           </div>
 
@@ -191,7 +265,11 @@ export default function AddInventoryDrawer({
             disabled={saving}
             className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed text-white px-6 py-3 rounded-lg font-medium"
           >
-            {saving ? "Enregistrement..." : "Enregistrer"}
+            {saving
+              ? "Enregistrement..."
+              : isEdit
+                ? "Modifier"
+                : "Enregistrer"}
           </button>
         </div>
       </div>

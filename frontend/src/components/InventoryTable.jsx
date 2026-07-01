@@ -1,10 +1,11 @@
-export default function InventoryTable({ items = [] }) {
+export default function InventoryTable({
+  items = [],
+  onEdit,
+}) {
   return (
     <div className="bg-white rounded-xl shadow overflow-hidden">
       <table className="w-full">
-
         <thead className="bg-slate-900 text-white">
-
           <tr>
             <th className="text-left p-4">SKU</th>
             <th className="text-left p-4">Catégorie</th>
@@ -15,11 +16,9 @@ export default function InventoryTable({ items = [] }) {
             <th className="text-left p-4">Statut</th>
             <th className="text-left p-4">Actions</th>
           </tr>
-
         </thead>
 
         <tbody>
-
           {items.length === 0 ? (
             <tr>
               <td
@@ -60,31 +59,29 @@ export default function InventoryTable({ items = [] }) {
                 </td>
 
                 <td className="p-4">
-
                   <span className="px-3 py-1 rounded-full text-xs bg-green-100 text-green-700">
                     {item.status}
                   </span>
-
                 </td>
 
                 <td className="p-4 space-x-3">
-
-                  <button className="text-blue-600 hover:underline">
+                  <button
+                    onClick={() => onEdit(item)}
+                    className="text-blue-600 hover:underline"
+                  >
                     Modifier
                   </button>
 
-                  <button className="text-red-600 hover:underline">
+                  <button
+                    className="text-red-600 hover:underline"
+                  >
                     Supprimer
                   </button>
-
                 </td>
-
               </tr>
             ))
           )}
-
         </tbody>
-
       </table>
     </div>
   );

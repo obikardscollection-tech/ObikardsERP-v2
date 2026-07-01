@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import axios from "axios";
 
@@ -9,7 +8,9 @@ import AddInventoryDrawer from "./components/drawer/AddInventoryDrawer";
 function App() {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
+
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [selectedItem, setSelectedItem] = useState(null);
 
   async function loadInventory() {
     try {
@@ -32,6 +33,21 @@ function App() {
     loadInventory();
   }, []);
 
+  function handleCreate() {
+    setSelectedItem(null);
+    setDrawerOpen(true);
+  }
+
+  function handleEdit(item) {
+    setSelectedItem(item);
+    setDrawerOpen(true);
+  }
+
+  function handleCloseDrawer() {
+    setDrawerOpen(false);
+    setSelectedItem(null);
+  }
+
   return (
     <div className="flex min-h-screen bg-gray-100">
       <Sidebar />
@@ -49,7 +65,7 @@ function App() {
           </div>
 
           <button
-            onClick={() => setDrawerOpen(true)}
+            onClick={handleCreate}
             className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-3 rounded-lg shadow"
           >
             + Ajouter un article
@@ -63,13 +79,15 @@ function App() {
         ) : (
           <InventoryTable
             items={items}
+            onEdit={handleEdit}
           />
         )}
       </main>
 
       <AddInventoryDrawer
         open={drawerOpen}
-        onClose={() => setDrawerOpen(false)}
+        item={selectedItem}
+        onClose={handleCloseDrawer}
         onCreated={loadInventory}
       />
     </div>
