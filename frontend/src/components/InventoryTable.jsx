@@ -2,20 +2,76 @@ export default function InventoryTable({
   items = [],
   onEdit,
   onDelete,
+  sortField,
+  sortDirection,
+  onSort,
 }) {
+  function renderSortIcon(field) {
+    if (sortField !== field) {
+      return (
+        <span className="ml-2 text-gray-400">
+          ↕
+        </span>
+      );
+    }
+
+    return (
+      <span className="ml-2">
+        {sortDirection === "asc" ? "▲" : "▼"}
+      </span>
+    );
+  }
+
+  function SortableHeader({ field, children }) {
+    return (
+      <th
+        onClick={() => onSort(field)}
+        className="text-left p-4 cursor-pointer select-none hover:bg-slate-800 transition"
+      >
+        <div className="flex items-center">
+          {children}
+          {renderSortIcon(field)}
+        </div>
+      </th>
+    );
+  }
+
   return (
     <div className="bg-white rounded-xl shadow overflow-hidden">
       <table className="w-full">
         <thead className="bg-slate-900 text-white">
           <tr>
-            <th className="text-left p-4">SKU</th>
-            <th className="text-left p-4">Catégorie</th>
-            <th className="text-left p-4">Titre</th>
-            <th className="text-left p-4">Achat</th>
-            <th className="text-left p-4">Vente</th>
-            <th className="text-left p-4">Qté</th>
-            <th className="text-left p-4">Statut</th>
-            <th className="text-left p-4">Actions</th>
+            <SortableHeader field="sku">
+              SKU
+            </SortableHeader>
+
+            <SortableHeader field="category">
+              Catégorie
+            </SortableHeader>
+
+            <SortableHeader field="title">
+              Titre
+            </SortableHeader>
+
+            <SortableHeader field="purchasePrice">
+              Achat
+            </SortableHeader>
+
+            <SortableHeader field="salePrice">
+              Vente
+            </SortableHeader>
+
+            <SortableHeader field="quantity">
+              Qté
+            </SortableHeader>
+
+            <SortableHeader field="status">
+              Statut
+            </SortableHeader>
+
+            <th className="text-left p-4">
+              Actions
+            </th>
           </tr>
         </thead>
 

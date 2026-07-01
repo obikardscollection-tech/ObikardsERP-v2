@@ -5,6 +5,9 @@ import Sidebar from "./components/Sidebar";
 import InventoryTable from "./components/InventoryTable";
 import AddInventoryDrawer from "./components/drawer/AddInventoryDrawer";
 import InventoryToolbar from "./components/inventory/InventoryToolbar";
+import InventoryStats from "./components/inventory/InventoryStats";
+
+import useSort from "./hooks/useSort";
 
 function App() {
   const [items, setItems] = useState([]);
@@ -74,6 +77,13 @@ function App() {
     });
   }, [items, searchTerm, categoryFilter, statusFilter]);
 
+  const {
+    sortedItems,
+    sortField,
+    sortDirection,
+    handleSort,
+  } = useSort(filteredItems);
+
   function resetFilters() {
     setSearchTerm("");
     setCategoryFilter("");
@@ -126,7 +136,7 @@ function App() {
             </h1>
 
             <p className="text-gray-500 mt-1">
-              {filteredItems.length} article(s)
+              {sortedItems.length} article(s)
             </p>
           </div>
 
@@ -137,6 +147,10 @@ function App() {
             + Ajouter un article
           </button>
         </div>
+
+        <InventoryStats
+          items={sortedItems}
+        />
 
         <InventoryToolbar
           searchTerm={searchTerm}
@@ -155,9 +169,12 @@ function App() {
           </div>
         ) : (
           <InventoryTable
-            items={filteredItems}
+            items={sortedItems}
             onEdit={handleEdit}
             onDelete={handleDelete}
+            sortField={sortField}
+            sortDirection={sortDirection}
+            onSort={handleSort}
           />
         )}
       </main>
