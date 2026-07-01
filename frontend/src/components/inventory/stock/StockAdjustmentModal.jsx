@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 
+import StockSummary from "./StockSummary";
 import StockHistory from "./StockHistory";
 
 const movementTypes = [
@@ -63,93 +64,106 @@ export default function StockAdjustmentModal({
 
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-      <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl p-6">
-        <h2 className="text-xl font-semibold mb-2">
-          Ajustement du stock
+      <div className="bg-white rounded-xl shadow-xl w-full max-w-4xl p-6 max-h-[90vh] overflow-y-auto">
+        <h2 className="text-2xl font-semibold mb-2">
+          Gestion du stock
         </h2>
 
         <p className="text-gray-600 mb-6">
           {item.title}
         </p>
 
-        <form
-          onSubmit={handleSubmit}
-          className="space-y-5"
-        >
-          <div>
-            <label className="block text-sm font-medium mb-2">
-              Quantité
-            </label>
+        <StockSummary
+          item={item}
+          movements={movements}
+        />
 
-            <input
-              type="number"
-              value={quantity}
-              onChange={(e) =>
-                setQuantity(e.target.value)
-              }
-              className="w-full border rounded-lg p-2"
-              required
-            />
-          </div>
+        <div className="border rounded-xl p-5 mb-6">
+          <h3 className="text-lg font-semibold mb-4">
+            Ajustement du stock
+          </h3>
 
-          <div>
-            <label className="block text-sm font-medium mb-2">
-              Type
-            </label>
+          <form
+            onSubmit={handleSubmit}
+            className="space-y-5"
+          >
+            <div>
+              <label className="block text-sm font-medium mb-2">
+                Quantité
+              </label>
 
-            <select
-              value={type}
-              onChange={(e) =>
-                setType(e.target.value)
-              }
-              className="w-full border rounded-lg p-2"
-            >
-              {movementTypes.map((movement) => (
-                <option
-                  key={movement.value}
-                  value={movement.value}
-                >
-                  {movement.label}
-                </option>
-              ))}
-            </select>
-          </div>
+              <input
+                type="number"
+                value={quantity}
+                onChange={(e) =>
+                  setQuantity(e.target.value)
+                }
+                className="w-full border rounded-lg p-2"
+                required
+              />
+            </div>
 
-          <div>
-            <label className="block text-sm font-medium mb-2">
-              Raison
-            </label>
+            <div>
+              <label className="block text-sm font-medium mb-2">
+                Type
+              </label>
 
-            <textarea
-              value={reason}
-              onChange={(e) =>
-                setReason(e.target.value)
-              }
-              rows={3}
-              className="w-full border rounded-lg p-2"
-            />
-          </div>
+              <select
+                value={type}
+                onChange={(e) =>
+                  setType(e.target.value)
+                }
+                className="w-full border rounded-lg p-2"
+              >
+                {movementTypes.map((movement) => (
+                  <option
+                    key={movement.value}
+                    value={movement.value}
+                  >
+                    {movement.label}
+                  </option>
+                ))}
+              </select>
+            </div>
 
-          <div className="flex justify-end gap-3">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 rounded-lg border"
-            >
-              Annuler
-            </button>
+            <div>
+              <label className="block text-sm font-medium mb-2">
+                Raison
+              </label>
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="px-4 py-2 rounded-lg bg-slate-900 text-white disabled:opacity-50"
-            >
-              {loading ? "Enregistrement..." : "Valider"}
-            </button>
-          </div>
-        </form>
+              <textarea
+                value={reason}
+                onChange={(e) =>
+                  setReason(e.target.value)
+                }
+                rows={3}
+                className="w-full border rounded-lg p-2"
+              />
+            </div>
 
-        <div className="mt-8 border-t pt-6">
+            <div className="flex justify-end gap-3">
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-4 py-2 rounded-lg border"
+              >
+                Annuler
+              </button>
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="px-4 py-2 rounded-lg bg-slate-900 text-white disabled:opacity-50"
+              >
+                {loading
+                  ? "Enregistrement..."
+                  : "Valider"}
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <div className="border rounded-xl p-5">
           <h3 className="text-lg font-semibold mb-4">
             Historique des mouvements
           </h3>
