@@ -6,6 +6,7 @@ import InventoryTable from "./components/InventoryTable";
 import AddInventoryDrawer from "./components/drawer/AddInventoryDrawer";
 import InventoryToolbar from "./components/inventory/InventoryToolbar";
 import InventoryStats from "./components/inventory/InventoryStats";
+import BulkActions from "./components/inventory/BulkActions";
 
 import useSort from "./hooks/useSort";
 
@@ -20,6 +21,8 @@ function App() {
   const [categoryFilter, setCategoryFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
 
+  const [selectedItems, setSelectedItems] = useState([]);
+
   async function loadInventory() {
     try {
       setLoading(true);
@@ -29,6 +32,7 @@ function App() {
       );
 
       setItems(data);
+      setSelectedItems([]);
     } catch (error) {
       console.error(error);
       alert("Impossible de charger l'inventaire.");
@@ -42,11 +46,13 @@ function App() {
   }, []);
 
   const categories = useMemo(() => {
-    return [...new Set(
-      items
-        .map((item) => item.category)
-        .filter(Boolean)
-    )].sort();
+    return [
+      ...new Set(
+        items
+          .map((item) => item.category)
+          .filter(Boolean)
+      ),
+    ].sort();
   }, [items]);
 
   const filteredItems = useMemo(() => {
@@ -84,10 +90,45 @@ function App() {
     handleSort,
   } = useSort(filteredItems);
 
+  function clearSelection() {
+    setSelectedItems([]);
+  }
+
   function resetFilters() {
     setSearchTerm("");
     setCategoryFilter("");
     setStatusFilter("");
+    clearSelection();
+  }
+
+  function handleToggleSelect(id) {
+    setSelectedItems((previous) => {
+      if (previous.includes(id)) {
+        return previous.filter(
+          (itemId) => itemId !== id
+        );
+      }
+
+      return [...previous, id];
+    });
+  }
+
+  function handleToggleSelectAll(currentItems) {
+    const ids = currentItems.map((item) => item.id);
+
+    const allSelected = ids.every((id) =>
+      selectedItems.includes(id)
+    );
+
+    if (allSelected) {
+      setSelectedItems((previous) =>
+        previous.filter((id) => !ids.includes(id))
+      );
+    } else {
+      setSelectedItems((previous) => [
+        ...new Set([...previous, ...ids]),
+      ]);
+    }
   }
 
   function handleCreate() {
@@ -163,6 +204,12 @@ function App() {
           onReset={resetFilters}
         />
 
+        <BulkActions
+          selectedItems={selectedItems}
+          loadInventory={loadInventory}
+          clearSelection={clearSelection}
+        />
+
         {loading ? (
           <div className="bg-white rounded-xl shadow p-8 text-center">
             Chargement...
@@ -175,6 +222,9 @@ function App() {
             sortField={sortField}
             sortDirection={sortDirection}
             onSort={handleSort}
+            selectedItems={selectedItems}
+            onToggleSelect={handleToggleSelect}
+            onToggleSelectAll={handleToggleSelectAll}
           />
         )}
       </main>

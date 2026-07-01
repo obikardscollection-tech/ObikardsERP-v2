@@ -5,6 +5,9 @@ export default function InventoryTable({
   sortField,
   sortDirection,
   onSort,
+  selectedItems,
+  onToggleSelect,
+  onToggleSelectAll,
 }) {
   function renderSortIcon(field) {
     if (sortField !== field) {
@@ -36,11 +39,24 @@ export default function InventoryTable({
     );
   }
 
+  const allSelected =
+    items.length > 0 &&
+    items.every((item) => selectedItems.includes(item.id));
+
   return (
     <div className="bg-white rounded-xl shadow overflow-hidden">
       <table className="w-full">
         <thead className="bg-slate-900 text-white">
           <tr>
+            <th className="p-4 w-12">
+              <input
+                type="checkbox"
+                checked={allSelected}
+                onChange={() => onToggleSelectAll(items)}
+                className="w-4 h-4"
+              />
+            </th>
+
             <SortableHeader field="sku">
               SKU
             </SortableHeader>
@@ -79,7 +95,7 @@ export default function InventoryTable({
           {items.length === 0 ? (
             <tr>
               <td
-                colSpan="8"
+                colSpan="9"
                 className="text-center text-gray-500 p-8"
               >
                 Aucun article dans l'inventaire.
@@ -89,8 +105,21 @@ export default function InventoryTable({
             items.map((item) => (
               <tr
                 key={item.id}
-                className="border-b hover:bg-gray-50"
+                className={`border-b hover:bg-gray-50 ${
+                  selectedItems.includes(item.id)
+                    ? "bg-blue-50"
+                    : ""
+                }`}
               >
+                <td className="p-4">
+                  <input
+                    type="checkbox"
+                    checked={selectedItems.includes(item.id)}
+                    onChange={() => onToggleSelect(item.id)}
+                    className="w-4 h-4"
+                  />
+                </td>
+
                 <td className="p-4 font-medium">
                   {item.sku}
                 </td>
@@ -116,7 +145,15 @@ export default function InventoryTable({
                 </td>
 
                 <td className="p-4">
-                  <span className="px-3 py-1 rounded-full text-xs bg-green-100 text-green-700">
+                  <span
+                    className={`px-3 py-1 rounded-full text-xs ${
+                      item.status === "IN_STOCK"
+                        ? "bg-green-100 text-green-700"
+                        : item.status === "SOLD"
+                        ? "bg-red-100 text-red-700"
+                        : "bg-yellow-100 text-yellow-700"
+                    }`}
+                  >
                     {item.status}
                   </span>
                 </td>
