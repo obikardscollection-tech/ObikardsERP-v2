@@ -1,0 +1,19 @@
+enum SalePlatform {
+  EBAY
+  WHATNOT
+  WOOCOMMERCE
+  INSTAGRAM
+  WEBSITE
+  CARD_SHOW
+  DIRECT
+  OTHER
+}
+
+enum SaleStatus {
+  PENDING
+  PAID
+  SHIPPED
+  COMPLETED
+  CANCELLED
+  REFUNDED
+}

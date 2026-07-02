@@ -1,0 +1,19 @@
+enum StockMovementType {
+  PURCHASE
+  SALE
+  ADJUSTMENT
+  RETURN
+  CORRECTION
+  IMPORT
+  EXPORT
+}
+
+enum StockMovementSource {
+  MANUAL
+  EBAY
+  WOOCOMMERCE
+  WHATNOT
+  API
+  SYSTEM
+  IMPORT
+}
