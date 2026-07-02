@@ -6,6 +6,10 @@ model Sale {
   platform SalePlatform
   status   SaleStatus @default(PENDING)
 
+  customerId String?
+
+  customer Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
+
   customerName  String?
   customerEmail String?
 
@@ -31,4 +35,5 @@ model Sale {
   @@index([platform])
   @@index([status])
   @@index([soldAt])
+  @@index([customerId])
 }

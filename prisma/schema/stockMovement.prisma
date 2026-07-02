@@ -1,22 +1,15 @@
 model StockMovement {
-  id String @id @default(cuid())
-
-  inventoryId String
-  inventory Inventory @relation(fields: [inventoryId], references: [id], onDelete: Cascade)
-
-  type StockMovementType
-  source StockMovementSource @default(MANUAL)
-
-  quantity Int
-
+  id               String              @id @default(cuid())
+  inventoryId      String
+  type             StockMovementType
+  source           StockMovementSource @default(MANUAL)
+  quantity         Int
   previousQuantity Int
-  newQuantity Int
-
-  reason String?
-
-  userId String?
-
-  createdAt DateTime @default(now())
+  newQuantity      Int
+  reason           String?
+  userId           String?
+  createdAt        DateTime            @default(now())
+  inventory        Inventory           @relation(fields: [inventoryId], references: [id], onDelete: Cascade)
 
   @@index([inventoryId])
   @@index([type])

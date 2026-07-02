@@ -1,21 +1,15 @@
 model SaleItem {
-  id String @id @default(cuid())
-
-  saleId String
-  sale Sale @relation(fields: [saleId], references: [id], onDelete: Cascade)
-
-  inventoryId String
-  inventory Inventory @relation(fields: [inventoryId], references: [id], onDelete: Restrict)
-
-  quantity Int @default(1)
-
-  unitPrice Float
-  totalPrice Float
-
+  id                    String    @id @default(cuid())
+  saleId                String
+  inventoryId           String
+  quantity              Int       @default(1)
+  unitPrice             Float
+  totalPrice            Float
   purchasePriceSnapshot Float?
   profitSnapshot        Float?
-
-  createdAt DateTime @default(now())
+  createdAt             DateTime  @default(now())
+  inventory             Inventory @relation(fields: [inventoryId], references: [id])
+  sale                  Sale      @relation(fields: [saleId], references: [id], onDelete: Cascade)
 
   @@index([saleId])
   @@index([inventoryId])

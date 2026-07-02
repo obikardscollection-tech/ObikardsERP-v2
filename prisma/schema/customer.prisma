@@ -1,0 +1,25 @@
+model Customer {
+  id String @id @default(cuid())
+
+  firstName String?
+  lastName  String?
+  company   String?
+
+  email String? @unique
+  phone String?
+
+  address    String?
+  postalCode String?
+  city       String?
+  country    String?
+
+  notes String?
+
+  sales Sale[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([lastName])
+  @@index([email])
+}
