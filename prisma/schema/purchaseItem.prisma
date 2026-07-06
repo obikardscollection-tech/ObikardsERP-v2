@@ -9,7 +9,7 @@ model PurchaseItem {
 
   quantity Int @default(1)
 
-  unitPrice Float
+  unitPrice  Float
   totalPrice Float
 
   createdAt DateTime @default(now())

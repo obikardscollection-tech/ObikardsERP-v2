@@ -1,21 +1,21 @@
 model Inventory {
-  id             String          @id @default(cuid())
-  sku            String          @unique
+  id             String    @id @default(cuid())
+  sku            String    @unique
   category       String
   title          String
   purchasePrice  Float?
   salePrice      Float?
-  quantity       Int             @default(1)
-  status         String          @default("IN_STOCK")
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
+  quantity       Int       @default(1)
+  status         String    @default("IN_STOCK")
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
   location       String?
   notes          String?
-  autograph      Boolean         @default(false)
+  autograph      Boolean   @default(false)
   backPhoto      String?
   brand          String?
   cardNumber     String?
-  caseHit        Boolean         @default(false)
+  caseHit        Boolean   @default(false)
   certification  String?
   confidence     String?
   customsCost    Float?
@@ -24,25 +24,25 @@ model Inventory {
   goal           String?
   grade          String?
   gradeCompany   String?
-  graded         Boolean         @default(false)
-  memorabilia    Boolean         @default(false)
+  graded         Boolean   @default(false)
+  memorabilia    Boolean   @default(false)
   minimumPrice   Float?
-  numbered       Boolean         @default(false)
+  numbered       Boolean   @default(false)
   origin         String?
   parallel       String?
-  patch          Boolean         @default(false)
+  patch          Boolean   @default(false)
   player         String?
   priority       String?
   product        String?
   purchaseDate   DateTime?
   purchaseSource String?
-  rookie         Boolean         @default(false)
+  rookie         Boolean   @default(false)
   serialNumber   String?
   series         String?
   shippingCost   Float?
-  sp             Boolean         @default(false)
+  sp             Boolean   @default(false)
   sport          String?
-  ssp            Boolean         @default(false)
+  ssp            Boolean   @default(false)
   supplier       String?
   taxes          Float?
   team           String?
