@@ -1,0 +1,19 @@
+model PurchaseItem {
+  id String @id @default(cuid())
+
+  purchaseId String
+  purchase   Purchase @relation(fields: [purchaseId], references: [id], onDelete: Cascade)
+
+  inventoryId String
+  inventory   Inventory @relation(fields: [inventoryId], references: [id], onDelete: Restrict)
+
+  quantity Int @default(1)
+
+  unitPrice Float
+  totalPrice Float
+
+  createdAt DateTime @default(now())
+
+  @@index([purchaseId])
+  @@index([inventoryId])
+}

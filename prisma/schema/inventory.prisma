@@ -48,6 +48,8 @@ model Inventory {
   team           String?
   variant        String?
   year           Int?
+
   saleItems      SaleItem[]
+  purchaseItems  PurchaseItem[]
   stockMovements StockMovement[]
 }

@@ -1,0 +1,16 @@
+enum PurchasePlatform {
+  EBAY
+  WHATNOT
+  WOOCOMMERCE
+  CARDMARKET
+  WEBSITE
+  DIRECT
+  CARD_SHOW
+  OTHER
+}
+
+enum PurchaseStatus {
+  PENDING
+  RECEIVED
+  CANCELLED
+}
