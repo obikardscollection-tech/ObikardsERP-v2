@@ -12,6 +12,7 @@ npm-debug.log*
 
 # Build
 dist/
+backend/dist/
 frontend/dist/
 
 # OS
@@ -23,3 +24,4 @@ Thumbs.db
 
 # Prisma
 prisma/dev.db
+backend/prisma/dev.db
