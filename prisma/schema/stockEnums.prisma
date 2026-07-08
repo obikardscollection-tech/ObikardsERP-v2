@@ -1,19 +1,43 @@
 enum StockMovementType {
   PURCHASE
   SALE
+
+  RECEIPT
   ADJUSTMENT
-  RETURN
   CORRECTION
+  RETURN
+
   IMPORT
   EXPORT
+
+  TRANSFER
+
+  INVENTORY
+
+  RESERVED
+
+  RELEASED
 }
 
 enum StockMovementSource {
   MANUAL
+
+  SYSTEM
+
+  PURCHASE
+  SALE
+
   EBAY
   WOOCOMMERCE
   WHATNOT
+
+  CARDHEDGE
+
+  SCANNER
+
   API
-  SYSTEM
+
   IMPORT
+
+  INVENTORY
 }

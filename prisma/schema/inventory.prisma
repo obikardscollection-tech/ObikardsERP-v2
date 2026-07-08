@@ -1,16 +1,26 @@
 model Inventory {
   id             String    @id @default(cuid())
   sku            String    @unique
+
+  purchaseItemId String?
+  purchaseItem   PurchaseItem? @relation(fields: [purchaseItemId], references: [id], onDelete: SetNull)
+
   category       String
   title          String
+
   purchasePrice  Float?
   salePrice      Float?
+
   quantity       Int       @default(1)
+
   status         String    @default("IN_STOCK")
+
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
+
   location       String?
   notes          String?
+
   autograph      Boolean   @default(false)
   backPhoto      String?
   brand          String?
@@ -50,6 +60,7 @@ model Inventory {
   year           Int?
 
   saleItems      SaleItem[]
-  purchaseItems  PurchaseItem[]
   stockMovements StockMovement[]
+
+  @@index([purchaseItemId])
 }

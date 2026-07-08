@@ -6,11 +6,16 @@ enum PurchasePlatform {
   WEBSITE
   DIRECT
   CARD_SHOW
+  FACEBOOK
+  INSTAGRAM
+  SHOP
+  DISTRIBUTOR
   OTHER
 }
 
 enum PurchaseStatus {
   PENDING
+  PARTIALLY_RECEIVED
   RECEIVED
   CANCELLED
 }

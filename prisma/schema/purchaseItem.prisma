@@ -2,18 +2,32 @@ model PurchaseItem {
   id String @id @default(cuid())
 
   purchaseId String
-  purchase   Purchase @relation(fields: [purchaseId], references: [id], onDelete: Cascade)
+  purchase Purchase @relation(fields: [purchaseId], references: [id], onDelete: Cascade)
 
-  inventoryId String
-  inventory   Inventory @relation(fields: [inventoryId], references: [id], onDelete: Restrict)
+  name String
+
+  cardReference String?
 
   quantity Int @default(1)
 
-  unitPrice  Float
+  unitPrice Float
   totalPrice Float
 
+  condition String?
+
+  sku String?
+
+  notes String?
+
+  inventoryCreated Boolean @default(false)
+
+  inventory Inventory[]
+
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([purchaseId])
-  @@index([inventoryId])
+  @@index([name])
+  @@index([cardReference])
+  @@index([inventoryCreated])
 }

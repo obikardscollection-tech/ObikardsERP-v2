@@ -4,22 +4,25 @@ model Sale {
   orderNumber String @unique
 
   platform SalePlatform
-  status   SaleStatus   @default(PENDING)
+  status SaleStatus @default(PENDING)
 
   customerId String?
-
   customer Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
 
-  customerName  String?
+  customerName String?
   customerEmail String?
 
   shippingCost Float @default(0)
   platformFees Float @default(0)
-  taxes        Float @default(0)
-  discount     Float @default(0)
+  taxes Float @default(0)
+  discount Float @default(0)
+
+  totalItems Int @default(0)
 
   totalAmount Float @default(0)
-  profit      Float @default(0)
+  profit Float @default(0)
+
+  currency String @default("EUR")
 
   notes String?
 
@@ -36,4 +39,5 @@ model Sale {
   @@index([status])
   @@index([soldAt])
   @@index([customerId])
+  @@index([currency])
 }

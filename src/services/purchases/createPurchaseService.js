@@ -1,30 +1,61 @@
 const prisma = require("../../lib/prisma");
 
+const { calculatePurchase } = require("./calculatePurchaseService");
+const { createPurchaseItems } = require("./createPurchaseItemsService");
+
 async function createPurchase(data) {
-  const purchase = await prisma.purchase.create({
-    data: {
-      purchaseNumber: data.purchaseNumber,
+  return prisma.$transaction(async (tx) => {
+    const items = data.items || data.purchaseItems;
 
-      supplierId: data.supplierId,
+    const calculation = calculatePurchase(
+      items,
+      data.shippingCost,
+      data.taxes,
+      data.discount
+    );
 
-      platform: data.platform,
-      status: data.status || "PENDING",
+    const purchase = await tx.purchase.create({
+      data: {
+        purchaseNumber: data.purchaseNumber,
 
-      shippingCost: data.shippingCost || 0,
-      taxes: data.taxes || 0,
-      discount: data.discount || 0,
+        supplierId: data.supplierId,
 
-      totalAmount: data.totalAmount || 0,
+        platform: data.platform,
+        status: data.status || "PENDING",
 
-      notes: data.notes || null,
+        shippingCost: Number(data.shippingCost || 0),
+        taxes: Number(data.taxes || 0),
+        discount: Number(data.discount || 0),
 
-      purchasedAt: data.purchasedAt
-        ? new Date(data.purchasedAt)
-        : new Date(),
-    },
+        totalItems: calculation.totalItems,
+        totalAmount: calculation.totalAmount,
+
+        currency: data.currency || "EUR",
+
+        notes: data.notes || null,
+
+        purchasedAt: data.purchasedAt
+          ? new Date(data.purchasedAt)
+          : new Date(),
+      },
+    });
+
+    await createPurchaseItems(
+      tx,
+      purchase.id,
+      calculation.purchaseItems
+    );
+
+    return tx.purchase.findUnique({
+      where: {
+        id: purchase.id,
+      },
+      include: {
+        supplier: true,
+        purchaseItems: true,
+      },
+    });
   });
-
-  return purchase;
 }
 
 module.exports = {

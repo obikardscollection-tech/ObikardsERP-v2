@@ -11,6 +11,21 @@ async function updatePurchase(id, data) {
     throw new Error("Achat introuvable.");
   }
 
+  const purchaseItems = await prisma.purchaseItem.findMany({
+    where: {
+      purchaseId: id,
+    },
+  });
+
+  const { calculatePurchase } = require("./calculatePurchaseService");
+
+  const calculation = calculatePurchase(
+    purchaseItems,
+    data.shippingCost,
+    data.taxes,
+    data.discount
+  );
+
   const purchase = await prisma.purchase.update({
     where: {
       id,
@@ -24,7 +39,8 @@ async function updatePurchase(id, data) {
       taxes: data.taxes || 0,
       discount: data.discount || 0,
 
-      totalAmount: data.totalAmount || 0,
+      totalItems: calculation.totalItems,
+      totalAmount: calculation.totalAmount,
 
       notes: data.notes || null,
 
