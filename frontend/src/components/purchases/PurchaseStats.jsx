@@ -1,54 +1,38 @@
 import {
-  ShoppingCart,
+  Calendar,
   Euro,
   Package,
-  Calendar,
+  ShoppingCart,
 } from "lucide-react";
 
-function PurchaseStats({
-  purchases = [],
-}) {
-  const totalPurchases =
-    purchases.length;
+function PurchaseStats({ purchases = [] }) {
+  const totalPurchases = purchases.length;
 
-  const totalAmount =
-    purchases.reduce(
-      (total, purchase) =>
-        total +
-        Number(
-          purchase.totalAmount ?? 0
-        ),
-      0
+  const totalAmount = purchases.reduce(
+    (total, purchase) =>
+      total + Number(purchase.totalAmount ?? 0),
+    0
+  );
+
+  const totalItems = purchases.reduce(
+    (total, purchase) =>
+      total + Number(purchase.totalItems ?? 0),
+    0
+  );
+
+  const thisMonth = purchases.filter((purchase) => {
+    if (!purchase.purchasedAt) {
+      return false;
+    }
+
+    const date = new Date(purchase.purchasedAt);
+    const now = new Date();
+
+    return (
+      date.getMonth() === now.getMonth() &&
+      date.getFullYear() === now.getFullYear()
     );
-
-  const totalItems =
-    purchases.reduce(
-      (total, purchase) =>
-        total +
-        Number(
-          purchase.totalItems ?? 0
-        ),
-      0
-    );
-
-  const thisMonth =
-    purchases.filter((purchase) => {
-      if (!purchase.createdAt)
-        return false;
-
-      const date = new Date(
-        purchase.createdAt
-      );
-
-      const now = new Date();
-
-      return (
-        date.getMonth() ===
-          now.getMonth() &&
-        date.getFullYear() ===
-          now.getFullYear()
-      );
-    }).length;
+  }).length;
 
   const stats = [
     {
@@ -58,13 +42,11 @@ function PurchaseStats({
     },
     {
       title: "Montant total",
-      value: `${totalAmount.toFixed(
-        2
-      )} €`,
+      value: `${totalAmount.toFixed(2)} EUR`,
       icon: Euro,
     },
     {
-      title: "Articles achetés",
+      title: "Articles achetes",
       value: totalItems,
       icon: Package,
     },

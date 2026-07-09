@@ -36,6 +36,11 @@ const menu = [
     to: "/purchases",
   },
   {
+    icon: Receipt,
+    label: "Réceptions",
+    to: "/receptions",
+  },
+  {
     icon: ShoppingCart,
     label: "Ventes",
     to: "/sales",

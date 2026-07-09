@@ -5,6 +5,7 @@ import Inventory from "../pages/Inventory";
 import Customers from "../pages/Customers";
 import Suppliers from "../pages/Suppliers";
 import Purchases from "../pages/Purchases";
+import Receptions from "../pages/Receptions";
 import Sales from "../pages/Sales";
 import Expenses from "../pages/Expenses";
 
@@ -18,6 +19,7 @@ function AppRoutes() {
       <Route path="/customers" element={<Customers />} />
       <Route path="/suppliers" element={<Suppliers />} />
       <Route path="/purchases" element={<Purchases />} />
+      <Route path="/receptions" element={<Receptions />} />
       <Route path="/sales" element={<Sales />} />
       <Route path="/expenses" element={<Expenses />} />
     </Routes>
