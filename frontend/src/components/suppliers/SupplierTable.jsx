@@ -14,6 +14,10 @@ function SupplierTable({
         <thead className="bg-slate-100">
           <tr>
             <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">
+              Référence
+            </th>
+
+            <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">
               Nom
             </th>
 
@@ -39,7 +43,7 @@ function SupplierTable({
           {suppliers.length === 0 ? (
             <tr>
               <td
-                colSpan="5"
+                colSpan="6"
                 className="px-6 py-10 text-center text-slate-500"
               >
                 Aucun fournisseur.
@@ -51,6 +55,10 @@ function SupplierTable({
                 key={supplier.id}
                 className="border-t"
               >
+                <td className="px-6 py-4 font-mono font-semibold text-blue-600">
+                  {supplier.supplierNumber || "-"}
+                </td>
+
                 <td className="px-6 py-4 font-medium">
                   {supplier.name}
                 </td>

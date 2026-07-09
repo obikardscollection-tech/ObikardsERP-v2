@@ -9,3 +9,4 @@ export { PURCHASE_STATUS_LABELS, getPurchaseStatusLabel } from "./purchaseStatus
 export { PURCHASE_SOURCE_LABELS, getPurchaseSourceLabel } from "./purchaseSourceLabels";
 export { RECEPTION_STATUS_LABELS, getReceptionStatusLabel } from "./receptionStatusLabels";
 export { COMMON_LABELS, getCommonLabel } from "./commonLabels";
+export { INVENTORY_CATEGORY_LABELS, getInventoryCategoryLabel, INVENTORY_STATUS_LABELS, getInventoryStatusLabel, STOCK_MOVEMENT_TYPE_LABELS, getStockMovementTypeLabel } from "./inventoryLabels";

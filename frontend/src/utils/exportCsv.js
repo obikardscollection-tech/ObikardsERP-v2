@@ -1,3 +1,5 @@
+import { getInventoryCategoryLabel, getInventoryStatusLabel } from "../constants/labels";
+
 export default function exportCsv(items) {
   if (!items || items.length === 0) {
     alert("Aucun article à exporter.");
@@ -16,12 +18,12 @@ export default function exportCsv(items) {
 
   const rows = items.map((item) => [
     item.sku,
-    item.category,
+    getInventoryCategoryLabel(item.category),
     item.title,
     item.purchasePrice ?? "",
     item.salePrice ?? "",
     item.quantity,
-    item.status,
+    getInventoryStatusLabel(item.status),
   ]);
 
   const csvContent = [

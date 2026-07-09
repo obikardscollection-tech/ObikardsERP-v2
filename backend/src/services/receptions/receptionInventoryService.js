@@ -1,27 +1,7 @@
-async function generateReceptionSku(tx) {
-  const prefix = "REC";
-
-  const lastItem = await tx.inventory.findFirst({
-    orderBy: {
-      createdAt: "desc",
-    },
-  });
-
-  let next = 1;
-
-  if (lastItem?.sku) {
-    const parts = lastItem.sku.split("-");
-
-    if (parts.length === 2) {
-      const lastNumber = Number(parts[1]);
-
-      if (!Number.isNaN(lastNumber)) {
-        next = lastNumber + 1;
-      }
-    }
-  }
-
-  return `${prefix}-${String(next).padStart(6, "0")}`;
+async function generateReceptionSku(tx, receptionItemId) {
+  // Use receptionItemId in SKU to ensure uniqueness per reception item
+  const timestamp = Date.now();
+  return `REC-${timestamp}-${receptionItemId.substring(0, 8)}`;
 }
 
 function buildInventoryData({
@@ -85,7 +65,7 @@ async function createInventoryFromReceptionItem(
     receptionItem,
   });
 
-  const sku = await generateReceptionSku(tx);
+  const sku = await generateReceptionSku(tx, receptionItem.id);
 
   return tx.inventory.create({
     data: {

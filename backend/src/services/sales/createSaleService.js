@@ -3,14 +3,17 @@ const prisma = require("../../lib/prisma");
 const { calculateSale } = require("./calculateSaleService");
 const { createSaleItems } = require("./createSaleItemsService");
 const { finalizeSale } = require("./finalizeSaleService");
+const { generateReference } = require("../common/referenceGeneratorService");
 
 async function createSale(data) {
   return prisma.$transaction(async (tx) => {
     const calculation = await calculateSale(tx, data.items);
 
+    const orderNumber = await generateReference("SAL", tx);
+
     const sale = await tx.sale.create({
       data: {
-        orderNumber: data.orderNumber,
+        orderNumber,
         platform: data.platform,
 
         customerName: data.customerName || null,

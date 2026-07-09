@@ -11,24 +11,25 @@ async function updateCustomer(id, data) {
     throw new Error("Client introuvable.");
   }
 
+  // Note: customerNumber is immutable and cannot be modified
   const customer = await prisma.customer.update({
     where: {
       id,
     },
     data: {
-      firstName: data.firstName || null,
-      lastName: data.lastName || null,
-      company: data.company || null,
+      firstName: data.firstName !== undefined ? data.firstName : existingCustomer.firstName,
+      lastName: data.lastName !== undefined ? data.lastName : existingCustomer.lastName,
+      company: data.company !== undefined ? data.company : existingCustomer.company,
 
-      email: data.email || null,
-      phone: data.phone || null,
+      email: data.email !== undefined ? data.email : existingCustomer.email,
+      phone: data.phone !== undefined ? data.phone : existingCustomer.phone,
 
-      address: data.address || null,
-      postalCode: data.postalCode || null,
-      city: data.city || null,
-      country: data.country || null,
+      address: data.address !== undefined ? data.address : existingCustomer.address,
+      postalCode: data.postalCode !== undefined ? data.postalCode : existingCustomer.postalCode,
+      city: data.city !== undefined ? data.city : existingCustomer.city,
+      country: data.country !== undefined ? data.country : existingCustomer.country,
 
-      notes: data.notes || null,
+      notes: data.notes !== undefined ? data.notes : existingCustomer.notes,
     },
   });
 

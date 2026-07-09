@@ -16,7 +16,7 @@ async function updateSale(id, data) {
       id,
     },
     data: {
-      orderNumber: data.orderNumber || existingSale.orderNumber,
+      // orderNumber is immutable after creation
       platform: data.platform || existingSale.platform,
       status: data.status || existingSale.status,
       customerId: data.customerId ?? existingSale.customerId,

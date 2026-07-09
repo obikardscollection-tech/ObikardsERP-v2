@@ -2,6 +2,8 @@ const prisma = require("../../lib/prisma");
 
 const { calculatePurchase } = require("./calculatePurchaseService");
 const { createPurchaseItems } = require("./createPurchaseItemsService");
+const { autoCreateReception } = require("../receptions/autoCreateReceptionService");
+const { generateReference } = require("../common/referenceGeneratorService");
 
 async function createPurchase(data) {
   return prisma.$transaction(async (tx) => {
@@ -14,9 +16,11 @@ async function createPurchase(data) {
       data.discount
     );
 
+    const purchaseNumber = await generateReference("PUR", tx);
+
     const purchase = await tx.purchase.create({
       data: {
-        purchaseNumber: data.purchaseNumber,
+        purchaseNumber,
 
         supplierId: data.supplierId,
 
@@ -46,7 +50,8 @@ async function createPurchase(data) {
       calculation.purchaseItems
     );
 
-    return tx.purchase.findUnique({
+    // Fetch purchase avec items pour créer la réception
+    const purchaseWithItems = await tx.purchase.findUnique({
       where: {
         id: purchase.id,
       },
@@ -55,6 +60,11 @@ async function createPurchase(data) {
         purchaseItems: true,
       },
     });
+
+    // Créer automatiquement une réception
+    await autoCreateReception(tx, purchaseWithItems);
+
+    return purchaseWithItems;
   });
 }
 

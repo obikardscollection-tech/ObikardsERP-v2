@@ -50,8 +50,7 @@ async function updateExpense(id, data) {
       id,
     },
     data: {
-      expenseNumber: data.expenseNumber,
-
+      // expenseNumber is immutable after creation
       category: normalizeEnumValue(data.category, "OTHER"),
 
       supplierId: data.supplierId || null,

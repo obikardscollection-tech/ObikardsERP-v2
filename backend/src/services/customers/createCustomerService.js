@@ -1,25 +1,32 @@
 const prisma = require("../../lib/prisma");
+const { generateReference } = require("../common/referenceGeneratorService");
 
 async function createCustomer(data) {
-  const customer = await prisma.customer.create({
-    data: {
-      firstName: data.firstName || null,
-      lastName: data.lastName || null,
-      company: data.company || null,
+  return prisma.$transaction(async (tx) => {
+    const customerNumber = await generateReference("CUS", tx);
 
-      email: data.email || null,
-      phone: data.phone || null,
+    const customer = await tx.customer.create({
+      data: {
+        customerNumber,
+        
+        firstName: data.firstName || null,
+        lastName: data.lastName || null,
+        company: data.company || null,
 
-      address: data.address || null,
-      postalCode: data.postalCode || null,
-      city: data.city || null,
-      country: data.country || null,
+        email: data.email || null,
+        phone: data.phone || null,
 
-      notes: data.notes || null,
-    },
+        address: data.address || null,
+        postalCode: data.postalCode || null,
+        city: data.city || null,
+        country: data.country || null,
+
+        notes: data.notes || null,
+      },
+    });
+
+    return customer;
   });
-
-  return customer;
 }
 
 module.exports = {

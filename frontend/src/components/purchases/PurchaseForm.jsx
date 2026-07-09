@@ -5,12 +5,12 @@ import {
   createPurchase,
   updatePurchase,
 } from "../../services/purchaseService";
+import { getPurchaseSourceLabel, getPurchaseStatusLabel } from "../../constants/labels";
 import PurchaseItems, { emptyItem } from "./PurchaseItems";
 
 const defaultForm = {
-  purchaseNumber: "",
   supplierId: "",
-  platform: "OTHER",
+  platform: "DIRECT",
   status: "PENDING",
   shippingCost: 0,
   taxes: 0,
@@ -66,9 +66,8 @@ function PurchaseForm({
   useEffect(() => {
     if (purchase) {
       setForm({
-        purchaseNumber: purchase.purchaseNumber ?? "",
         supplierId: purchase.supplierId ?? "",
-        platform: purchase.platform ?? "OTHER",
+        platform: purchase.platform ?? "DIRECT",
         status: purchase.status ?? "PENDING",
         shippingCost: purchase.shippingCost ?? 0,
         taxes: purchase.taxes ?? 0,
@@ -144,11 +143,6 @@ function PurchaseForm({
   function validate() {
     const newErrors = {};
 
-    if (!form.purchaseNumber.trim()) {
-      newErrors.purchaseNumber =
-        "Le numero d'achat est obligatoire.";
-    }
-
     if (!form.supplierId) {
       newErrors.supplierId =
         "Le fournisseur est obligatoire.";
@@ -190,7 +184,6 @@ function PurchaseForm({
 
   function buildPayload() {
     const payload = {
-      purchaseNumber: form.purchaseNumber,
       supplierId: form.supplierId,
       platform: form.platform,
       status: form.status,
@@ -249,22 +242,6 @@ function PurchaseForm({
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="grid gap-4 md:grid-cols-2">
         <div>
-          <input
-            className="w-full rounded-lg border p-3"
-            name="purchaseNumber"
-            placeholder="Numero d'achat"
-            value={form.purchaseNumber}
-            onChange={handleChange}
-          />
-
-          {errors.purchaseNumber && (
-            <p className="mt-1 text-sm text-red-600">
-              {errors.purchaseNumber}
-            </p>
-          )}
-        </div>
-
-        <div>
           <select
             className="w-full rounded-lg border p-3"
             name="supplierId"
@@ -297,7 +274,7 @@ function PurchaseForm({
         >
           {platforms.map((platform) => (
             <option key={platform} value={platform}>
-              {platform}
+              {getPurchaseSourceLabel(platform)}
             </option>
           ))}
         </select>
@@ -310,7 +287,7 @@ function PurchaseForm({
         >
           {statuses.map((status) => (
             <option key={status} value={status}>
-              {status}
+              {getPurchaseStatusLabel(status)}
             </option>
           ))}
         </select>

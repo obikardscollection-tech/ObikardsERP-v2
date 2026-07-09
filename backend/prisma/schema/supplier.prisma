@@ -1,6 +1,8 @@
 model Supplier {
   id String @id @default(cuid())
 
+  supplierNumber String @unique
+  
   name String
   company String?
 

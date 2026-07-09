@@ -1,38 +1,40 @@
+import { getStockMovementTypeLabel } from "../../../constants/labels";
+
 function getTypeConfig(type) {
   switch (type) {
     case "PURCHASE":
       return {
-        label: "Achat",
+        label: getStockMovementTypeLabel("PURCHASE"),
         badge: "bg-blue-100 text-blue-700",
       };
 
     case "SALE":
       return {
-        label: "Vente",
+        label: getStockMovementTypeLabel("SALE"),
         badge: "bg-red-100 text-red-700",
       };
 
     case "RETURN":
       return {
-        label: "Retour",
+        label: getStockMovementTypeLabel("RETURN"),
         badge: "bg-green-100 text-green-700",
       };
 
     case "ADJUSTMENT":
       return {
-        label: "Ajustement",
+        label: getStockMovementTypeLabel("ADJUSTMENT"),
         badge: "bg-orange-100 text-orange-700",
       };
 
     case "CORRECTION":
       return {
-        label: "Correction",
+        label: getStockMovementTypeLabel("CORRECTION"),
         badge: "bg-purple-100 text-purple-700",
       };
 
     default:
       return {
-        label: type,
+        label: getStockMovementTypeLabel(type),
         badge: "bg-gray-100 text-gray-700",
       };
   }

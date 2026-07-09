@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { getStockMovementTypeLabel } from "../../../constants/labels";
 
 import StockSummary from "./StockSummary";
 import StockHistory from "./StockHistory";
@@ -6,23 +7,23 @@ import StockHistory from "./StockHistory";
 const movementTypes = [
   {
     value: "ADJUSTMENT",
-    label: "Ajustement",
+    label: getStockMovementTypeLabel("ADJUSTMENT"),
   },
   {
     value: "PURCHASE",
-    label: "Achat",
+    label: getStockMovementTypeLabel("PURCHASE"),
   },
   {
     value: "SALE",
-    label: "Vente",
+    label: getStockMovementTypeLabel("SALE"),
   },
   {
     value: "RETURN",
-    label: "Retour",
+    label: getStockMovementTypeLabel("RETURN"),
   },
   {
     value: "CORRECTION",
-    label: "Correction",
+    label: getStockMovementTypeLabel("CORRECTION"),
   },
 ];
 

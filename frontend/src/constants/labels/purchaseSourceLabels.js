@@ -1,12 +1,18 @@
 /**
- * Traductions centralisées des sources d'achat
+ * Traductions centralisées des plateformes/sources d'achat
  */
 export const PURCHASE_SOURCE_LABELS = {
-  SUPPLIER: "Fournisseur",
-  INDIVIDUAL: "Particulier",
-  CARD_SHOW: "Salon",
-  MARKETPLACE: "Marketplace",
+  EBAY: "eBay",
+  WHATNOT: "Whatnot",
+  WOOCOMMERCE: "WooCommerce",
+  CARDMARKET: "CardMarket",
+  WEBSITE: "Site web",
   DIRECT: "Achat direct",
+  CARD_SHOW: "Salon",
+  FACEBOOK: "Facebook",
+  INSTAGRAM: "Instagram",
+  SHOP: "Boutique",
+  DISTRIBUTOR: "Distributeur",
   OTHER: "Autre",
 };
 

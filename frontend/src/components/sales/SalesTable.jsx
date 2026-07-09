@@ -19,7 +19,7 @@ function SalesTable({ sales = [], onView, onEdit, onDelete }) {
       <table className="min-w-full">
         <thead className="bg-slate-100">
           <tr>
-            <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">N° vente</th>
+            <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">Référence</th>
             <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">Date</th>
             <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">Client</th>
             <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">Plateforme</th>
@@ -40,7 +40,7 @@ function SalesTable({ sales = [], onView, onEdit, onDelete }) {
           ) : (
             sales.map((sale) => (
               <tr key={sale.id} className="border-t">
-                <td className="px-6 py-4 font-medium">{sale.orderNumber}</td>
+                <td className="px-6 py-4 font-mono font-semibold text-blue-600">{sale.orderNumber || "-"}</td>
                 <td className="px-6 py-4">{formatDate(sale.soldAt)}</td>
                 <td className="px-6 py-4">{sale.customer?.name || sale.customerName || sale.customer?.company || "-"}</td>
                 <td className="px-6 py-4">{getSalePlatformLabel(sale.platform) || "-"}</td>

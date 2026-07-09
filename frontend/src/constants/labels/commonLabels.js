@@ -24,6 +24,9 @@ export const COMMON_LABELS = {
   DATE: "Date",
   STATUS: "Statut",
   QUANTITY: "Quantité",
+  PAID: "Payée",
+  PENDING: "En attente",
+  REFUNDED: "Remboursée",
 };
 
 export const getCommonLabel = (key) => {

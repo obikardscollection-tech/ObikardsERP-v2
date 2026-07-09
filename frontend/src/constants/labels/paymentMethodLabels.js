@@ -7,6 +7,7 @@ export const PAYMENT_METHOD_LABELS = {
   BANK_TRANSFER: "Virement",
   PAYPAL: "PayPal",
   CHECK: "Chèque",
+  STRIPE: "Stripe",
   OTHER: "Autre",
 };
 

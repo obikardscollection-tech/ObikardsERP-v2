@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
+import { getPurchaseSourceLabel, getPurchaseStatusLabel } from "../../constants/labels";
 
 const defaultForm = {
-  orderNumber: "",
   customerId: "",
   customerName: "",
   customerEmail: "",
-  platform: "OTHER",
+  platform: "DIRECT",
   status: "PENDING",
   shippingCost: 0,
   platformFees: 0,
@@ -37,11 +37,10 @@ function SaleForm({ sale, inventoryItems = [], customers = [], onClose, onSaved,
   useEffect(() => {
     if (sale) {
       setForm({
-        orderNumber: sale.orderNumber || "",
         customerId: sale.customerId || "",
         customerName: sale.customerName || "",
         customerEmail: sale.customerEmail || "",
-        platform: sale.platform || "OTHER",
+        platform: sale.platform || "DIRECT",
         status: sale.status || "PENDING",
         shippingCost: sale.shippingCost ?? 0,
         platformFees: sale.platformFees ?? 0,
@@ -78,10 +77,6 @@ function SaleForm({ sale, inventoryItems = [], customers = [], onClose, onSaved,
   function validate() {
     const newErrors = {};
 
-    if (!form.orderNumber.trim()) {
-      newErrors.orderNumber = "Le numéro de vente est obligatoire.";
-    }
-
     if (!form.platform) {
       newErrors.platform = "La plateforme est obligatoire.";
     }
@@ -106,7 +101,6 @@ function SaleForm({ sale, inventoryItems = [], customers = [], onClose, onSaved,
 
   function buildPayload() {
     return {
-      orderNumber: form.orderNumber,
       customerId: form.customerId || undefined,
       customerName: form.customerName || null,
       customerEmail: form.customerEmail || null,
@@ -160,12 +154,7 @@ function SaleForm({ sale, inventoryItems = [], customers = [], onClose, onSaved,
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="grid gap-4 md:grid-cols-2">
         <div>
-          <label className="mb-2 block text-sm font-medium text-slate-700">Numéro de vente</label>
-          <input name="orderNumber" value={form.orderNumber} onChange={handleChange} className="w-full rounded-lg border border-slate-200 p-3" placeholder="VTE-001" />
-          {errors.orderNumber && <p className="mt-1 text-sm text-red-600">{errors.orderNumber}</p>}
-        </div>
 
-        <div>
           <label className="mb-2 block text-sm font-medium text-slate-700">Client</label>
           <select name="customerId" value={form.customerId} onChange={handleChange} className="w-full rounded-lg border border-slate-200 p-3">
             <option value="">Sélectionner un client</option>
@@ -182,7 +171,7 @@ function SaleForm({ sale, inventoryItems = [], customers = [], onClose, onSaved,
           <select name="platform" value={form.platform} onChange={handleChange} className="w-full rounded-lg border border-slate-200 p-3">
             {platforms.map((platform) => (
               <option key={platform} value={platform}>
-                {platform}
+                {getPurchaseSourceLabel(platform)}
               </option>
             ))}
           </select>
@@ -194,7 +183,7 @@ function SaleForm({ sale, inventoryItems = [], customers = [], onClose, onSaved,
           <select name="status" value={form.status} onChange={handleChange} className="w-full rounded-lg border border-slate-200 p-3">
             {statuses.map((status) => (
               <option key={status} value={status}>
-                {status}
+                {getPurchaseStatusLabel(status)}
               </option>
             ))}
           </select>

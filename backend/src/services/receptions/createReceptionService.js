@@ -11,27 +11,7 @@ const {
 const {
   updatePurchaseReceptionState,
 } = require("./updatePurchaseReceptionStateService");
-
-async function generateReceptionNumber(tx) {
-  const lastReception = await tx.reception.findFirst({
-    orderBy: {
-      createdAt: "desc",
-    },
-  });
-
-  let next = 1;
-
-  if (lastReception?.receptionNumber) {
-    const parts =
-      lastReception.receptionNumber.split("-");
-
-    if (parts.length === 2) {
-      next = Number(parts[1]) + 1;
-    }
-  }
-
-  return `REC-${String(next).padStart(6, "0")}`;
-}
+const { generateReference } = require("../common/referenceGeneratorService");
 
 async function createReception(data) {
   return prisma.$transaction(async (tx) => {
@@ -68,9 +48,7 @@ async function createReception(data) {
       receivedQuantities
     );
 
-    const receptionNumber =
-      data.receptionNumber ||
-      (await generateReceptionNumber(tx));
+    const receptionNumber = await generateReference("REC", tx);
 
     const reception = await tx.reception.create({
       data: {

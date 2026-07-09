@@ -1,8 +1,12 @@
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
+import {
+  getExpenseCategoryLabel,
+  getPaymentMethodLabel,
+  getStatusLabel,
+} from "../../constants/labels";
 
 const defaultForm = {
-  expenseNumber: "",
   category: "OTHER",
   supplierId: "",
   title: "",
@@ -39,7 +43,6 @@ function ExpenseForm({ expense, suppliers = [], onClose, onSaved, addExpense, ed
   useEffect(() => {
     if (expense) {
       setForm({
-        expenseNumber: expense.expenseNumber || "",
         category: expense.category || "OTHER",
         supplierId: expense.supplierId || "",
         title: expense.title || "",
@@ -76,10 +79,6 @@ function ExpenseForm({ expense, suppliers = [], onClose, onSaved, addExpense, ed
   function validate() {
     const newErrors = {};
 
-    if (!form.expenseNumber.trim()) {
-      newErrors.expenseNumber = "Le numéro de dépense est obligatoire.";
-    }
-
     if (!form.category) {
       newErrors.category = "La catégorie est obligatoire.";
     }
@@ -106,7 +105,6 @@ function ExpenseForm({ expense, suppliers = [], onClose, onSaved, addExpense, ed
 
   function buildPayload() {
     return {
-      expenseNumber: form.expenseNumber,
       category: form.category,
       supplierId: form.supplierId || undefined,
       title: form.title,
@@ -153,17 +151,11 @@ function ExpenseForm({ expense, suppliers = [], onClose, onSaved, addExpense, ed
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="grid gap-4 md:grid-cols-2">
         <div>
-          <label className="mb-2 block text-sm font-medium text-slate-700">N° dépense *</label>
-          <input type="text" name="expenseNumber" value={form.expenseNumber} onChange={handleChange} placeholder="Ex: DEP-2026-001" className={`w-full rounded-lg border p-2.5 outline-none focus:border-blue-500 ${errors.expenseNumber ? "border-red-500" : "border-slate-200"}`} />
-          {errors.expenseNumber && <p className="mt-1 text-sm text-red-600">{errors.expenseNumber}</p>}
-        </div>
-
-        <div>
           <label className="mb-2 block text-sm font-medium text-slate-700">Catégorie *</label>
           <select name="category" value={form.category} onChange={handleChange} className={`w-full rounded-lg border p-2.5 outline-none focus:border-blue-500 ${errors.category ? "border-red-500" : "border-slate-200"}`}>
             {categories.map((cat) => (
               <option key={cat} value={cat}>
-                {cat}
+                {getExpenseCategoryLabel(cat)}
               </option>
             ))}
           </select>
@@ -218,7 +210,7 @@ function ExpenseForm({ expense, suppliers = [], onClose, onSaved, addExpense, ed
           <select name="paymentMethod" value={form.paymentMethod} onChange={handleChange} className={`w-full rounded-lg border p-2.5 outline-none focus:border-blue-500 ${errors.paymentMethod ? "border-red-500" : "border-slate-200"}`}>
             {paymentMethods.map((method) => (
               <option key={method} value={method}>
-                {method}
+                {getPaymentMethodLabel(method)}
               </option>
             ))}
           </select>
@@ -230,7 +222,7 @@ function ExpenseForm({ expense, suppliers = [], onClose, onSaved, addExpense, ed
           <select name="paymentStatus" value={form.paymentStatus} onChange={handleChange} className="w-full rounded-lg border border-slate-200 p-2.5 outline-none focus:border-blue-500">
             {paymentStatuses.map((status) => (
               <option key={status} value={status}>
-                {status}
+                {getStatusLabel(status)}
               </option>
             ))}
           </select>

@@ -1,4 +1,5 @@
 import * as XLSX from "xlsx";
+import { getInventoryCategoryLabel, getInventoryStatusLabel } from "../constants/labels";
 
 export default function exportExcel(items) {
   if (!items || items.length === 0) {
@@ -8,12 +9,12 @@ export default function exportExcel(items) {
 
   const data = items.map((item) => ({
     SKU: item.sku,
-    Catégorie: item.category,
+    Catégorie: getInventoryCategoryLabel(item.category),
     Titre: item.title,
     "Prix Achat": item.purchasePrice ?? "",
     "Prix Vente": item.salePrice ?? "",
     Quantité: item.quantity,
-    Statut: item.status,
+    Statut: getInventoryStatusLabel(item.status),
   }));
 
   const worksheet = XLSX.utils.json_to_sheet(data);

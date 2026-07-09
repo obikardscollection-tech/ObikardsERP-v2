@@ -1,4 +1,5 @@
 const prisma = require("../../lib/prisma");
+const { generateReference } = require("../common/referenceGeneratorService");
 
 const prefixMap = {
   NBA: "NBA",
@@ -14,29 +15,16 @@ const prefixMap = {
   Antiquités: "ANT",
 };
 
-async function generateSku(category) {
-  const prefix = prefixMap[category] || "OBI";
-
-  const lastItem = await prisma.inventory.findFirst({
-    where: {
-      category,
-    },
-    orderBy: {
-      createdAt: "desc",
-    },
-  });
-
-  let next = 1;
-
-  if (lastItem?.sku) {
-    const parts = lastItem.sku.split("-");
-
-    if (parts.length === 2) {
-      next = Number(parts[1]) + 1;
-    }
+async function generateSku(category, tx) {
+  // Use centralized generator with transaction if provided
+  if (tx) {
+    return generateReference("INV", tx);
   }
-
-  return `${prefix}-${String(next).padStart(6, "0")}`;
+  
+  // Fallback for non-transaction context
+  return prisma.$transaction(async (transaction) => {
+    return generateReference("INV", transaction);
+  });
 }
 
 module.exports = {

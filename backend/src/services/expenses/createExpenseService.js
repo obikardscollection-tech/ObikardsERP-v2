@@ -1,4 +1,5 @@
 const prisma = require("../../lib/prisma");
+const { generateReference } = require("../common/referenceGeneratorService");
 
 function normalizeEnumValue(value, fallback) {
   if (!value) return fallback;
@@ -45,36 +46,40 @@ function normalizeEnumValue(value, fallback) {
 }
 
 async function createExpense(data) {
-  const expense = await prisma.expense.create({
-    data: {
-      expenseNumber: data.expenseNumber,
+  return prisma.$transaction(async (tx) => {
+    const expenseNumber = await generateReference("EXP", tx);
 
-      category: normalizeEnumValue(data.category, "OTHER"),
+    const expense = await tx.expense.create({
+      data: {
+        expenseNumber,
 
-      supplierId: data.supplierId || null,
+        category: normalizeEnumValue(data.category, "OTHER"),
 
-      title: data.title,
-      description: data.description || null,
+        supplierId: data.supplierId || null,
 
-      amountHT: data.amountHT || 0,
-      tax: data.tax || 0,
-      amountTTC: data.amountTTC || 0,
+        title: data.title,
+        description: data.description || null,
 
-      paymentMethod: normalizeEnumValue(data.paymentMethod, "OTHER"),
-      paymentStatus: normalizeEnumValue(data.paymentStatus, "PAID"),
+        amountHT: data.amountHT || 0,
+        tax: data.tax || 0,
+        amountTTC: data.amountTTC || 0,
 
-      expenseDate: data.expenseDate
-        ? new Date(data.expenseDate)
-        : new Date(),
+        paymentMethod: normalizeEnumValue(data.paymentMethod, "OTHER"),
+        paymentStatus: normalizeEnumValue(data.paymentStatus, "PAID"),
 
-      invoiceNumber: data.invoiceNumber || null,
-      receiptUrl: data.receiptUrl || null,
+        expenseDate: data.expenseDate
+          ? new Date(data.expenseDate)
+          : new Date(),
 
-      notes: data.notes || null,
-    },
+        invoiceNumber: data.invoiceNumber || null,
+        receiptUrl: data.receiptUrl || null,
+
+        notes: data.notes || null,
+      },
+    });
+
+    return expense;
   });
-
-  return expense;
 }
 
 module.exports = {

@@ -4,6 +4,7 @@ const { getReceptionById } = require("./getReceptionByIdService");
 const { getPurchaseReceptions } = require("./getPurchaseReceptionsService");
 const { updateReception } = require("./updateReceptionService");
 const { deleteReception } = require("./deleteReceptionService");
+const { autoCreateReception } = require("./autoCreateReceptionService");
 
 module.exports = {
   createReception,
@@ -12,4 +13,5 @@ module.exports = {
   getPurchaseReceptions,
   updateReception,
   deleteReception,
+  autoCreateReception,
 };

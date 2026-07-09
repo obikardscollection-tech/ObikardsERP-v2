@@ -4,21 +4,23 @@ const inventoryMapper = require("./mappers/inventoryMapper");
 const { generateSku } = require("./skuService");
 
 async function createInventory(data) {
-  const sku = await generateSku(data.sport);
+  return prisma.$transaction(async (tx) => {
+    const sku = await generateSku(data.sport, tx);
 
-  const item = await prisma.inventory.create({
-    data: {
-      sku,
-      ...inventoryMapper(data),
+    const item = await tx.inventory.create({
+      data: {
+        sku,
+        ...inventoryMapper(data),
 
-      // Photos (Sprint 5)
-      frontPhoto: null,
-      backPhoto: null,
-      extraPhotos: null,
-    },
+        // Photos (Sprint 5)
+        frontPhoto: null,
+        backPhoto: null,
+        extraPhotos: null,
+      },
+    });
+
+    return item;
   });
-
-  return item;
 }
 
 module.exports = {

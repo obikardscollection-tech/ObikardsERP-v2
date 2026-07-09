@@ -11,25 +11,26 @@ async function updateSupplier(id, data) {
     throw new Error("Fournisseur introuvable.");
   }
 
+  // Note: supplierNumber is immutable and cannot be modified
   const supplier = await prisma.supplier.update({
     where: {
       id,
     },
     data: {
-      name: data.name,
-      company: data.company || null,
+      name: data.name !== undefined ? data.name : existingSupplier.name,
+      company: data.company !== undefined ? data.company : existingSupplier.company,
 
-      email: data.email || null,
-      phone: data.phone || null,
+      email: data.email !== undefined ? data.email : existingSupplier.email,
+      phone: data.phone !== undefined ? data.phone : existingSupplier.phone,
 
-      website: data.website || null,
+      website: data.website !== undefined ? data.website : existingSupplier.website,
 
-      address: data.address || null,
-      postalCode: data.postalCode || null,
-      city: data.city || null,
-      country: data.country || null,
+      address: data.address !== undefined ? data.address : existingSupplier.address,
+      postalCode: data.postalCode !== undefined ? data.postalCode : existingSupplier.postalCode,
+      city: data.city !== undefined ? data.city : existingSupplier.city,
+      country: data.country !== undefined ? data.country : existingSupplier.country,
 
-      notes: data.notes || null,
+      notes: data.notes !== undefined ? data.notes : existingSupplier.notes,
     },
   });
 

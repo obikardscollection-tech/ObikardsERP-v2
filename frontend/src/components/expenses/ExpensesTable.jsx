@@ -40,7 +40,7 @@ function ExpensesTable({ expenses = [], onView, onEdit, onDelete }) {
           ) : (
             expenses.map((expense) => (
               <tr key={expense.id} className="border-t">
-                <td className="px-6 py-4 font-medium">{expense.expenseNumber}</td>
+                <td className="px-6 py-4 font-mono font-semibold text-blue-600">{expense.expenseNumber || "-"}</td>
                 <td className="px-6 py-4">{formatDate(expense.expenseDate)}</td>
                 <td className="px-6 py-4">{getExpenseCategoryLabel(expense.category) || "-"}</td>
                 <td className="px-6 py-4">{expense.supplier?.name || expense.supplier?.company || "-"}</td>

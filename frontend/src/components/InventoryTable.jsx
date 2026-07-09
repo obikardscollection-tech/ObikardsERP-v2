@@ -1,4 +1,5 @@
 import InventoryActions from "./inventory/InventoryActions";
+import { getInventoryCategoryLabel, getInventoryStatusLabel } from "../constants/labels";
 
 export default function InventoryTable({
   items = [],
@@ -128,7 +129,7 @@ export default function InventoryTable({
                 </td>
 
                 <td className="p-4">
-                  {item.category}
+                  {getInventoryCategoryLabel(item.category)}
                 </td>
 
                 <td className="p-4">
@@ -157,7 +158,7 @@ export default function InventoryTable({
                         : "bg-yellow-100 text-yellow-700"
                     }`}
                   >
-                    {item.status}
+                    {getInventoryStatusLabel(item.status)}
                   </span>
                 </td>
 

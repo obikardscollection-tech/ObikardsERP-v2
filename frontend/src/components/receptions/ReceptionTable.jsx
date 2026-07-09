@@ -31,7 +31,7 @@ function ReceptionTable({ receptions = [], onView, onEdit, onDelete }) {
       <table className="min-w-full">
         <thead className="bg-slate-100">
           <tr>
-            <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">Réception</th>
+            <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">Référence</th>
             <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">Achat</th>
             <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">Date</th>
             <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">Fournisseur</th>
@@ -54,7 +54,7 @@ function ReceptionTable({ receptions = [], onView, onEdit, onDelete }) {
 
               return (
                 <tr key={reception.id} className="border-t">
-                  <td className="px-6 py-4 font-medium">{reception.receptionNumber}</td>
+                  <td className="px-6 py-4 font-mono font-semibold text-blue-600">{reception.receptionNumber || "-"}</td>
                   <td className="px-6 py-4">{reception.purchase?.purchaseNumber || "-"}</td>
                   <td className="px-6 py-4">{formatDate(reception.receivedAt)}</td>
                   <td className="px-6 py-4">{reception.purchase?.supplier?.name || reception.purchase?.supplier?.company || "-"}</td>

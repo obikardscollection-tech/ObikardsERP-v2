@@ -78,8 +78,8 @@ function PurchaseTable({
                 key={purchase.id}
                 className="border-t"
               >
-                <td className="px-6 py-4 font-medium">
-                  {purchase.purchaseNumber}
+                <td className="px-6 py-4 font-mono font-semibold text-blue-600">
+                  {purchase.purchaseNumber || "-"}
                 </td>
 
                 <td className="px-6 py-4">

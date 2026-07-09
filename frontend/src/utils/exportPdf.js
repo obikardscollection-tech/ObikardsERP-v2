@@ -1,5 +1,6 @@
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
+import { getInventoryCategoryLabel, getInventoryStatusLabel } from "../constants/labels";
 
 export default function exportPdf(items) {
   if (!items || items.length === 0) {
@@ -25,12 +26,12 @@ export default function exportPdf(items) {
     ]],
     body: items.map((item) => [
       item.sku,
-      item.category,
+      getInventoryCategoryLabel(item.category),
       item.title,
       item.purchasePrice ?? "",
       item.salePrice ?? "",
       item.quantity,
-      item.status,
+      getInventoryStatusLabel(item.status),
     ]),
     styles: {
       fontSize: 9,

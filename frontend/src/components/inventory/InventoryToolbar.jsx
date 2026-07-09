@@ -1,3 +1,5 @@
+import { getInventoryCategoryLabel, getInventoryStatusLabel } from "../../constants/labels";
+
 export default function InventoryToolbar({
   searchTerm,
   onSearchChange,
@@ -28,7 +30,7 @@ export default function InventoryToolbar({
 
           {categories.map((category) => (
             <option key={category} value={category}>
-              {category}
+              {getInventoryCategoryLabel(category)}
             </option>
           ))}
         </select>
@@ -39,9 +41,9 @@ export default function InventoryToolbar({
           className="border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
           <option value="">Tous les statuts</option>
-          <option value="IN_STOCK">En stock</option>
-          <option value="SOLD">Vendu</option>
-          <option value="RESERVED">Réservé</option>
+          <option value="IN_STOCK">{getInventoryStatusLabel("IN_STOCK")}</option>
+          <option value="SOLD">{getInventoryStatusLabel("SOLD")}</option>
+          <option value="RESERVED">{getInventoryStatusLabel("RESERVED")}</option>
         </select>
 
         <button

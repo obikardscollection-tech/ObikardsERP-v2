@@ -1,4 +1,6 @@
 export default function StockSection({ form, setForm }) {
+  const { getInventoryStatusLabel } = require("../../../constants/labels");
+  
   function update(field, value) {
     setForm((prev) => ({
       ...prev,
@@ -63,13 +65,13 @@ export default function StockSection({ form, setForm }) {
             }
             className="w-full border rounded-lg p-3"
           >
-            <option value="IN_STOCK">En stock</option>
-            <option value="RESERVED">Réservée</option>
-            <option value="CONSIGNMENT">En consignation</option>
-            <option value="GRADING">En grading</option>
-            <option value="TO_SHIP">À expédier</option>
-            <option value="SHIPPED">Expédiée</option>
-            <option value="SOLD">Vendue</option>
+            <option value="IN_STOCK">{getInventoryStatusLabel("IN_STOCK")}</option>
+            <option value="RESERVED">{getInventoryStatusLabel("RESERVED")}</option>
+            <option value="CONSIGNMENT">{getInventoryStatusLabel("CONSIGNMENT")}</option>
+            <option value="GRADING">{getInventoryStatusLabel("GRADING")}</option>
+            <option value="TO_SHIP">{getInventoryStatusLabel("TO_SHIP")}</option>
+            <option value="SHIPPED">{getInventoryStatusLabel("SHIPPED")}</option>
+            <option value="SOLD">{getInventoryStatusLabel("SOLD")}</option>
           </select>
 
         </div>
