@@ -23,6 +23,7 @@ model Purchase {
   purchasedAt DateTime @default(now())
 
   purchaseItems PurchaseItem[]
+  receptions Reception[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

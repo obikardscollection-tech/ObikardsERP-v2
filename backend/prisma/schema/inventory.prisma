@@ -5,6 +5,9 @@ model Inventory {
   purchaseItemId String?
   purchaseItem   PurchaseItem? @relation(fields: [purchaseItemId], references: [id], onDelete: SetNull)
 
+  receptionItemId String?
+  receptionItem   ReceptionItem? @relation(fields: [receptionItemId], references: [id], onDelete: SetNull)
+
   category       String
   title          String
 
@@ -63,4 +66,5 @@ model Inventory {
   stockMovements StockMovement[]
 
   @@index([purchaseItemId])
+  @@index([receptionItemId])
 }

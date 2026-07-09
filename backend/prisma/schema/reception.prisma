@@ -1,0 +1,23 @@
+model Reception {
+  id String @id @default(cuid())
+
+  receptionNumber String @unique
+
+  purchaseId String
+  purchase Purchase @relation(fields: [purchaseId], references: [id], onDelete: Cascade)
+
+  totalQuantity Int @default(0)
+  remainingQuantity Int @default(0)
+
+  notes String?
+
+  receivedAt DateTime @default(now())
+
+  receptionItems ReceptionItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([purchaseId])
+  @@index([receivedAt])
+}
