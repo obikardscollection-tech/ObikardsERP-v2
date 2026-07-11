@@ -18,6 +18,9 @@ model MarketProvider {
   lastCsvSync DateTime?
   lastApiSync DateTime?
 
+  providerCards MarketProviderCard[]
+  importJobs    MarketImportJob[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }

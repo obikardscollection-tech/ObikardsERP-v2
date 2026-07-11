@@ -29,6 +29,7 @@ model MarketImportJob {
   errorsCount   Int @default(0)
   warningsCount Int @default(0)
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  marketProvider MarketProvider @relation(fields: [marketProviderId], references: [id])
 }
