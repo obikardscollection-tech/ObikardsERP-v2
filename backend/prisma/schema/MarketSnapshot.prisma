@@ -35,4 +35,6 @@ model MarketSnapshot {
   updatedAt DateTime @updatedAt
 
   @@unique([marketProviderCardId])
+  @@index([marketProviderCardId])
+  @@index([synchronizedAt])
 }
