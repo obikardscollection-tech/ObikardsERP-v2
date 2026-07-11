@@ -1,0 +1,23 @@
+model MarketProvider {
+  id String @id @default(cuid())
+
+  code String @unique
+  name String
+
+  type MarketProviderType
+
+  priority Int     @default(0)
+  enabled  Boolean @default(true)
+
+  supportsCsv Boolean @default(false)
+  supportsApi Boolean @default(false)
+
+  apiDailyLimit Int?
+  apiCallsToday Int  @default(0)
+
+  lastCsvSync DateTime?
+  lastApiSync DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
