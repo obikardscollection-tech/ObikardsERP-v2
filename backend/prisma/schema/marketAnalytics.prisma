@@ -1,0 +1,29 @@
+model MarketAnalytics {
+  id String @id @default(cuid())
+
+  marketCardId String
+
+  averagePrice Decimal? @db.Decimal(10, 2)
+  medianPrice  Decimal? @db.Decimal(10, 2)
+
+  minPrice Decimal? @db.Decimal(10, 2)
+  maxPrice Decimal? @db.Decimal(10, 2)
+
+  volatility Float?
+
+  liquidity Float?
+
+  confidenceScore Float?
+  trendScore      Float?
+  marketScore     Float?
+
+  growth7d  Float?
+  growth30d Float?
+  growth90d Float?
+  growth1y  Float?
+
+  recommendedBuyPrice  Decimal? @db.Decimal(10, 2)
+  recommendedSellPrice Decimal? @db.Decimal(10, 2)
+
+  updatedAt DateTime @updatedAt
+}
