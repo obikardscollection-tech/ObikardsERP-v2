@@ -39,9 +39,8 @@ model MarketCard {
   active Boolean @default(true)
 
   providerCards MarketProviderCard[]
-  analytics     MarketAnalytics?     @relation(fields: [marketAnalyticsId], references: [id])
+  analytics     MarketAnalytics?
 
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-  marketAnalyticsId String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

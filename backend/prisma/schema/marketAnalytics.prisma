@@ -1,7 +1,7 @@
 model MarketAnalytics {
   id String @id @default(cuid())
 
-  marketCardId String
+  marketCardId String @unique
 
   averagePrice Decimal? @db.Decimal(10, 2)
   medianPrice  Decimal? @db.Decimal(10, 2)
@@ -25,6 +25,7 @@ model MarketAnalytics {
   recommendedBuyPrice  Decimal? @db.Decimal(10, 2)
   recommendedSellPrice Decimal? @db.Decimal(10, 2)
 
-  updatedAt   DateTime     @updatedAt
-  marketCards MarketCard[]
+  marketCard MarketCard @relation(fields: [marketCardId], references: [id])
+
+  updatedAt DateTime @updatedAt
 }
