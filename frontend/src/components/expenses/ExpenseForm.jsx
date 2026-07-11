@@ -3,7 +3,6 @@ import toast from "react-hot-toast";
 import {
   getExpenseCategoryLabel,
   getPaymentMethodLabel,
-  getStatusLabel,
 } from "../../constants/labels";
 
 const defaultForm = {
@@ -222,7 +221,13 @@ function ExpenseForm({ expense, suppliers = [], onClose, onSaved, addExpense, ed
           <select name="paymentStatus" value={form.paymentStatus} onChange={handleChange} className="w-full rounded-lg border border-slate-200 p-2.5 outline-none focus:border-blue-500">
             {paymentStatuses.map((status) => (
               <option key={status} value={status}>
-                {getStatusLabel(status)}
+                {status === "PENDING"
+                  ? "En attente"
+                  : status === "PAID"
+                    ? "Payée"
+                    : status === "REFUNDED"
+                      ? "Remboursée"
+                      : status}
               </option>
             ))}
           </select>
