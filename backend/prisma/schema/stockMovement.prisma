@@ -2,17 +2,17 @@ model StockMovement {
   id String @id @default(cuid())
 
   inventoryId String
-  inventory Inventory @relation(fields: [inventoryId], references: [id], onDelete: Cascade)
+  inventory   Inventory @relation(fields: [inventoryId], references: [id], onDelete: Cascade)
 
-  type StockMovementType
+  type   StockMovementType
   source StockMovementSource @default(MANUAL)
 
-  quantity Int
+  quantity         Int
   previousQuantity Int
-  newQuantity Int
+  newQuantity      Int
 
   purchaseId String?
-  saleId String?
+  saleId     String?
 
   reason String?
 

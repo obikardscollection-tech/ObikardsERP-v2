@@ -2,21 +2,21 @@ model SaleItem {
   id String @id @default(cuid())
 
   saleId String
-  sale Sale @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  sale   Sale   @relation(fields: [saleId], references: [id], onDelete: Cascade)
 
   inventoryId String
-  inventory Inventory @relation(fields: [inventoryId], references: [id], onDelete: Restrict)
+  inventory   Inventory @relation(fields: [inventoryId], references: [id], onDelete: Restrict)
 
   quantity Int @default(1)
 
-  sku String?
+  sku   String?
   title String?
 
-  unitPrice Float
+  unitPrice  Float
   totalPrice Float
 
   purchasePriceSnapshot Float?
-  profitSnapshot Float?
+  profitSnapshot        Float?
 
   notes String?
 

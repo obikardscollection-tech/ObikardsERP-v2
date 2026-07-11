@@ -7,3 +7,32 @@ datasource db {
   url       = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
 }
+
+enum MarketProviderType {
+  CSV
+  API
+  BOTH
+}
+
+enum MarketImportStatus {
+  PENDING
+  RUNNING
+  SUCCESS
+  FAILED
+  CANCELLED
+}
+
+enum MarketReferenceType {
+  SPORT
+  LEAGUE
+  PLAYER
+  TEAM
+  BRAND
+  SET
+  SUBSET
+  PARALLEL
+  VARIATION
+  YEAR
+  LANGUAGE
+  COUNTRY
+}

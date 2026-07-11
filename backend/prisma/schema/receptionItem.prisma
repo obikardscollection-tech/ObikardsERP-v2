@@ -2,12 +2,12 @@ model ReceptionItem {
   id String @id @default(cuid())
 
   receptionId String
-  reception Reception @relation(fields: [receptionId], references: [id], onDelete: Cascade)
+  reception   Reception @relation(fields: [receptionId], references: [id], onDelete: Cascade)
 
   purchaseItemId String
-  purchaseItem PurchaseItem @relation(fields: [purchaseItemId], references: [id], onDelete: Restrict)
+  purchaseItem   PurchaseItem @relation(fields: [purchaseItemId], references: [id], onDelete: Restrict)
 
-  quantityReceived Int
+  quantityReceived  Int
   quantityRemaining Int
 
   inventoryCreated Boolean @default(false)

@@ -4,9 +4,9 @@ model Reception {
   receptionNumber String @unique
 
   purchaseId String
-  purchase Purchase @relation(fields: [purchaseId], references: [id], onDelete: Cascade)
+  purchase   Purchase @relation(fields: [purchaseId], references: [id], onDelete: Cascade)
 
-  totalQuantity Int @default(0)
+  totalQuantity     Int @default(0)
   remainingQuantity Int @default(0)
 
   notes String?

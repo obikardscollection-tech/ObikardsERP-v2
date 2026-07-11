@@ -2,7 +2,7 @@ model Customer {
   id String @id @default(cuid())
 
   customerNumber String @unique
-  
+
   firstName String?
   lastName  String?
   company   String?

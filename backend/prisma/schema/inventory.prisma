@@ -1,6 +1,6 @@
 model Inventory {
-  id             String    @id @default(cuid())
-  sku            String    @unique
+  id  String @id @default(cuid())
+  sku String @unique
 
   purchaseItemId String?
   purchaseItem   PurchaseItem? @relation(fields: [purchaseItemId], references: [id], onDelete: SetNull)
@@ -8,21 +8,21 @@ model Inventory {
   receptionItemId String?
   receptionItem   ReceptionItem? @relation(fields: [receptionItemId], references: [id], onDelete: SetNull)
 
-  category       String
-  title          String
+  category String
+  title    String
 
-  purchasePrice  Float?
-  salePrice      Float?
+  purchasePrice Float?
+  salePrice     Float?
 
-  quantity       Int       @default(1)
+  quantity Int @default(1)
 
-  status         String    @default("IN_STOCK")
+  status String @default("IN_STOCK")
 
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  location       String?
-  notes          String?
+  location String?
+  notes    String?
 
   autograph      Boolean   @default(false)
   backPhoto      String?

@@ -2,7 +2,7 @@ model PurchaseItem {
   id String @id @default(cuid())
 
   purchaseId String
-  purchase Purchase @relation(fields: [purchaseId], references: [id], onDelete: Cascade)
+  purchase   Purchase @relation(fields: [purchaseId], references: [id], onDelete: Cascade)
 
   name String
 
@@ -10,7 +10,7 @@ model PurchaseItem {
 
   quantity Int @default(1)
 
-  unitPrice Float
+  unitPrice  Float
   totalPrice Float
 
   condition String?
@@ -21,7 +21,7 @@ model PurchaseItem {
 
   inventoryCreated Boolean @default(false)
 
-  inventory Inventory[]
+  inventory      Inventory[]
   receptionItems ReceptionItem[]
 
   createdAt DateTime @default(now())
