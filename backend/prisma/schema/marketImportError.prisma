@@ -17,7 +17,8 @@ model MarketImportError {
 
   resolved Boolean @default(false)
 
-  createdAt       DateTime        @default(now())
-  updatedAt       DateTime        @updatedAt
   marketImportJob MarketImportJob @relation(fields: [marketImportJobId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
