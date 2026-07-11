@@ -29,5 +29,6 @@ model MarketHistory {
 
   synchronizedAt DateTime
 
-  createdAt DateTime @default(now())
+  createdAt          DateTime           @default(now())
+  marketProviderCard MarketProviderCard @relation(fields: [marketProviderCardId], references: [id])
 }
