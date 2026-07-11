@@ -58,6 +58,8 @@ function ReceptionPage() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [selectedReception, setSelectedReception] = useState(null);
+  const [receiveAllConfirmOpen, setReceiveAllConfirmOpen] = useState(false);
+  const [receptionToReceiveAll, setReceptionToReceiveAll] = useState(null);
 
   useEffect(() => {
     async function loadPurchases() {
@@ -136,6 +138,55 @@ function ReceptionPage() {
     }
   }
 
+  async function handleReceiveAll(reception) {
+    if (!reception || Number(reception.remainingQuantity || 0) <= 0) {
+      return;
+    }
+
+    setReceptionToReceiveAll(reception);
+    setReceiveAllConfirmOpen(true);
+  }
+
+  function handleCloseReceiveAllConfirm() {
+    setReceiveAllConfirmOpen(false);
+    setReceptionToReceiveAll(null);
+  }
+
+  async function handleConfirmReceiveAll() {
+    if (
+      !receptionToReceiveAll ||
+      Number(receptionToReceiveAll.remainingQuantity || 0) <= 0
+    ) {
+      handleCloseReceiveAllConfirm();
+      return;
+    }
+
+    try {
+      const items = (receptionToReceiveAll.receptionItems || []).map((item) => ({
+        purchaseItemId: item.purchaseItemId,
+        quantityReceived:
+          Number(item.quantityReceived || 0) +
+          Number(item.quantityRemaining || 0),
+        notes: item.notes || null,
+      }));
+
+      await editReception(receptionToReceiveAll.id, {
+        purchaseId: receptionToReceiveAll.purchaseId,
+        receivedAt: receptionToReceiveAll.receivedAt,
+        notes: receptionToReceiveAll.notes || null,
+        items,
+      });
+
+      await loadReceptions();
+      toast.success("Réception complète enregistrée.");
+    } catch (err) {
+      console.error(err);
+      toast.error("Impossible de tout réceptionner.");
+    } finally {
+      handleCloseReceiveAllConfirm();
+    }
+  }
+
   async function handleSaved() {
     try {
       await loadReceptions();
@@ -197,6 +248,7 @@ function ReceptionPage() {
             onView={handleView}
             onEdit={handleEdit}
             onDelete={handleDelete}
+            onReceiveAll={handleReceiveAll}
             formatStatusLabel={formatStatusLabel}
           />
         )}
@@ -217,6 +269,36 @@ function ReceptionPage() {
         reception={selectedReception}
         onClose={handleCloseDetails}
       />
+
+      {receiveAllConfirmOpen && receptionToReceiveAll && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-2xl">
+            <h2 className="text-xl font-bold text-slate-900">
+              Tout réceptionner
+            </h2>
+
+            <p className="mt-4 text-slate-600">
+              Voulez-vous réceptionner toutes les quantités restantes de cette réception ?
+            </p>
+
+            <div className="mt-8 flex justify-end gap-3">
+              <button
+                onClick={handleCloseReceiveAllConfirm}
+                className="rounded-lg border border-slate-300 px-5 py-2 transition hover:bg-slate-100"
+              >
+                Annuler
+              </button>
+
+              <button
+                onClick={handleConfirmReceiveAll}
+                className="rounded-lg bg-emerald-600 px-5 py-2 font-medium text-white transition hover:bg-emerald-700"
+              >
+                Tout réceptionner
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

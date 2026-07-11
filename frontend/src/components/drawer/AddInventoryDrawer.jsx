@@ -195,7 +195,7 @@ export default function AddInventoryDrawer({
         <div className="sticky top-0 bg-white border-b px-8 py-6 flex justify-between items-center z-10">
           <div>
             <h1 className="text-2xl font-bold">
-              {isEdit ? "Modifier une carte" : "Ajouter une carte"}
+              {isEdit ? "Modifier un article" : "Ajouter un article"}
             </h1>
 
             <p className="text-sm text-gray-500 mt-1">

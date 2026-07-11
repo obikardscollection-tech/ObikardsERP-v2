@@ -75,7 +75,7 @@ async function createReception(data) {
           },
         });
 
-      await createInventoryFromReceptionItem(
+      const inventory = await createInventoryFromReceptionItem(
         tx,
         purchase,
         item.purchaseItem,
@@ -84,6 +84,20 @@ async function createReception(data) {
           id: receptionItem.id,
         }
       );
+
+      const linkedInventoryCount =
+        await tx.inventory.count({
+          where: {
+            id: inventory.id,
+            receptionItemId: receptionItem.id,
+          },
+        });
+
+      if (linkedInventoryCount === 0) {
+        throw new Error(
+          "Création inventaire non exécutée pour la réception complète."
+        );
+      }
 
       await tx.receptionItem.update({
         where: {

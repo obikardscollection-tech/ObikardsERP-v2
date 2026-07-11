@@ -59,6 +59,12 @@ async function createInventoryFromReceptionItem(
   purchaseItem,
   receptionItem
 ) {
+  if (!receptionItem || !receptionItem.id) {
+    throw new Error(
+      "Impossible de créer l'inventaire: receptionItem.id manquant."
+    );
+  }
+
   const inventoryData = buildInventoryData({
     purchase,
     purchaseItem,
@@ -67,7 +73,7 @@ async function createInventoryFromReceptionItem(
 
   const sku = await generateReceptionSku(tx, receptionItem.id);
 
-  return tx.inventory.create({
+  const inventory = await tx.inventory.create({
     data: {
       sku,
       category: inventoryData.category,
@@ -94,6 +100,14 @@ async function createInventoryFromReceptionItem(
       extraPhotos: null,
     },
   });
+
+  if (!inventory || !inventory.id) {
+    throw new Error(
+      "Impossible de créer l'inventaire: création non confirmée."
+    );
+  }
+
+  return inventory;
 }
 
 module.exports = {

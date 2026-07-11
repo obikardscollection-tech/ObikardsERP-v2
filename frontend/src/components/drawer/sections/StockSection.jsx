@@ -1,6 +1,6 @@
+import { getInventoryStatusLabel } from "../../../constants/labels";
+
 export default function StockSection({ form, setForm }) {
-  const { getInventoryStatusLabel } = require("../../../constants/labels");
-  
   function update(field, value) {
     setForm((prev) => ({
       ...prev,

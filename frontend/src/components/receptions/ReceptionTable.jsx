@@ -25,7 +25,13 @@ function getReceptionStatus(reception) {
   return "PARTIALLY_RECEIVED";
 }
 
-function ReceptionTable({ receptions = [], onView, onEdit, onDelete }) {
+function ReceptionTable({
+  receptions = [],
+  onView,
+  onEdit,
+  onDelete,
+  onReceiveAll,
+}) {
   return (
     <div className="overflow-hidden rounded-xl bg-white shadow">
       <table className="min-w-full">
@@ -66,6 +72,17 @@ function ReceptionTable({ receptions = [], onView, onEdit, onDelete }) {
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex justify-center gap-3">
+                      {Number(reception.remainingQuantity || 0) > 0 && (
+                        <button
+                          type="button"
+                          onClick={() => onReceiveAll(reception)}
+                          className="text-emerald-600 hover:text-emerald-800"
+                          title="Tout recevoir"
+                        >
+                          Tout recevoir
+                        </button>
+                      )}
+
                       <button type="button" onClick={() => onView(reception)} className="text-slate-600 hover:text-slate-900" title="Voir">
                         <Eye size={18} />
                       </button>
