@@ -1,0 +1,43 @@
+model MarketCard {
+  id String @id @default(cuid())
+
+  sport  String
+  league String?
+
+  player String
+  team   String?
+
+  brand  String
+  set    String
+  subset String?
+
+  year Int
+
+  productName String
+
+  cardNumber String?
+
+  parallel  String?
+  variation String?
+
+  rookie         Boolean @default(false)
+  autograph      Boolean @default(false)
+  memorabilia    Boolean @default(false)
+  serialNumbered Boolean @default(false)
+
+  printRun Int?
+
+  language String? @default("EN")
+  country  String?
+
+  releaseDate DateTime?
+
+  slug        String @unique
+  fingerprint String @unique
+  searchText  String
+
+  active Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
