@@ -34,4 +34,9 @@ model MarketImportJob {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([marketProviderId])
+  @@index([status])
+  @@index([source])
+  @@index([startedAt])
 }
