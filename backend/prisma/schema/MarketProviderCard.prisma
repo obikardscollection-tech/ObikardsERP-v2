@@ -22,4 +22,10 @@ model MarketProviderCard {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@unique([marketProviderId, providerCardId])
+  @@index([marketCardId])
+  @@index([marketProviderId])
+  @@index([providerCardId])
+  @@index([active])
 }
