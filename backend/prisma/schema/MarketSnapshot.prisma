@@ -29,7 +29,8 @@ model MarketSnapshot {
 
   synchronizedAt DateTime
 
-  createdAt          DateTime           @default(now())
-  updatedAt          DateTime           @updatedAt
   marketProviderCard MarketProviderCard @relation(fields: [marketProviderCardId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
