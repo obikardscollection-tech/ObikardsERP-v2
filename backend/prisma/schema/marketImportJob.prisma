@@ -4,11 +4,9 @@ model MarketImportJob {
   marketProviderId String
 
   status MarketImportStatus
-
-  source String
+  source MarketImportSource
 
   fileName String?
-
   fileHash String?
 
   startedAt  DateTime  @default(now())
