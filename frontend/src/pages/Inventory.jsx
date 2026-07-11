@@ -2,6 +2,7 @@ import { useState } from "react";
 
 import Sidebar from "../components/layout/Sidebar";
 import AddInventoryDrawer from "../components/drawer/AddInventoryDrawer";
+import DeleteInventoryModal from "../components/inventory/DeleteInventoryModal";
 import StockAdjustmentModal from "../components/inventory/stock/StockAdjustmentModal";
 
 import InventoryHeader from "../components/inventory/InventoryHeader";
@@ -29,7 +30,7 @@ function Inventory() {
     handleSort,
     sortedItems,
     loadInventory,
-    handleDelete,
+    handleDelete: deleteInventoryItem,
     handleToggleSelect,
     handleToggleSelectAll,
   } = useInventory();
@@ -47,10 +48,31 @@ function Inventory() {
 
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState(null);
 
   function handleCreate() {
     setSelectedItem(null);
     setDrawerOpen(true);
+  }
+
+  function handleDelete(item) {
+    setItemToDelete(item);
+    setDeleteModalOpen(true);
+  }
+
+  function handleCloseDeleteModal() {
+    setDeleteModalOpen(false);
+    setItemToDelete(null);
+  }
+
+  async function handleConfirmDelete() {
+    if (!itemToDelete) {
+      return;
+    }
+
+    await deleteInventoryItem(itemToDelete);
+    handleCloseDeleteModal();
   }
 
   function handleEdit(item) {
@@ -104,6 +126,13 @@ function Inventory() {
         item={selectedItem}
         onClose={handleCloseDrawer}
         onCreated={loadInventory}
+      />
+
+      <DeleteInventoryModal
+        open={deleteModalOpen}
+        item={itemToDelete}
+        onClose={handleCloseDeleteModal}
+        onConfirm={handleConfirmDelete}
       />
 
       <StockAdjustmentModal

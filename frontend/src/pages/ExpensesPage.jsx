@@ -5,6 +5,7 @@ import Sidebar from "../components/layout/Sidebar";
 import ExpenseDetails from "../components/expenses/ExpenseDetails";
 import ExpenseDrawer from "../components/expenses/ExpenseDrawer";
 import ExpenseFilters from "../components/expenses/ExpenseFilters";
+import DeleteExpenseModal from "../components/expenses/DeleteExpenseModal";
 import ExpensesStats from "../components/expenses/ExpensesStats";
 import ExpensesTable from "../components/expenses/ExpensesTable";
 import ExpensesToolbar from "../components/expenses/ExpensesToolbar";
@@ -39,6 +40,8 @@ function ExpensesPage() {
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [selectedExpense, setSelectedExpense] = useState(null);
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [expenseToDelete, setExpenseToDelete] = useState(null);
 
   useEffect(() => {
     async function loadRelatedData() {
@@ -80,15 +83,24 @@ function ExpensesPage() {
   }
 
   async function handleDelete(expense) {
-    const confirmed = window.confirm(`Supprimer la dépense ${expense.expenseNumber} ?`);
+    setExpenseToDelete(expense);
+    setDeleteModalOpen(true);
+  }
 
-    if (!confirmed) {
+  function handleCloseDeleteModal() {
+    setDeleteModalOpen(false);
+    setExpenseToDelete(null);
+  }
+
+  async function handleConfirmDelete() {
+    if (!expenseToDelete) {
       return;
     }
 
     try {
-      await removeExpense(expense.id);
+      await removeExpense(expenseToDelete.id);
       toast.success("Dépense supprimée avec succès.");
+      handleCloseDeleteModal();
     } catch (err) {
       console.error(err);
       toast.error("Impossible de supprimer la dépense.");
@@ -161,6 +173,13 @@ function ExpensesPage() {
         <ExpenseDrawer open={drawerOpen} expense={selectedExpense} suppliers={supplierList} onClose={handleCloseDrawer} onSaved={handleSaved} addExpense={addExpense} editExpense={editExpense} />
 
         <ExpenseDetails open={detailsOpen} expense={selectedExpense} onClose={handleCloseDetails} />
+
+        <DeleteExpenseModal
+          open={deleteModalOpen}
+          expense={expenseToDelete}
+          onClose={handleCloseDeleteModal}
+          onConfirm={handleConfirmDelete}
+        />
       </main>
     </div>
   );

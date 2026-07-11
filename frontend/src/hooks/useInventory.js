@@ -142,14 +142,6 @@ export default function useInventory() {
     }
   }
     async function handleDelete(item) {
-    const confirmed = window.confirm(
-      `Supprimer définitivement :\n\n${item.title}\n(${item.sku}) ?`
-    );
-
-    if (!confirmed) {
-      return;
-    }
-
     try {
       await deleteInventory(item.id);
 

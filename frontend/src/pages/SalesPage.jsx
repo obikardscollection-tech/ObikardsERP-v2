@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 
 import Sidebar from "../components/layout/Sidebar";
+import DeleteSaleModal from "../components/sales/DeleteSaleModal";
 import SaleDetails from "../components/sales/SaleDetails";
 import SaleDrawer from "../components/sales/SaleDrawer";
 import SaleFilters from "../components/sales/SaleFilters";
@@ -44,6 +45,8 @@ function SalesPage() {
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [selectedSale, setSelectedSale] = useState(null);
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [saleToDelete, setSaleToDelete] = useState(null);
 
   useEffect(() => {
     async function loadRelatedData() {
@@ -86,15 +89,24 @@ function SalesPage() {
   }
 
   async function handleDelete(sale) {
-    const confirmed = window.confirm(`Supprimer la vente ${sale.orderNumber} ?`);
+    setSaleToDelete(sale);
+    setDeleteModalOpen(true);
+  }
 
-    if (!confirmed) {
+  function handleCloseDeleteModal() {
+    setDeleteModalOpen(false);
+    setSaleToDelete(null);
+  }
+
+  async function handleConfirmDelete() {
+    if (!saleToDelete) {
       return;
     }
 
     try {
-      await removeSale(sale.id);
+      await removeSale(saleToDelete.id);
       toast.success("Vente supprimée avec succès.");
+      handleCloseDeleteModal();
     } catch (err) {
       console.error(err);
       toast.error("Impossible de supprimer la vente.");
@@ -161,6 +173,13 @@ function SalesPage() {
       <SaleDrawer open={drawerOpen} sale={selectedSale} inventoryItems={inventoryItems} customers={customerList} onClose={handleCloseDrawer} onSaved={handleSaved} addSale={addSale} editSale={editSale} />
 
       <SaleDetails open={detailsOpen} sale={selectedSale} onClose={handleCloseDetails} />
+
+      <DeleteSaleModal
+        open={deleteModalOpen}
+        sale={saleToDelete}
+        onClose={handleCloseDeleteModal}
+        onConfirm={handleConfirmDelete}
+      />
     </div>
   );
 }

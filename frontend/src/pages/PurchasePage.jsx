@@ -2,6 +2,7 @@ import { useState } from "react";
 import toast from "react-hot-toast";
 
 import Sidebar from "../components/layout/Sidebar";
+import DeletePurchaseModal from "../components/purchases/DeletePurchaseModal";
 import PurchaseDetails from "../components/purchases/PurchaseDetails";
 import PurchaseDrawer from "../components/purchases/PurchaseDrawer";
 import PurchaseFilters from "../components/purchases/PurchaseFilters";
@@ -35,6 +36,8 @@ function PurchasePage() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [selectedPurchase, setSelectedPurchase] = useState(null);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [purchaseToDelete, setPurchaseToDelete] = useState(null);
 
   function handleCreate() {
     setSelectedPurchase(null);
@@ -62,17 +65,24 @@ function PurchasePage() {
   }
 
   async function handleDelete(purchase) {
-    const confirmed = window.confirm(
-      `Supprimer l'achat ${purchase.purchaseNumber} ?`
-    );
+    setPurchaseToDelete(purchase);
+    setDeleteModalOpen(true);
+  }
 
-    if (!confirmed) {
+  function handleCloseDeleteModal() {
+    setDeleteModalOpen(false);
+    setPurchaseToDelete(null);
+  }
+
+  async function handleConfirmDelete() {
+    if (!purchaseToDelete) {
       return;
     }
 
     try {
-      await removePurchase(purchase.id);
+      await removePurchase(purchaseToDelete.id);
       toast.success("Achat supprime avec succes.");
+      handleCloseDeleteModal();
     } catch (error) {
       console.error(error);
       toast.error("Impossible de supprimer l'achat.");
@@ -131,6 +141,13 @@ function PurchasePage() {
         open={detailsOpen}
         purchase={selectedPurchase}
         onClose={handleCloseDetails}
+      />
+
+      <DeletePurchaseModal
+        open={deleteModalOpen}
+        purchase={purchaseToDelete}
+        onClose={handleCloseDeleteModal}
+        onConfirm={handleConfirmDelete}
       />
     </div>
   );

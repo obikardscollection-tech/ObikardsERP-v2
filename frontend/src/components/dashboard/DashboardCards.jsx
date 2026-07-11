@@ -1,4 +1,10 @@
-import { TrendingUp, TrendingDown, DollarSign, Package, ShoppingCart } from "lucide-react";
+import {
+  TrendingUp,
+  TrendingDown,
+  BadgeEuro,
+  Package,
+  ShoppingCart,
+} from "lucide-react";
 
 export function DashboardCards({ data, loading }) {
   const formatCurrency = (num) => {
@@ -32,7 +38,7 @@ export function DashboardCards({ data, loading }) {
       title: "Marge brute",
       value: formatCurrency(data.cards.margin),
       change: `${data.cards.marginPercent.toFixed(1)}% du CA`,
-      icon: DollarSign,
+      icon: BadgeEuro,
       color: "bg-blue-50",
       textColor: "text-blue-900",
       iconColor: "text-blue-600",
@@ -61,16 +67,24 @@ export function DashboardCards({ data, loading }) {
     <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-5">
       {cards.map((card) => {
         const Icon = card.icon;
+
         return (
           <div key={card.title} className={`rounded-lg p-6 ${card.color}`}>
             <div className="flex items-start justify-between">
               <div className="flex-1">
-                <p className="text-sm font-medium text-gray-600">{card.title}</p>
+                <p className="text-sm font-medium text-gray-600">
+                  {card.title}
+                </p>
+
                 <p className={`mt-2 text-3xl font-bold ${card.textColor}`}>
                   {loading ? "..." : card.value}
                 </p>
-                <p className="mt-1 text-xs text-gray-600">{card.change}</p>
+
+                <p className="mt-1 text-xs text-gray-600">
+                  {card.change}
+                </p>
               </div>
+
               <Icon className={`h-8 w-8 flex-shrink-0 ${card.iconColor}`} />
             </div>
           </div>

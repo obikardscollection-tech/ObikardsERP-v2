@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 
 import Sidebar from "../components/layout/Sidebar";
+import DeleteReceptionModal from "../components/receptions/DeleteReceptionModal";
 import ReceptionDetails from "../components/receptions/ReceptionDetails";
 import ReceptionDrawer from "../components/receptions/ReceptionDrawer";
 import ReceptionFilters from "../components/receptions/ReceptionFilters";
@@ -58,6 +59,8 @@ function ReceptionPage() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [selectedReception, setSelectedReception] = useState(null);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [receptionToDelete, setReceptionToDelete] = useState(null);
   const [receiveAllConfirmOpen, setReceiveAllConfirmOpen] = useState(false);
   const [receptionToReceiveAll, setReceptionToReceiveAll] = useState(null);
 
@@ -123,15 +126,24 @@ function ReceptionPage() {
   }
 
   async function handleDelete(reception) {
-    const confirmed = window.confirm(`Supprimer la réception ${reception.receptionNumber} ?`);
+    setReceptionToDelete(reception);
+    setDeleteModalOpen(true);
+  }
 
-    if (!confirmed) {
+  function handleCloseDeleteModal() {
+    setDeleteModalOpen(false);
+    setReceptionToDelete(null);
+  }
+
+  async function handleConfirmDelete() {
+    if (!receptionToDelete) {
       return;
     }
 
     try {
-      await removeReception(reception.id);
+      await removeReception(receptionToDelete.id);
       toast.success("Réception supprimée avec succès.");
+      handleCloseDeleteModal();
     } catch (err) {
       console.error(err);
       toast.error("Impossible de supprimer la réception.");
@@ -268,6 +280,13 @@ function ReceptionPage() {
         open={detailsOpen}
         reception={selectedReception}
         onClose={handleCloseDetails}
+      />
+
+      <DeleteReceptionModal
+        open={deleteModalOpen}
+        reception={receptionToDelete}
+        onClose={handleCloseDeleteModal}
+        onConfirm={handleConfirmDelete}
       />
 
       {receiveAllConfirmOpen && receptionToReceiveAll && (
