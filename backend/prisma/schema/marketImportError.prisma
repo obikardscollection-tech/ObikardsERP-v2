@@ -21,4 +21,9 @@ model MarketImportError {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([marketImportJobId])
+  @@index([providerCardId])
+  @@index([errorCode])
+  @@index([resolved])
 }
