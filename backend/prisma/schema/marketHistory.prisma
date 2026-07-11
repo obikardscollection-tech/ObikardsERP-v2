@@ -1,0 +1,33 @@
+model MarketHistory {
+  id String @id @default(cuid())
+
+  marketProviderCardId String
+
+  currency String @default("USD")
+
+  rawPrice Decimal? @db.Decimal(10, 2)
+
+  psa8Price  Decimal? @db.Decimal(10, 2)
+  psa9Price  Decimal? @db.Decimal(10, 2)
+  psa10Price Decimal? @db.Decimal(10, 2)
+
+  bgs10Price Decimal? @db.Decimal(10, 2)
+  cgc10Price Decimal? @db.Decimal(10, 2)
+  sgc10Price Decimal? @db.Decimal(10, 2)
+
+  retailBuy  Decimal? @db.Decimal(10, 2)
+  retailSell Decimal? @db.Decimal(10, 2)
+
+  salesVolume Int?
+
+  lastSalePrice Decimal?  @db.Decimal(10, 2)
+  lastSaleDate  DateTime?
+
+  population Int?
+
+  providerUpdatedAt DateTime?
+
+  synchronizedAt DateTime
+
+  createdAt DateTime @default(now())
+}
