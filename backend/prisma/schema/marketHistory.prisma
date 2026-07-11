@@ -32,4 +32,7 @@ model MarketHistory {
   marketProviderCard MarketProviderCard @relation(fields: [marketProviderCardId], references: [id])
 
   createdAt DateTime @default(now())
+
+  @@index([marketProviderCardId])
+  @@index([synchronizedAt])
 }
