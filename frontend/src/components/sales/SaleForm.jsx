@@ -183,7 +183,15 @@ function SaleForm({ sale, inventoryItems = [], customers = [], onClose, onSaved,
           <select name="status" value={form.status} onChange={handleChange} className="w-full rounded-lg border border-slate-200 p-3">
             {statuses.map((status) => (
               <option key={status} value={status}>
-                {getPurchaseStatusLabel(status)}
+                {status === "PENDING"
+                  ? "En attente"
+                  : status === "PAID"
+                    ? "Payée"
+                    : status === "SHIPPED"
+                      ? "Expédiée"
+                      : status === "CANCELLED"
+                        ? "Annulée"
+                        : status}
               </option>
             ))}
           </select>
