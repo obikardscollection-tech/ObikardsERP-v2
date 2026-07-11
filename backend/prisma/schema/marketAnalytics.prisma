@@ -25,5 +25,6 @@ model MarketAnalytics {
   recommendedBuyPrice  Decimal? @db.Decimal(10, 2)
   recommendedSellPrice Decimal? @db.Decimal(10, 2)
 
-  updatedAt DateTime @updatedAt
+  updatedAt   DateTime     @updatedAt
+  marketCards MarketCard[]
 }

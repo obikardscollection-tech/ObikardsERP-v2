@@ -17,4 +17,5 @@ model MarketProviderCard {
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
   marketProvider MarketProvider @relation(fields: [marketProviderId], references: [id])
+  marketCard     MarketCard     @relation(fields: [marketCardId], references: [id])
 }

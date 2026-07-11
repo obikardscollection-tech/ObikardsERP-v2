@@ -27,7 +27,7 @@ model MarketCard {
 
   printRun Int?
 
-  language String? @default("EN")
+  language String  @default("EN")
   country  String?
 
   releaseDate DateTime?
@@ -38,6 +38,10 @@ model MarketCard {
 
   active Boolean @default(true)
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  providerCards MarketProviderCard[]
+  analytics     MarketAnalytics?     @relation(fields: [marketAnalyticsId], references: [id])
+
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  marketAnalyticsId String?
 }
