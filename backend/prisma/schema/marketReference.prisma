@@ -1,0 +1,19 @@
+model MarketReference {
+  id String @id @default(cuid())
+
+  type MarketReferenceType
+
+  value String
+
+  count Int @default(0)
+
+  firstSeen DateTime @default(now())
+  lastSeen  DateTime @default(now())
+
+  active Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([type, value])
+}
