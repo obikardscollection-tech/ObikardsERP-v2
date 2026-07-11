@@ -16,4 +16,7 @@ model MarketReference {
   updatedAt DateTime @updatedAt
 
   @@unique([type, value])
+  @@index([type])
+  @@index([value])
+  @@index([active])
 }
