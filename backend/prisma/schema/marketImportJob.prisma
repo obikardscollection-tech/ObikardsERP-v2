@@ -1,0 +1,36 @@
+model MarketImportJob {
+  id String @id @default(cuid())
+
+  marketProviderId String
+
+  status MarketImportStatus
+
+  source String
+
+  fileName String?
+
+  fileHash String?
+
+  startedAt  DateTime  @default(now())
+  finishedAt DateTime?
+
+  durationMs Int?
+
+  cardsCreated Int @default(0)
+  cardsUpdated Int @default(0)
+
+  providerCardsCreated Int @default(0)
+  providerCardsUpdated Int @default(0)
+
+  snapshotsCreated Int @default(0)
+  historyCreated   Int @default(0)
+
+  referencesUpdated Int @default(0)
+  analyticsUpdated  Int @default(0)
+
+  errorsCount   Int @default(0)
+  warningsCount Int @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
