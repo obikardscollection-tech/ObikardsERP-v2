@@ -43,11 +43,11 @@ model MarketCard {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-}
 
-@@index([player])
-@@index([team])
-@@index([brand])
-@@index([set])
-@@index([year])
-@@index([fingerprint])
+  @@index([player])
+  @@index([team])
+  @@index([brand])
+  @@index([set])
+  @@index([year])
+  @@index([fingerprint])
+}
