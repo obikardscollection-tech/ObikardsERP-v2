@@ -15,6 +15,7 @@ const marketCardRoutes = require("./routes/marketCardRoutes");
 const marketProviderCardRoutes = require("./routes/marketProviderCardRoutes");
 const marketSnapshotRoutes = require("./routes/marketSnapshotRoutes");
 const marketHistoryRoutes = require("./routes/marketHistoryRoutes");
+const marketAnalyticsRoutes = require("./routes/marketAnalyticsRoutes");
 
 const app = express();
 const PORT = 3000;
@@ -44,6 +45,7 @@ app.use("/market/cards", marketCardRoutes);
 app.use("/market/provider-cards", marketProviderCardRoutes);
 app.use("/market/snapshots", marketSnapshotRoutes);
 app.use("/market/history", marketHistoryRoutes);
+app.use("/market/analytics", marketAnalyticsRoutes);
 
 app.listen(PORT, () => {
   console.log(`🚀 Obikards ERP démarré sur http://localhost:${PORT}`);
