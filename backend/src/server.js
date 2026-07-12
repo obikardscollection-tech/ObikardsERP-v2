@@ -9,7 +9,9 @@ const suppliersRoutes = require("./routes/suppliersRoutes");
 const purchasesRoutes = require("./routes/purchasesRoutes");
 const expensesRoutes = require("./routes/expensesRoutes");
 const receptionsRoutes = require("./routes/receptionsRoutes");
+
 const marketProviderRoutes = require("./routes/marketProviderRoutes");
+const marketCardRoutes = require("./routes/marketCardRoutes");
 const marketProviderCardRoutes = require("./routes/marketProviderCardRoutes");
 
 const app = express();
@@ -34,7 +36,9 @@ app.use("/suppliers", suppliersRoutes);
 app.use("/purchases", purchasesRoutes);
 app.use("/expenses", expensesRoutes);
 app.use("/receptions", receptionsRoutes);
+
 app.use("/market/providers", marketProviderRoutes);
+app.use("/market/cards", marketCardRoutes);
 app.use("/market/provider-cards", marketProviderCardRoutes);
 
 app.listen(PORT, () => {
