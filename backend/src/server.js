@@ -10,6 +10,7 @@ const purchasesRoutes = require("./routes/purchasesRoutes");
 const expensesRoutes = require("./routes/expensesRoutes");
 const receptionsRoutes = require("./routes/receptionsRoutes");
 const marketProviderRoutes = require("./routes/marketProviderRoutes");
+const marketProviderCardRoutes = require("./routes/marketProviderCardRoutes");
 
 const app = express();
 const PORT = 3000;
@@ -34,6 +35,7 @@ app.use("/purchases", purchasesRoutes);
 app.use("/expenses", expensesRoutes);
 app.use("/receptions", receptionsRoutes);
 app.use("/market/providers", marketProviderRoutes);
+app.use("/market/provider-cards", marketProviderCardRoutes);
 
 app.listen(PORT, () => {
   console.log(`🚀 Obikards ERP démarré sur http://localhost:${PORT}`);
