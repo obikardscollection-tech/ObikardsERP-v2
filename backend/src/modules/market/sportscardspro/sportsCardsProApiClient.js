@@ -1,3 +1,5 @@
+const { executeSportsCardsProRequest } = require("./sportsCardsProRateLimiter");
+
 const INTERNALS = {
   ENV: {
     BASE_URL: "SPORTSCARDSPRO_API_BASE_URL",
@@ -321,7 +323,7 @@ async function requestSportsCardsPro(endpoint, parameters = {}) {
   const url = buildUrl(baseUrl, endpoint, token, query);
   const httpRequest = createHttpRequest(parameters);
 
-  return executeRequest(url, httpRequest);
+  return executeSportsCardsProRequest(() => executeRequest(url, httpRequest));
 }
 
 module.exports = {
