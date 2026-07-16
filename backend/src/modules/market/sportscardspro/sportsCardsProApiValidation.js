@@ -1,5 +1,6 @@
 const { searchSportsCardsPro } = require("./sportsCardsProSearchService");
 const { getSportsCardsProProduct } = require("./sportsCardsProProductService");
+const { resolveFirstSportsCardsProSearchEntry } = require("./sportsCardsProSearchResultResolver");
 
 const INTERNALS = {
   KEYS: {
@@ -25,35 +26,6 @@ function assertSearchQuery(searchQuery) {
   if (typeof searchQuery !== "string" || searchQuery.trim() === "") {
     throw new Error("La recherche SportsCardsPro est invalide.");
   }
-}
-
-/**
- * Return the first search result entry from SportsCardsPro raw response.
- * @param {unknown} searchResponse
- * @returns {object}
- */
-function getFirstSearchResult(searchResponse) {
-  if (Array.isArray(searchResponse) && searchResponse.length > 0) {
-    return searchResponse[0];
-  }
-
-  if (!searchResponse || typeof searchResponse !== "object") {
-    throw new Error("La recherche SportsCardsPro ne contient aucun resultat exploitable.");
-  }
-
-  if (Array.isArray(searchResponse.results) && searchResponse.results.length > 0) {
-    return searchResponse.results[0];
-  }
-
-  if (Array.isArray(searchResponse.products) && searchResponse.products.length > 0) {
-    return searchResponse.products[0];
-  }
-
-  if (Array.isArray(searchResponse.data) && searchResponse.data.length > 0) {
-    return searchResponse.data[0];
-  }
-
-  throw new Error("La recherche SportsCardsPro ne retourne aucun resultat.");
 }
 
 /**
@@ -133,7 +105,7 @@ async function validateSportsCardsProApi(searchQuery) {
   assertSearchQuery(searchQuery);
 
   const searchResponse = await searchSportsCardsPro(searchQuery);
-  const firstEntry = getFirstSearchResult(searchResponse);
+  const firstEntry = resolveFirstSportsCardsProSearchEntry(searchResponse);
   const productId = getProductId(firstEntry);
   const productDetails = await getSportsCardsProProduct(productId);
 
