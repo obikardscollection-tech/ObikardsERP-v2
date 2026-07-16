@@ -9,9 +9,10 @@ const INTERNALS = {
     CONSOLE_NAME: "console-name",
   },
   REPORT: {
+    SEARCH_JSON_TITLE: "========== SEARCH JSON ==========" ,
     PRODUCT_TITLE: "========== PRODUCT ==========",
     MARKET_TITLE: "========== MARKET FIELDS ==========",
-    JSON_TITLE: "========== JSON ==========",
+    PRODUCT_JSON_TITLE: "========== PRODUCT JSON ==========" ,
   },
   MARKET_KEYWORDS: ["price", "retail", "sales", "volume"],
 };
@@ -100,13 +101,17 @@ function printMarketFields(productDetails) {
 
 /**
  * Print the complete validation report.
+ * @param {unknown} searchResponse
  * @param {string} productId
  * @param {object} productDetails
  */
-function printValidationReport(productId, productDetails) {
+function printValidationReport(searchResponse, productId, productDetails) {
   const productName = productDetails[INTERNALS.KEYS.PRODUCT_NAME];
   const consoleName = productDetails[INTERNALS.KEYS.CONSOLE_NAME];
 
+  console.log(INTERNALS.REPORT.SEARCH_JSON_TITLE);
+  console.log(searchResponse);
+  console.log("");
   console.log(INTERNALS.REPORT.PRODUCT_TITLE);
   console.log("Product ID:", productId);
   console.log("Product Name:", productName);
@@ -115,7 +120,7 @@ function printValidationReport(productId, productDetails) {
   console.log(INTERNALS.REPORT.MARKET_TITLE);
   printMarketFields(productDetails);
   console.log("");
-  console.log(INTERNALS.REPORT.JSON_TITLE);
+  console.log(INTERNALS.REPORT.PRODUCT_JSON_TITLE);
   console.log(productDetails);
 }
 
@@ -136,7 +141,7 @@ async function validateSportsCardsProApi(searchQuery) {
     throw new Error("Le detail produit SportsCardsPro est invalide.");
   }
 
-  printValidationReport(productId, productDetails);
+  printValidationReport(searchResponse, productId, productDetails);
 
   return {
     searchResponse,
