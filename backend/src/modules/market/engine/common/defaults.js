@@ -3,6 +3,7 @@ function createDefaults() {
     data: {
       rawRows: [],
       normalizedRows: [],
+      matchedRows: [],
     },
     errors: [],
     warnings: [],
