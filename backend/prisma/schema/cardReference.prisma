@@ -1,0 +1,59 @@
+model CardReference {
+  id String @id @default(cuid())
+
+  sport        String
+  league       String?
+  year         Int
+  manufacturer String?
+  brand        String?
+  set          String?
+  subset       String?
+
+  cardNumber        String?
+  player            String
+  playerDisplayName String?
+  team              String?
+
+  parallel  String?
+  variation String?
+
+  rookie     Boolean @default(false)
+  autograph  Boolean @default(false)
+  memorabilia Boolean @default(false)
+  insert     Boolean @default(false)
+
+  printRun Int?
+
+  language String?
+
+  // Will be generated automatically in a future sprint.
+  referenceFingerprint String
+
+  sportsCardsProId String?
+  tcdbId           String?
+  beckettId        String?
+  psaPopulationId  String?
+  cardUuid         String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([referenceFingerprint])
+
+  @@index([player])
+  @@index([year])
+  @@index([sport])
+  @@index([manufacturer])
+  @@index([brand])
+  @@index([set])
+  @@index([parallel])
+  @@index([variation])
+  @@index([cardNumber])
+
+  @@index([sport, player])
+  @@index([sport, year])
+  @@index([player, year])
+  @@index([manufacturer, brand, set])
+  @@index([year, brand, set])
+  @@index([sport, player, year])
+}
