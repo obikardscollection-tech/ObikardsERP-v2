@@ -17,6 +17,7 @@ router.get("/", inventoryController.getInventory);
 router.post("/", inventoryController.createInventory);
 
 router.post("/import/csv", uploadInventoryCsv, inventoryController.importInventoryCsv);
+router.post("/import/csv/preview", uploadInventoryCsv, inventoryController.previewInventoryCsv);
 
 // ===============================
 // Modification

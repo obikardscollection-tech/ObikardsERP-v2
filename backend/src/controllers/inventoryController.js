@@ -75,10 +75,27 @@ async function importInventoryCsv(req, res) {
   }
 }
 
+async function previewInventoryCsv(req, res) {
+  try {
+    const report = await inventoryService.previewInventoryFromCsv(req.file);
+
+    res.status(200).json(report);
+  } catch (error) {
+    console.error(error);
+
+    const statusCode = error.statusCode || 500;
+
+    res.status(statusCode).json({
+      error: error.message,
+    });
+  }
+}
+
 module.exports = {
   getInventory,
   createInventory,
   updateInventory,
   deleteInventory,
   importInventoryCsv,
+  previewInventoryCsv,
 };
