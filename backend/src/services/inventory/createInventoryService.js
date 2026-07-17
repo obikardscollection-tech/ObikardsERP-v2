@@ -2,10 +2,11 @@ const prisma = require("../../lib/prisma");
 
 const inventoryMapper = require("./mappers/inventoryMapper");
 const { generateSku } = require("./skuService");
-const { resolveInventoryMarketPatch } = require("./marketAutoLinkService");
+const { resolveInventoryMarketIntegration } = require("./marketAutoLinkService");
+const { createMarketSnapshot } = require("../../modules/market/snapshots");
 
 async function createInventory(data) {
-  const marketPatch = await resolveInventoryMarketPatch(data);
+  const marketIntegration = await resolveInventoryMarketIntegration(data);
 
   return prisma.$transaction(async (tx) => {
     const sku = await generateSku(data.sport, tx);
@@ -14,7 +15,7 @@ async function createInventory(data) {
       data: {
         sku,
         ...inventoryMapper(data),
-        ...marketPatch,
+        ...marketIntegration.patch,
 
         // Photos (Sprint 5)
         frontPhoto: null,
@@ -22,6 +23,14 @@ async function createInventory(data) {
         extraPhotos: null,
       },
     });
+
+    if (marketIntegration.refreshResult) {
+      await createMarketSnapshot({
+        inventoryId: item.id,
+        refreshResult: marketIntegration.refreshResult,
+        db: tx,
+      });
+    }
 
     return item;
   });

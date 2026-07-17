@@ -83,6 +83,8 @@ model Inventory {
   margin Float?
   roi    Float?
 
+  marketSnapshots InventoryMarketSnapshot[]
+
   saleItems      SaleItem[]
   stockMovements StockMovement[]
 

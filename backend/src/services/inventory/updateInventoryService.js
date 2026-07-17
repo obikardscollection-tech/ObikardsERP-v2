@@ -1,7 +1,8 @@
 const prisma = require("../../lib/prisma");
 
 const inventoryMapper = require("./mappers/inventoryMapper");
-const { resolveInventoryMarketPatch } = require("./marketAutoLinkService");
+const { resolveInventoryMarketIntegration } = require("./marketAutoLinkService");
+const { createMarketSnapshot } = require("../../modules/market/snapshots");
 
 /**
  * Merge current inventory item with incoming update payload.
@@ -40,17 +41,29 @@ async function updateInventory(id, data) {
 
   const mappedData = inventoryMapper(data);
   const marketInput = createInventoryMarketInput(existingItem, data, mappedData);
-  const marketPatch = await resolveInventoryMarketPatch(marketInput);
+  const marketIntegration = await resolveInventoryMarketIntegration(marketInput);
 
-  const item = await prisma.inventory.update({
-    where: {
-      id,
-    },
+  const item = await prisma.$transaction(async (tx) => {
+    const updatedItem = await tx.inventory.update({
+      where: {
+        id,
+      },
 
-    data: {
-      ...mappedData,
-      ...marketPatch,
-    },
+      data: {
+        ...mappedData,
+        ...marketIntegration.patch,
+      },
+    });
+
+    if (marketIntegration.refreshResult) {
+      await createMarketSnapshot({
+        inventoryId: updatedItem.id,
+        refreshResult: marketIntegration.refreshResult,
+        db: tx,
+      });
+    }
+
+    return updatedItem;
   });
 
   return item;

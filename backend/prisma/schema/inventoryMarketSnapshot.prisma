@@ -1,0 +1,35 @@
+enum MarketProvider {
+  SPORTSCARDSPRO
+}
+
+enum CurrencyCode {
+  USD
+  EUR
+}
+
+model InventoryMarketSnapshot {
+  id String @id @default(cuid())
+
+  inventoryId String
+  inventory   Inventory @relation(fields: [inventoryId], references: [id], onDelete: Cascade)
+
+  provider       MarketProvider
+  providerCardId String?
+
+  currency CurrencyCode
+
+  valueUsd Float?
+  valueEur Float?
+
+  exchangeRate Float?
+
+  profit Float?
+  margin Float?
+  roi    Float?
+
+  createdAt DateTime @default(now())
+
+  @@index([inventoryId])
+  @@index([createdAt])
+  @@index([inventoryId, createdAt])
+}

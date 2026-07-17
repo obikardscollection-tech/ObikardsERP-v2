@@ -12,6 +12,19 @@ const INTERNALS = {
 };
 
 /**
+ * Create integration result payload.
+ * @param {object} patch
+ * @param {object|null} refreshResult
+ * @returns {{patch:object, refreshResult:object|null}}
+ */
+function createIntegrationResult(patch, refreshResult) {
+  return {
+    patch,
+    refreshResult,
+  };
+}
+
+/**
  * @typedef {Object} InventoryMarketInput
  * @property {unknown} player
  * @property {unknown} year
@@ -213,32 +226,44 @@ function createLinkedPatch(refresh) {
  * @returns {Promise<object>}
  */
 async function resolveInventoryMarketPatch(card) {
+  const integration = await resolveInventoryMarketIntegration(card);
+
+  return integration.patch;
+}
+
+/**
+ * Resolve automatic market integration outcome for one inventory card.
+ * @param {InventoryMarketInput} card
+ * @returns {Promise<{patch:object, refreshResult:object|null}>}
+ */
+async function resolveInventoryMarketIntegration(card) {
   assertCard(card);
 
   const cardLinkPayload = createCardLinkPayload(card);
 
   if (!canSearchMarket(cardLinkPayload)) {
-    return createNotFoundPatch();
+    return createIntegrationResult(createNotFoundPatch(), null);
   }
 
   const searchResponse = await findSportsCardsProMatches(cardLinkPayload);
   const searchEntries = resolveSportsCardsProSearchEntries(searchResponse);
 
   if (searchEntries.length === 0) {
-    return createNotFoundPatch();
+    return createIntegrationResult(createNotFoundPatch(), null);
   }
 
   if (searchEntries.length > 1) {
     const mappedMatches = searchEntries.map((entry) => mapSportsCardsProSearchResult(entry));
 
-    return createMultipleMatchesPatch(mappedMatches);
+    return createIntegrationResult(createMultipleMatchesPatch(mappedMatches), null);
   }
 
   const refresh = await refreshSportsCardsProCard(createRefreshPayload(card));
 
-  return createLinkedPatch(refresh);
+  return createIntegrationResult(createLinkedPatch(refresh), refresh);
 }
 
 module.exports = {
+  resolveInventoryMarketIntegration,
   resolveInventoryMarketPatch,
 };
