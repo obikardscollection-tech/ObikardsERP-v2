@@ -18,7 +18,6 @@ const {
   importErrorCsvEngineStage,
 } = require("../../modules/market/engine/csv");
 
-const { createInventory } = require("./createInventoryService");
 const {
   mapCsvRowToInventoryDto,
   INVENTORY_CSV_PROVIDERS,
@@ -26,6 +25,10 @@ const {
 const {
   resolveInventoryCsvProviderDiagnostics,
 } = require("./mappers/inventoryCsvProviderResolver");
+const {
+  synchronizeInventoryFromDto,
+  INVENTORY_SYNC_STATUS,
+} = require("./inventorySynchronizationService");
 
 const INTERNALS = {
   TEMP_PREFIX: "obikards-inventory-import-",
@@ -41,6 +44,7 @@ const INTERNALS = {
     UPDATED: 0,
     FAILED: 0,
     SKIPPED: 0,
+    DUPLICATES: 0,
     WARNINGS: [],
   },
   ERRORS: {
@@ -73,7 +77,7 @@ const INTERNALS = {
 
 /**
  * Create a fresh import report structure.
- * @returns {{success:boolean,totalRows:number,created:number,updated:number,failed:number,skipped:number,warnings:Array<unknown>,errors:Array<{row:number,message:string}>,durationMs:number}}
+ * @returns {{success:boolean,totalRows:number,created:number,updated:number,failed:number,skipped:number,duplicates:number,warnings:Array<unknown>,errors:Array<{row:number,message:string}>,durationMs:number}}
  */
 function createImportReport() {
   return {
@@ -83,6 +87,7 @@ function createImportReport() {
     updated: INTERNALS.REPORT.UPDATED,
     failed: INTERNALS.REPORT.FAILED,
     skipped: INTERNALS.REPORT.SKIPPED,
+    duplicates: INTERNALS.REPORT.DUPLICATES,
     warnings: [...INTERNALS.REPORT.WARNINGS],
     errors: [],
     durationMs: 0,
@@ -470,8 +475,41 @@ async function importInventoryFromCsv(file) {
             onIgnoredColumn: null,
           });
 
-          await createInventory(inventoryInput);
-          report.created += 1;
+          const syncResult = await synchronizeInventoryFromDto(inventoryInput);
+
+          if (Array.isArray(syncResult.warnings) && syncResult.warnings.length > 0) {
+            for (const warning of syncResult.warnings) {
+              report.warnings.push({
+                row: index + 1,
+                message: warning,
+              });
+            }
+          }
+
+          if (syncResult.status === INVENTORY_SYNC_STATUS.CREATE) {
+            report.created += 1;
+            continue;
+          }
+
+          if (syncResult.status === INVENTORY_SYNC_STATUS.UPDATE) {
+            report.updated += 1;
+            continue;
+          }
+
+          if (syncResult.status === INVENTORY_SYNC_STATUS.SKIP) {
+            report.skipped += 1;
+            continue;
+          }
+
+          report.failed += 1;
+          report.errors.push(
+            createRowError(
+              index,
+              Array.isArray(syncResult.errors) && syncResult.errors.length > 0
+                ? syncResult.errors[0]
+                : INTERNALS.ERRORS.EMPTY_ROW
+            )
+          );
         } catch (error) {
           report.failed += 1;
           report.errors.push(createRowError(index, error.message));
