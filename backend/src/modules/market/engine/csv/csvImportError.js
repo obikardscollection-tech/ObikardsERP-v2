@@ -1,3 +1,5 @@
+const { assertContext, assertContextData, assertImportJob } = require("../common/contextAssertions");
+
 const INTERNALS = {
   IMPORT_ERROR_VERSION: 1,
   KEYS: {
@@ -22,36 +24,6 @@ const INTERNALS = {
 };
 
 /**
- * Ensure import error stage context is present.
- * @param {unknown} context
- */
-function assertContext(context) {
-  if (!context) {
-    throw new Error("Le contexte CSV est introuvable.");
-  }
-}
-
-/**
- * Ensure import error stage data container is present.
- * @param {unknown} data
- */
-function assertContextData(data) {
-  if (!data) {
-    throw new Error("Les donnees du contexte CSV sont introuvables.");
-  }
-}
-
-/**
- * Ensure import job document is present.
- * @param {unknown} importJob
- */
-function assertImportJob(importJob) {
-  if (!importJob) {
-    throw new Error("Le document import job du contexte CSV est introuvable.");
-  }
-}
-
-/**
  * Create import error metadata structure.
  * @returns {{createdAt:string}}
  */
@@ -66,6 +38,7 @@ function createImportErrorMetadata() {
  * @returns {{startedAt:string|null, finishedAt:string|null, durationMs:number}}
  */
 function createImportErrorRuntime() {
+  // Extension point reserved for future runtime instrumentation.
   return {
     startedAt: null,
     finishedAt: null,
@@ -100,6 +73,7 @@ function createImportErrorSummary() {
  * @returns {object}
  */
 function createImportErrorEntries() {
+  // Extension point reserved for future indexed error registries.
   return {};
 }
 

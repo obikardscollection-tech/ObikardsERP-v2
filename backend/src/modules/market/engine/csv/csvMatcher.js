@@ -1,3 +1,18 @@
+const { assertContext, assertContextData } = require("../common/contextAssertions");
+
+const INTERNALS = {
+  KEYS: {
+    DATA: "data",
+    NORMALIZED_ROWS: "normalizedRows",
+    MATCHED_ROWS: "matchedRows",
+  },
+};
+
+/**
+ * Clone one row for immutable matching payload construction.
+ * @param {Record<string, unknown>} row
+ * @returns {Record<string, unknown>}
+ */
 function cloneRow(row) {
   if (typeof structuredClone === "function") {
     return structuredClone(row);
@@ -6,26 +21,36 @@ function cloneRow(row) {
   return JSON.parse(JSON.stringify(row));
 }
 
+/**
+ * Build a new immutable context enriched with matched rows.
+ * @param {object} context
+ * @returns {Promise<object>}
+ */
 async function matchCsvEngineStage(context) {
-  if (!context) {
-    throw new Error("Le contexte CSV est introuvable.");
-  }
+  assertContext(context);
+  assertContextData(context[INTERNALS.KEYS.DATA]);
 
-  if (!context.data) {
-    throw new Error("Les donnees du contexte CSV sont introuvables.");
-  }
+  const data = context[INTERNALS.KEYS.DATA];
+  const normalizedRows = data[INTERNALS.KEYS.NORMALIZED_ROWS];
+  const matchedRows = data[INTERNALS.KEYS.MATCHED_ROWS];
 
-  if (!Array.isArray(context.data.normalizedRows)) {
+  if (!Array.isArray(normalizedRows)) {
     throw new Error("Les lignes normalisees du contexte CSV sont introuvables.");
   }
 
-  if (!Array.isArray(context.data.matchedRows)) {
+  if (!Array.isArray(matchedRows)) {
     throw new Error("Les lignes matchees du contexte CSV sont introuvables.");
   }
 
-  context.data.matchedRows = context.data.normalizedRows.map((row) => cloneRow(row));
+  const nextData = {
+    ...data,
+    [INTERNALS.KEYS.MATCHED_ROWS]: normalizedRows.map((row) => cloneRow(row)),
+  };
 
-  return context;
+  return {
+    ...context,
+    [INTERNALS.KEYS.DATA]: nextData,
+  };
 }
 
 module.exports = {

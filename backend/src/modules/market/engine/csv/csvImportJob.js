@@ -1,3 +1,5 @@
+const { assertContext, assertContextData, assertAnalytics } = require("../common/contextAssertions");
+
 const INTERNALS = {
   IMPORT_JOB_VERSION: 1,
   KEYS: {
@@ -24,36 +26,6 @@ const INTERNALS = {
 };
 
 /**
- * Ensure import job stage context is present.
- * @param {unknown} context
- */
-function assertContext(context) {
-  if (!context) {
-    throw new Error("Le contexte CSV est introuvable.");
-  }
-}
-
-/**
- * Ensure import job stage data container is present.
- * @param {unknown} data
- */
-function assertContextData(data) {
-  if (!data) {
-    throw new Error("Les donnees du contexte CSV sont introuvables.");
-  }
-}
-
-/**
- * Ensure analytics registry is present.
- * @param {unknown} analytics
- */
-function assertAnalytics(analytics) {
-  if (!analytics) {
-    throw new Error("Le registre analytics du contexte CSV est introuvable.");
-  }
-}
-
-/**
  * Create import job metadata structure.
  * @returns {{createdAt:string}}
  */
@@ -68,6 +40,7 @@ function createImportJobMetadata() {
  * @returns {{startedAt:string|null, finishedAt:string|null, durationMs:number}}
  */
 function createImportJobRuntime() {
+  // Extension point reserved for future runtime instrumentation.
   return {
     startedAt: null,
     finishedAt: null,
@@ -101,6 +74,7 @@ function createImportJobStatus() {
  * @returns {object}
  */
 function createImportJobResult() {
+  // Extension point reserved for future import job result payloads.
   return {};
 }
 

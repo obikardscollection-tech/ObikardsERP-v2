@@ -119,6 +119,7 @@ function createRegistryFlags() {
  * @returns {object}
  */
 function createRegistryCache() {
+  // Extension point reserved for future registry cache accelerators.
   return {};
 }
 

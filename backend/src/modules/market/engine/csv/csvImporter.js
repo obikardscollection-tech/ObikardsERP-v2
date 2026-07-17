@@ -1,3 +1,5 @@
+const { assertContext, assertContextData, assertReferenceRegistry } = require("../common/contextAssertions");
+
 const INTERNALS = {
   KEYS: {
     DATA: "data",
@@ -42,36 +44,6 @@ function resolveImportSource(context) {
 }
 
 /**
- * Ensure import stage context is present.
- * @param {unknown} context
- */
-function assertContext(context) {
-  if (!context) {
-    throw new Error("Le contexte CSV est introuvable.");
-  }
-}
-
-/**
- * Ensure import stage data container is present.
- * @param {unknown} data
- */
-function assertContextData(data) {
-  if (!data) {
-    throw new Error("Les donnees du contexte CSV sont introuvables.");
-  }
-}
-
-/**
- * Ensure reference registry is present.
- * @param {unknown} referenceRegistry
- */
-function assertReferenceRegistry(referenceRegistry) {
-  if (!referenceRegistry) {
-    throw new Error("Le registre de references du contexte CSV est introuvable.");
-  }
-}
-
-/**
  * Read reference count without copying the registry.
  * @param {object} referenceRegistry
  * @returns {number}
@@ -91,6 +63,7 @@ function readReferenceCount(referenceRegistry) {
  * @returns {{startedAt:string|null, finishedAt:string|null, durationMs:number}}
  */
 function createImportRuntime() {
+  // Extension point reserved for future runtime instrumentation.
   return {
     startedAt: null,
     finishedAt: null,
@@ -138,8 +111,8 @@ function createImportStatistics(referenceCount) {
 
 /**
  * Create generic import payload from an existing reference registry.
- * @param {string} source
  * @param {object} referenceRegistry
+ * @param {string} source
  * @returns {{source:string, runtime:object, flags:object, metadata:object, statistics:object, references:object}}
  */
 function createImport(referenceRegistry, source) {

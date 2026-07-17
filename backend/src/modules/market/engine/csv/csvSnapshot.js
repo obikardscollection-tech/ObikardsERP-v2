@@ -1,3 +1,5 @@
+const { assertContext, assertContextData, assertImport } = require("../common/contextAssertions");
+
 const INTERNALS = {
   KEYS: {
     DATA: "data",
@@ -23,36 +25,6 @@ const INTERNALS = {
 };
 
 /**
- * Ensure snapshot stage context is present.
- * @param {unknown} context
- */
-function assertContext(context) {
-  if (!context) {
-    throw new Error("Le contexte CSV est introuvable.");
-  }
-}
-
-/**
- * Ensure snapshot stage data container is present.
- * @param {unknown} data
- */
-function assertContextData(data) {
-  if (!data) {
-    throw new Error("Les donnees du contexte CSV sont introuvables.");
-  }
-}
-
-/**
- * Ensure import payload is present.
- * @param {unknown} importPayload
- */
-function assertImport(importPayload) {
-  if (!importPayload) {
-    throw new Error("L'import du contexte CSV est introuvable.");
-  }
-}
-
-/**
  * Resolve snapshot source from existing import payload.
  * @param {object} importPayload
  * @returns {string}
@@ -72,6 +44,7 @@ function resolveSnapshotSource(importPayload) {
  * @returns {{startedAt:string|null, finishedAt:string|null, durationMs:number}}
  */
 function createSnapshotRuntime() {
+  // Extension point reserved for future runtime instrumentation.
   return {
     startedAt: null,
     finishedAt: null,

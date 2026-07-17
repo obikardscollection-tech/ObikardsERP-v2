@@ -1,3 +1,5 @@
+const { assertContext, assertContextData, assertHistory } = require("../common/contextAssertions");
+
 const INTERNALS = {
   ANALYTICS_VERSION: 1,
   KEYS: {
@@ -19,36 +21,6 @@ const INTERNALS = {
     HISTORY_COUNT: "historyCount",
   },
 };
-
-/**
- * Ensure analytics stage context is present.
- * @param {unknown} context
- */
-function assertContext(context) {
-  if (!context) {
-    throw new Error("Le contexte CSV est introuvable.");
-  }
-}
-
-/**
- * Ensure analytics stage data container is present.
- * @param {unknown} data
- */
-function assertContextData(data) {
-  if (!data) {
-    throw new Error("Les donnees du contexte CSV sont introuvables.");
-  }
-}
-
-/**
- * Ensure history registry is present.
- * @param {unknown} history
- */
-function assertHistory(history) {
-  if (!history) {
-    throw new Error("L'historique du contexte CSV est introuvable.");
-  }
-}
 
 /**
  * Read history count without copying history.
@@ -80,6 +52,7 @@ function createAnalyticsMetadata() {
  * @returns {{startedAt:string|null, finishedAt:string|null, durationMs:number}}
  */
 function createAnalyticsRuntime() {
+  // Extension point reserved for future runtime instrumentation.
   return {
     startedAt: null,
     finishedAt: null,
@@ -114,6 +87,7 @@ function createAnalyticsStatistics(historyCount) {
  * @returns {object}
  */
 function createAnalyticsMetrics() {
+  // Extension point reserved for future analytics metrics enrichment.
   return {};
 }
 

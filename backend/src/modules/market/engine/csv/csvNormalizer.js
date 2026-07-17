@@ -1,3 +1,18 @@
+const { assertContext, assertContextData } = require("../common/contextAssertions");
+
+const INTERNALS = {
+  KEYS: {
+    DATA: "data",
+    RAW_ROWS: "rawRows",
+    NORMALIZED_ROWS: "normalizedRows",
+  },
+};
+
+/**
+ * Normalize one raw cell value.
+ * @param {unknown} value
+ * @returns {unknown}
+ */
 function normalizeValue(value) {
   if (value === null || value === undefined) {
     return value;
@@ -12,6 +27,11 @@ function normalizeValue(value) {
   return value;
 }
 
+/**
+ * Normalize one CSV row.
+ * @param {Record<string, unknown>} row
+ * @returns {Record<string, unknown>}
+ */
 function normalizeRow(row) {
   const normalizedRow = {};
 
@@ -23,28 +43,36 @@ function normalizeRow(row) {
   return normalizedRow;
 }
 
+/**
+ * Build a new immutable context enriched with normalized rows.
+ * @param {object} context
+ * @returns {Promise<object>}
+ */
 async function normalizeCsvEngineStage(context) {
-  if (!context) {
-    throw new Error("Le contexte CSV est introuvable.");
-  }
+  assertContext(context);
+  assertContextData(context[INTERNALS.KEYS.DATA]);
 
-  if (!context.data) {
-    throw new Error("Les donnees du contexte CSV sont introuvables.");
-  }
+  const data = context[INTERNALS.KEYS.DATA];
+  const rawRows = data[INTERNALS.KEYS.RAW_ROWS];
+  const normalizedRows = data[INTERNALS.KEYS.NORMALIZED_ROWS];
 
-  if (!Array.isArray(context.data.rawRows)) {
+  if (!Array.isArray(rawRows)) {
     throw new Error("Les lignes brutes du contexte CSV sont introuvables.");
   }
 
-  if (!Array.isArray(context.data.normalizedRows)) {
+  if (!Array.isArray(normalizedRows)) {
     throw new Error("Les lignes normalisees du contexte CSV sont introuvables.");
   }
 
-  const rawRows = context.data.rawRows;
+  const nextData = {
+    ...data,
+    [INTERNALS.KEYS.NORMALIZED_ROWS]: rawRows.map((row) => normalizeRow(row)),
+  };
 
-  context.data.normalizedRows = rawRows.map((row) => normalizeRow(row));
-
-  return context;
+  return {
+    ...context,
+    [INTERNALS.KEYS.DATA]: nextData,
+  };
 }
 
 module.exports = {

@@ -1,3 +1,5 @@
+const { assertContext, assertContextData, assertSnapshot } = require("../common/contextAssertions");
+
 const INTERNALS = {
   HISTORY_VERSION: 1,
   KEYS: {
@@ -24,36 +26,6 @@ const INTERNALS = {
 };
 
 /**
- * Ensure history stage context is present.
- * @param {unknown} context
- */
-function assertContext(context) {
-  if (!context) {
-    throw new Error("Le contexte CSV est introuvable.");
-  }
-}
-
-/**
- * Ensure history stage data container is present.
- * @param {unknown} data
- */
-function assertContextData(data) {
-  if (!data) {
-    throw new Error("Les donnees du contexte CSV sont introuvables.");
-  }
-}
-
-/**
- * Ensure snapshot payload is present.
- * @param {unknown} snapshot
- */
-function assertSnapshot(snapshot) {
-  if (!snapshot) {
-    throw new Error("Le snapshot du contexte CSV est introuvable.");
-  }
-}
-
-/**
  * Create history metadata structure.
  * @returns {{createdAt:string}}
  */
@@ -68,6 +40,7 @@ function createHistoryMetadata() {
  * @returns {{startedAt:string|null, finishedAt:string|null, durationMs:number}}
  */
 function createHistoryRuntime() {
+  // Extension point reserved for future runtime instrumentation.
   return {
     startedAt: null,
     finishedAt: null,
@@ -92,6 +65,7 @@ function createHistoryFlags() {
  * @returns {object}
  */
 function createHistoryIndexes() {
+  // Extension point reserved for future indexing accelerators.
   return {};
 }
 
@@ -100,6 +74,7 @@ function createHistoryIndexes() {
  * @returns {object}
  */
 function createHistoryCache() {
+  // Extension point reserved for future history caching strategies.
   return {};
 }
 
