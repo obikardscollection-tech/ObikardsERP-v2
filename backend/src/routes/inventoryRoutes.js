@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 
 const inventoryController = require("../controllers/inventoryController");
+const { uploadInventoryCsv } = require("../middlewares/inventoryCsvUploadMiddleware");
 
 // ===============================
 // Liste
@@ -14,6 +15,8 @@ router.get("/", inventoryController.getInventory);
 // ===============================
 
 router.post("/", inventoryController.createInventory);
+
+router.post("/import/csv", uploadInventoryCsv, inventoryController.importInventoryCsv);
 
 // ===============================
 // Modification

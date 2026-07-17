@@ -59,9 +59,26 @@ async function deleteInventory(req, res) {
   }
 }
 
+async function importInventoryCsv(req, res) {
+  try {
+    const report = await inventoryService.importInventoryFromCsv(req.file);
+
+    res.status(200).json(report);
+  } catch (error) {
+    console.error(error);
+
+    const statusCode = error.statusCode || 500;
+
+    res.status(statusCode).json({
+      error: error.message,
+    });
+  }
+}
+
 module.exports = {
   getInventory,
   createInventory,
   updateInventory,
   deleteInventory,
+  importInventoryCsv,
 };

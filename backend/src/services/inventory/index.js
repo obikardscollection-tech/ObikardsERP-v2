@@ -4,6 +4,7 @@ const { createInventory } = require("./createInventoryService");
 const { updateInventory } = require("./updateInventoryService");
 const { deleteInventory } = require("./deleteInventoryService");
 const { resolveInventoryMarketPatch } = require("./marketAutoLinkService");
+const { importInventoryFromCsv } = require("./importCsvService");
 
 module.exports = {
   generateSku,
@@ -12,4 +13,5 @@ module.exports = {
   updateInventory,
   deleteInventory,
   resolveInventoryMarketPatch,
+  importInventoryFromCsv,
 };
