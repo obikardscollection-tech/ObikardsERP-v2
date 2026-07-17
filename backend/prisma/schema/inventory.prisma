@@ -1,3 +1,9 @@
+enum MarketLinkStatus {
+  NOT_FOUND
+  LINKED
+  MULTIPLE_MATCHES
+}
+
 model Inventory {
   id  String @id @default(cuid())
   sku String @unique
@@ -61,6 +67,21 @@ model Inventory {
   team           String?
   variant        String?
   year           Int?
+
+  sportsCardsProId String?
+  marketLinkStatus MarketLinkStatus? @default(NOT_FOUND)
+  marketMatches    Json?
+
+  marketLastRefreshAt DateTime?
+
+  marketValueUsd Float?
+  marketValueEur Float?
+  marketSource   String?
+  marketCurrency String?
+
+  profit Float?
+  margin Float?
+  roi    Float?
 
   saleItems      SaleItem[]
   stockMovements StockMovement[]
