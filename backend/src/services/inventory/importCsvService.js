@@ -77,7 +77,7 @@ const INTERNALS = {
 
 /**
  * Create a fresh import report structure.
- * @returns {{success:boolean,totalRows:number,created:number,updated:number,failed:number,skipped:number,duplicates:number,warnings:Array<unknown>,errors:Array<{row:number,message:string}>,durationMs:number}}
+ * @returns {{success:boolean,totalRows:number,created:number,updated:number,failed:number,skipped:number,duplicates:number,warnings:Array<unknown>,errors:Array<{row:number,message:string}>,rows:Array<{row:number,status:string,identifier:string|null,changes:string[],warnings:string[],errors:string[]}>,durationMs:number}}
  */
 function createImportReport() {
   return {
@@ -90,6 +90,7 @@ function createImportReport() {
     duplicates: INTERNALS.REPORT.DUPLICATES,
     warnings: [...INTERNALS.REPORT.WARNINGS],
     errors: [],
+    rows: [],
     durationMs: 0,
   };
 }
@@ -136,6 +137,67 @@ function createRowError(rowIndex, message) {
     row: rowIndex + 1,
     message,
   };
+}
+
+/**
+ * Build a readable row identifier from inventory DTO fields.
+ * @param {object|null|undefined} dto
+ * @returns {string|null}
+ */
+function createRowIdentifier(dto) {
+  if (!dto || typeof dto !== "object" || Array.isArray(dto)) {
+    return null;
+  }
+
+  const year = dto.year !== undefined && dto.year !== null ? String(dto.year).trim() : "";
+  const series = typeof dto.series === "string" ? dto.series.trim() : "";
+  const cardNumber = typeof dto.cardNumber === "string" ? dto.cardNumber.trim() : "";
+  const player = typeof dto.player === "string" ? dto.player.trim() : "";
+  const parallel = typeof dto.parallel === "string" ? dto.parallel.trim() : "";
+  const variation = typeof dto.variation === "string" ? dto.variation.trim() : "";
+  const grade = typeof dto.grade === "string" ? dto.grade.trim() : "";
+
+  const baseParts = [];
+
+  if (year) {
+    baseParts.push(year);
+  }
+
+  if (series) {
+    baseParts.push(series);
+  }
+
+  let baseIdentifier = baseParts.join(" ");
+
+  if (cardNumber) {
+    baseIdentifier = baseIdentifier ? `${baseIdentifier} #${cardNumber}` : `#${cardNumber}`;
+  }
+
+  const suffixParts = [];
+
+  if (parallel) {
+    suffixParts.push(parallel);
+  }
+
+  if (variation) {
+    suffixParts.push(variation);
+  }
+
+  if (grade) {
+    suffixParts.push(grade);
+  }
+
+  if (suffixParts.length > 0) {
+    baseIdentifier = baseIdentifier
+      ? `${baseIdentifier} ${suffixParts.join(" ")}`
+      : suffixParts.join(" ");
+  }
+
+  if (player) {
+    return baseIdentifier ? `${player} - ${baseIdentifier}` : player;
+  }
+
+  return baseIdentifier || null;
 }
 
 // ===============================
@@ -465,17 +527,39 @@ async function importInventoryFromCsv(file) {
         if (!row || typeof row !== "object" || Array.isArray(row) || !hasMeaningfulValue(row)) {
           report.failed += 1;
           report.errors.push(createRowError(index, INTERNALS.ERRORS.EMPTY_ROW));
+          report.rows.push({
+            row: index + 1,
+            status: INVENTORY_SYNC_STATUS.INVALID,
+            identifier: null,
+            changes: [],
+            warnings: [],
+            errors: [INTERNALS.ERRORS.EMPTY_ROW],
+          });
           continue;
         }
 
+        let inventoryInput = null;
+
         try {
-          const inventoryInput = mapCsvRowToInventoryDto(row, {
+          inventoryInput = mapCsvRowToInventoryDto(row, {
             provider: INTERNALS.PROVIDERS.DEFAULT,
             // Future extension point: persist ignored columns in report diagnostics.
             onIgnoredColumn: null,
           });
 
           const syncResult = await synchronizeInventoryFromDto(inventoryInput);
+
+          report.rows.push({
+            row: index + 1,
+            status: syncResult.status,
+            identifier: createRowIdentifier(inventoryInput),
+            changes:
+              syncResult.status === INVENTORY_SYNC_STATUS.UPDATE
+                ? Object.keys(syncResult.changes || {})
+                : [],
+            warnings: Array.isArray(syncResult.warnings) ? syncResult.warnings : [],
+            errors: Array.isArray(syncResult.errors) ? syncResult.errors : [],
+          });
 
           if (Array.isArray(syncResult.warnings) && syncResult.warnings.length > 0) {
             for (const warning of syncResult.warnings) {
@@ -510,9 +594,18 @@ async function importInventoryFromCsv(file) {
                 : INTERNALS.ERRORS.EMPTY_ROW
             )
           );
+          continue;
         } catch (error) {
           report.failed += 1;
           report.errors.push(createRowError(index, error.message));
+          report.rows.push({
+            row: index + 1,
+            status: INVENTORY_SYNC_STATUS.INVALID,
+            identifier: createRowIdentifier(inventoryInput),
+            changes: [],
+            warnings: [],
+            errors: [error.message],
+          });
         }
       }
     });
