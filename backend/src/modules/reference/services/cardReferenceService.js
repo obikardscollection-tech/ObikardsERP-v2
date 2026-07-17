@@ -1,5 +1,8 @@
 const cardReferenceMapper = require("../mappers/cardReferenceMapper");
 const cardReferenceRepository = require("../repositories/cardReferenceRepository");
+const {
+  buildReferenceFingerprint,
+} = require("./referenceFingerprintService");
 
 /**
  * Return module-level metadata for the Card Reference foundation.
@@ -18,7 +21,15 @@ function getFoundationMetadata() {
  * @param {object} input
  */
 async function createCardReferenceDefinition(input) {
-  const data = cardReferenceMapper.toPersistence(input);
+  const source =
+    input && typeof input === "object"
+      ? { ...input }
+      : {};
+  const referenceFingerprint = buildReferenceFingerprint(source);
+
+  source.referenceFingerprint = referenceFingerprint;
+
+  const data = cardReferenceMapper.toPersistence(source);
 
   return cardReferenceRepository.create(data);
 }
