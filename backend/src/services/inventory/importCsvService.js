@@ -19,6 +19,10 @@ const {
 } = require("../../modules/market/engine/csv");
 
 const { createInventory } = require("./createInventoryService");
+const {
+  mapCsvRowToInventoryDto,
+  INVENTORY_CSV_PROVIDERS,
+} = require("./mappers/inventoryCsvMapper");
 
 const INTERNALS = {
   TEMP_PREFIX: "obikards-inventory-import-",
@@ -38,6 +42,9 @@ const INTERNALS = {
   },
   DATA_KEYS: {
     MATCHED_ROWS: "matchedRows",
+  },
+  PROVIDERS: {
+    DEFAULT: INVENTORY_CSV_PROVIDERS.CUSTOM_CSV,
   },
 };
 
@@ -111,17 +118,6 @@ function hasMeaningfulValue(row) {
   }
 
   return false;
-}
-
-/**
- * Normalize one CSV row into an Inventory-compatible DTO.
- * The current inventory mapper already understands the same field contract,
- * so this stage only preserves the row shape and trims accidental prototype noise.
- * @param {object} row
- * @returns {object}
- */
-function createInventoryInput(row) {
-  return { ...row };
 }
 
 /**
@@ -204,7 +200,13 @@ async function importInventoryFromCsv(file) {
       }
 
       try {
-        await createInventory(createInventoryInput(row));
+        const inventoryInput = mapCsvRowToInventoryDto(row, {
+          provider: INTERNALS.PROVIDERS.DEFAULT,
+          // Future extension point: persist ignored columns in report diagnostics.
+          onIgnoredColumn: null,
+        });
+
+        await createInventory(inventoryInput);
         report.created += 1;
       } catch (error) {
         report.failed += 1;
