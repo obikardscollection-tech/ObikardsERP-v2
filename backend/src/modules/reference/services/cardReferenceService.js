@@ -123,6 +123,28 @@ async function attachExternalIdentifier(cardReferenceId, field, value) {
   );
 }
 
+/**
+ * Attach one external identifier only when it is currently missing.
+ * @param {object} cardReference
+ * @param {string} field
+ * @param {string} value
+ */
+async function syncExternalIdentifier(cardReference, field, value) {
+  if (!cardReference || typeof cardReference !== "object") {
+    throw new Error("Card reference is required.");
+  }
+
+  if (isBlankIdentifier(cardReference.id)) {
+    throw new Error("Card reference id is required.");
+  }
+
+  if (!isBlankIdentifier(cardReference[field])) {
+    return cardReference;
+  }
+
+  return attachExternalIdentifier(cardReference.id, field, value);
+}
+
 module.exports = {
   getFoundationMetadata,
   createCardReferenceDefinition,
@@ -131,4 +153,5 @@ module.exports = {
   findCardReferenceBySportsCardsProId,
   findCardReferenceByTcdbId,
   attachExternalIdentifier,
+  syncExternalIdentifier,
 };
