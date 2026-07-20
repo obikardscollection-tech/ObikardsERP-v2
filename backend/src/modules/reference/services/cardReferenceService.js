@@ -15,16 +15,19 @@ function getFoundationMetadata() {
   };
 }
 
+function buildSource(input) {
+  return input && typeof input === "object"
+    ? { ...input }
+    : {};
+}
+
 /**
  * Persist one CardReference definition.
  * This primitive is intentionally simple and can be reused by future workflows.
  * @param {object} input
  */
 async function createCardReferenceDefinition(input) {
-  const source =
-    input && typeof input === "object"
-      ? { ...input }
-      : {};
+  const source = buildSource(input);
   const referenceFingerprint = buildReferenceFingerprint(source);
 
   source.referenceFingerprint = referenceFingerprint;
@@ -34,7 +37,19 @@ async function createCardReferenceDefinition(input) {
   return cardReferenceRepository.create(data);
 }
 
+/**
+ * Read one CardReference definition from its logical identity.
+ * @param {object} input
+ */
+async function findCardReferenceByFingerprint(input) {
+  const source = buildSource(input);
+  const referenceFingerprint = buildReferenceFingerprint(source);
+
+  return cardReferenceRepository.findByReferenceFingerprint(referenceFingerprint);
+}
+
 module.exports = {
   getFoundationMetadata,
   createCardReferenceDefinition,
+  findCardReferenceByFingerprint,
 };
