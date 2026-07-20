@@ -64,10 +64,28 @@ async function findByTcdbId(tcdbId) {
   });
 }
 
+/**
+ * Update one external identifier field for a CardReference.
+ * @param {string} id
+ * @param {string} field
+ * @param {string} value
+ */
+async function updateExternalIdentifier(id, field, value) {
+  return prisma.cardReference.update({
+    where: {
+      id,
+    },
+    data: {
+      [field]: value,
+    },
+  });
+}
+
 module.exports = {
   create,
   findById,
   findByReferenceFingerprint,
   findBySportsCardsProId,
   findByTcdbId,
+  updateExternalIdentifier,
 };
