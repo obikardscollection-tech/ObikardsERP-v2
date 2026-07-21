@@ -3,6 +3,8 @@ const {
   searchCardsByPlayer,
   searchCardsByYear,
   searchCardsBySet,
+  searchCardsByNumber,
+  findCardById,
 } = require("./services/sportsCardsProService");
 
 module.exports = {
@@ -10,4 +12,6 @@ module.exports = {
   searchCardsByPlayer,
   searchCardsByYear,
   searchCardsBySet,
+  searchCardsByNumber,
+  findCardById,
 };
