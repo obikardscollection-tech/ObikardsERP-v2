@@ -27,8 +27,95 @@ function buildSource(input) {
   return input && typeof input === "object" ? { ...input } : {};
 }
 
+function isPlainObject(value) {
+  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
+
 function isBlankIdentifier(value) {
   return value == null || String(value).trim() === "";
+}
+
+/**
+ * Merge mapped and explicit CardReference input.
+ * Explicit fields override mapped values.
+ * @param {object} input
+ * @param {object} entry
+ */
+function resolveCardReferenceInput(input, entry) {
+  const mappedCardReference = isPlainObject(entry && entry.cardReference)
+    ? entry.cardReference
+    : {};
+  const explicitCardReference = isPlainObject(input && input.cardReference)
+    ? input.cardReference
+    : {};
+
+  return {
+    ...mappedCardReference,
+    ...explicitCardReference,
+  };
+}
+
+function hasRequiredCardReferenceFields(cardReference) {
+  return !(
+    isBlankIdentifier(cardReference.sport)
+    || isBlankIdentifier(cardReference.player)
+    || !Number.isInteger(cardReference.year)
+  );
+}
+
+/**
+ * Prepare a CardReference from mapped entry data and explicit input overrides.
+ * Returns null when required fields are missing.
+ * @param {object} input
+ * @param {object} entry
+ */
+async function prepareCardReference(input, entry) {
+  const cardReferenceInput = resolveCardReferenceInput(input, entry);
+
+  if (!hasRequiredCardReferenceFields(cardReferenceInput)) {
+    return null;
+  }
+
+  return findOrCreateCardReference(cardReferenceInput);
+}
+
+/**
+ * Prepare a CardReference and sync one external identifier onto it when present.
+ * @param {object} input
+ * @param {object} entry
+ * @param {string} externalIdentifierField
+ */
+async function prepareCardReferenceEntry(
+  input,
+  entry,
+  externalIdentifierField
+) {
+  const cardReference = await prepareCardReference(input, entry);
+
+  if (!cardReference) {
+    return {
+      ...entry,
+      cardReference: null,
+    };
+  }
+
+  if (isBlankIdentifier(entry && entry.externalId)) {
+    return {
+      ...entry,
+      cardReference,
+    };
+  }
+
+  const syncedCardReference = await syncExternalIdentifier(
+    cardReference,
+    externalIdentifierField,
+    entry.externalId
+  );
+
+  return {
+    ...entry,
+    cardReference: syncedCardReference,
+  };
 }
 
 /**
@@ -147,11 +234,8 @@ async function syncExternalIdentifier(cardReference, field, value) {
 
 module.exports = {
   getFoundationMetadata,
-  createCardReferenceDefinition,
-  findCardReferenceByFingerprint,
-  findOrCreateCardReference,
+  prepareCardReference,
+  prepareCardReferenceEntry,
   findCardReferenceBySportsCardsProId,
   findCardReferenceByTcdbId,
-  attachExternalIdentifier,
-  syncExternalIdentifier,
 };

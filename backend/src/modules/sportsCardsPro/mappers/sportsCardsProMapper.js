@@ -9,6 +9,22 @@ const INTERNALS = {
     RELEASE_DATE: "release-date",
     SALES_VOLUME: "sales-volume",
   },
+  CARD_REFERENCE_FIELDS: {
+    SPORT: ["sport", "sport-name", "card-sport", "category"],
+    LEAGUE: ["league", "league-name"],
+    YEAR: ["year", "release-year", "card-year", "release-date"],
+    MANUFACTURER: ["manufacturer", "publisher"],
+    BRAND: ["brand"],
+    SET: ["set", "set-name", "series"],
+    SUBSET: ["subset", "sub-set"],
+    CARD_NUMBER: ["card-number", "number"],
+    PLAYER: ["player", "player-name", "athlete", "name"],
+    PLAYER_DISPLAY_NAME: ["player-display-name", "player-full-name"],
+    TEAM: ["team", "team-name"],
+    PARALLEL: ["parallel"],
+    VARIATION: ["variation"],
+    LANGUAGE: ["language", "lang"],
+  },
   PRICE_FIELDS: {
     RAW: "loose-price",
     GRADED: "graded-price",
@@ -46,6 +62,38 @@ function toNullableString(value) {
   const normalized = String(value).trim();
 
   return normalized === "" ? null : normalized;
+}
+
+function toNullableInteger(value) {
+  if (value === undefined || value === null) {
+    return null;
+  }
+
+  if (typeof value === "number" && Number.isInteger(value)) {
+    return value;
+  }
+
+  if (typeof value === "string") {
+    const normalized = value.trim();
+
+    if (normalized === "") {
+      return null;
+    }
+
+    const directNumber = Number.parseInt(normalized, 10);
+
+    if (!Number.isNaN(directNumber)) {
+      return directNumber;
+    }
+
+    const dateYearMatch = normalized.match(/^(\d{4})-/);
+
+    if (dateYearMatch) {
+      return Number.parseInt(dateYearMatch[1], 10);
+    }
+  }
+
+  return null;
 }
 
 function resolveFirstDefined(source, keys) {
@@ -99,6 +147,25 @@ function mapRetail(entry) {
   };
 }
 
+function mapCardReference(entry) {
+  return {
+    sport: toNullableString(resolveFirstDefined(entry, INTERNALS.CARD_REFERENCE_FIELDS.SPORT)),
+    league: toNullableString(resolveFirstDefined(entry, INTERNALS.CARD_REFERENCE_FIELDS.LEAGUE)),
+    year: toNullableInteger(resolveFirstDefined(entry, INTERNALS.CARD_REFERENCE_FIELDS.YEAR)),
+    manufacturer: toNullableString(resolveFirstDefined(entry, INTERNALS.CARD_REFERENCE_FIELDS.MANUFACTURER)),
+    brand: toNullableString(resolveFirstDefined(entry, INTERNALS.CARD_REFERENCE_FIELDS.BRAND)),
+    set: toNullableString(resolveFirstDefined(entry, INTERNALS.CARD_REFERENCE_FIELDS.SET)),
+    subset: toNullableString(resolveFirstDefined(entry, INTERNALS.CARD_REFERENCE_FIELDS.SUBSET)),
+    cardNumber: toNullableString(resolveFirstDefined(entry, INTERNALS.CARD_REFERENCE_FIELDS.CARD_NUMBER)),
+    player: toNullableString(resolveFirstDefined(entry, INTERNALS.CARD_REFERENCE_FIELDS.PLAYER)),
+    playerDisplayName: toNullableString(resolveFirstDefined(entry, INTERNALS.CARD_REFERENCE_FIELDS.PLAYER_DISPLAY_NAME)),
+    team: toNullableString(resolveFirstDefined(entry, INTERNALS.CARD_REFERENCE_FIELDS.TEAM)),
+    parallel: toNullableString(resolveFirstDefined(entry, INTERNALS.CARD_REFERENCE_FIELDS.PARALLEL)),
+    variation: toNullableString(resolveFirstDefined(entry, INTERNALS.CARD_REFERENCE_FIELDS.VARIATION)),
+    language: toNullableString(resolveFirstDefined(entry, INTERNALS.CARD_REFERENCE_FIELDS.LANGUAGE)),
+  };
+}
+
 function mapEntry(entry) {
   if (!isPlainObject(entry)) {
     return {
@@ -124,6 +191,7 @@ function mapEntry(entry) {
         cibBuy: null,
         cibSell: null,
       },
+      cardReference: null,
       raw: entry,
     };
   }
@@ -138,6 +206,7 @@ function mapEntry(entry) {
     salesVolume: entry[INTERNALS.FIELDS.SALES_VOLUME] ?? null,
     prices: mapPrices(entry),
     retail: mapRetail(entry),
+    cardReference: mapCardReference(entry),
     raw: entry,
   };
 }
