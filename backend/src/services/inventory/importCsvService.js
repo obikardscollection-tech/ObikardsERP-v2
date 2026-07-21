@@ -272,6 +272,28 @@ function hasMeaningfulValue(row) {
 }
 
 /**
+ * Resolve the source CSV row from a matched row payload.
+ * Supports both legacy plain rows and structured rows produced by the matcher.
+ * @param {unknown} matchedRow
+ * @returns {object|null}
+ */
+function resolveMatchedSourceRow(matchedRow) {
+  if (!matchedRow || typeof matchedRow !== "object" || Array.isArray(matchedRow)) {
+    return null;
+  }
+
+  if (
+    matchedRow.originalLine &&
+    typeof matchedRow.originalLine === "object" &&
+    !Array.isArray(matchedRow.originalLine)
+  ) {
+    return matchedRow.originalLine;
+  }
+
+  return matchedRow;
+}
+
+/**
  * Resolve CSV headers from context metadata or matched row keys.
  * @param {object} context
  * @param {object[]} matchedRows
@@ -286,8 +308,12 @@ function resolveCsvHeaders(context, matchedRows) {
     return metadataHeaders;
   }
 
-  if (Array.isArray(matchedRows) && matchedRows.length > 0 && matchedRows[0] && typeof matchedRows[0] === "object") {
-    return Object.keys(matchedRows[0]);
+  if (Array.isArray(matchedRows) && matchedRows.length > 0) {
+    const sourceRow = resolveMatchedSourceRow(matchedRows[0]);
+
+    if (sourceRow) {
+      return Object.keys(sourceRow);
+    }
   }
 
   return [];
@@ -332,9 +358,10 @@ async function cleanupTempFile(tempFilePath) {
  */
 function buildProviderDiagnostics(context, matchedRows) {
   const headers = resolveCsvHeaders(context, matchedRows);
+  const firstRow = matchedRows.length > 0 ? resolveMatchedSourceRow(matchedRows[0]) : null;
   const providerDiagnostics = resolveInventoryCsvProviderDiagnostics({
     headers,
-    row: matchedRows[0] || null,
+    row: firstRow,
     fallbackProvider: INTERNALS.PROVIDERS.DEFAULT,
   });
 
@@ -399,7 +426,7 @@ function buildRecognizedColumns(headers, providerDiagnostics, ignoredNormalized)
  */
 function buildPreviewRows(matchedRows, provider, ignoredColumns, report) {
   for (let index = 0; index < matchedRows.length; index += 1) {
-    const row = matchedRows[index];
+    const row = resolveMatchedSourceRow(matchedRows[index]);
 
     if (!row || typeof row !== "object" || Array.isArray(row) || !hasMeaningfulValue(row)) {
       report.invalidRows += 1;
@@ -437,26 +464,67 @@ function buildPreviewRows(matchedRows, provider, ignoredColumns, report) {
 // Pipeline
 // ===============================
 
+const SHARED_CSV_ANALYSIS_STAGES = [
+  readCsvEngineStage,
+  validateCsvEngineStage,
+  normalizeCsvEngineStage,
+  fingerprintCsvEngineStage,
+  matchCsvEngineStage,
+];
+
+const IMPORT_CSV_ENRICHMENT_STAGES = [
+  referenceCsvEngineStage,
+  importCsvEngineStage,
+  snapshotCsvEngineStage,
+  historyCsvEngineStage,
+  analyticsCsvEngineStage,
+  importJobCsvEngineStage,
+  importErrorCsvEngineStage,
+];
+
 /**
- * Run the full CSV engine pipeline and return the final context.
+ * Execute a sequence of CSV engine stages.
+ * @param {object} initialContext
+ * @param {Array<(context:object)=>object|Promise<object>>} stages
+ * @returns {Promise<object>}
+ */
+async function runCsvEngineStages(initialContext, stages) {
+  let context = initialContext;
+
+  for (const stage of stages) {
+    context = await stage(context);
+  }
+
+  return context;
+}
+
+/**
+ * Run the shared read-only CSV analysis pipeline.
+ * @param {string} filePath
+ * @returns {Promise<object>}
+ */
+async function runCsvAnalysisPipeline(filePath) {
+  return runCsvEngineStages({ filePath }, SHARED_CSV_ANALYSIS_STAGES);
+}
+
+/**
+ * Run the preview CSV pipeline.
+ * @param {string} filePath
+ * @returns {Promise<object>}
+ */
+async function runCsvPreviewPipeline(filePath) {
+  return runCsvAnalysisPipeline(filePath);
+}
+
+/**
+ * Run the import CSV pipeline and return the final context.
  * @param {string} filePath
  * @returns {Promise<object>}
  */
 async function runCsvImportPipeline(filePath) {
-  let context = await readCsvEngineStage({ filePath });
-  context = await validateCsvEngineStage(context);
-  context = await normalizeCsvEngineStage(context);
-  context = await fingerprintCsvEngineStage(context);
-  context = await matchCsvEngineStage(context);
-  context = await referenceCsvEngineStage(context);
-  context = await importCsvEngineStage(context);
-  context = await snapshotCsvEngineStage(context);
-  context = await historyCsvEngineStage(context);
-  context = await analyticsCsvEngineStage(context);
-  context = await importJobCsvEngineStage(context);
-  context = await importErrorCsvEngineStage(context);
+  const analysisContext = await runCsvAnalysisPipeline(filePath);
 
-  return context;
+  return runCsvEngineStages(analysisContext, IMPORT_CSV_ENRICHMENT_STAGES);
 }
 
 /**
@@ -478,16 +546,21 @@ async function writeTempCsvFile(buffer, originalName) {
  * Execute the shared CSV preparation flow and auto-clean temp file.
  * @param {{buffer:Buffer, originalname?:string, mimetype?:string}} file
  * @param {(payload:{context:object,matchedRows:object[]})=>Promise<void>|void} worker
+ * @param {{pipeline?:(filePath:string)=>Promise<object>}} [options]
  */
-async function withPreparedCsvRows(file, worker) {
+async function withPreparedCsvRows(file, worker, options = {}) {
   assertUploadedCsvFile(file);
 
   let tempFilePath = null;
+  const pipeline =
+    typeof options.pipeline === "function"
+      ? options.pipeline
+      : runCsvImportPipeline;
 
   try {
     tempFilePath = await writeTempCsvFile(file.buffer, file.originalname);
 
-    const context = await runCsvImportPipeline(tempFilePath);
+    const context = await pipeline(tempFilePath);
     const matchedRows = validateMatchedRows(
       context?.data?.[INTERNALS.DATA_KEYS.MATCHED_ROWS]
     );
@@ -522,7 +595,7 @@ async function importInventoryFromCsv(file) {
       // - batch import orchestration for large CSV files
       // - rollback strategy for critical failures
       for (let index = 0; index < matchedRows.length; index += 1) {
-        const row = matchedRows[index];
+        const row = resolveMatchedSourceRow(matchedRows[index]);
 
         if (!row || typeof row !== "object" || Array.isArray(row) || !hasMeaningfulValue(row)) {
           report.failed += 1;
@@ -662,6 +735,8 @@ async function previewInventoryFromCsv(file) {
 
       report.recognizedColumns = Array.from(recognizedColumns);
       report.ignoredColumns = Array.from(ignoredColumns);
+    }, {
+      pipeline: runCsvPreviewPipeline,
     });
 
     return report;
