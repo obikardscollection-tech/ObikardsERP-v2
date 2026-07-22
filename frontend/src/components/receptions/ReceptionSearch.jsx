@@ -1,8 +1,13 @@
 function ReceptionSearch({ value, onChange }) {
   return (
-    <div className="w-full md:w-80">
+    <div className="w-full">
+      <label htmlFor="reception-search" className="sr-only">
+        Rechercher une réception
+      </label>
+
       <input
-        type="text"
+        id="reception-search"
+        type="search"
         value={value}
         onChange={(event) => onChange(event.target.value)}
         placeholder="Recherche réception, achat, fournisseur"

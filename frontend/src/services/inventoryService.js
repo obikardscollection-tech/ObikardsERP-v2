@@ -22,8 +22,8 @@ async function postInventoryCsv(endpoint, file) {
   return data;
 }
 
-export async function getInventory() {
-  const { data } = await api.get(API_URL);
+export async function getInventory(config = {}) {
+  const { data } = await api.get(API_URL, config);
   return data;
 }
 
@@ -37,12 +37,25 @@ export async function updateInventory(id, item) {
   return data;
 }
 
-export async function deleteInventory(id) {
-  await api.delete(`${API_URL}/${id}`);
+export async function deleteInventory(id, config = {}) {
+  await api.delete(`${API_URL}/${id}`, config);
 }
 
-export async function deleteInventoryBatch(ids) {
-  await Promise.all(ids.map((id) => deleteInventory(id)));
+export async function deleteInventoryBatch(ids, { chunkSize = 20 } = {}) {
+  let failed = 0;
+
+  for (let index = 0; index < ids.length; index += chunkSize) {
+    const chunk = ids.slice(index, index + chunkSize);
+    const results = await Promise.allSettled(
+      chunk.map((id) => deleteInventory(id))
+    );
+
+    failed += results.filter((result) => result.status === "rejected").length;
+  }
+
+  if (failed > 0) {
+    throw new Error(`${failed} suppression(s) ont echoue.`);
+  }
 }
 
 export async function previewInventoryCsv(file) {

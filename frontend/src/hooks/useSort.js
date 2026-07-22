@@ -1,10 +1,10 @@
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 
 export default function useSort(items) {
   const [sortField, setSortField] = useState(null);
   const [sortDirection, setSortDirection] = useState("asc");
 
-  function handleSort(field) {
+  const handleSort = useCallback((field) => {
     if (sortField === field) {
       setSortDirection((previous) =>
         previous === "asc" ? "desc" : "asc"
@@ -13,7 +13,16 @@ export default function useSort(items) {
       setSortField(field);
       setSortDirection("asc");
     }
-  }
+  }, [sortField]);
+
+  const collator = useMemo(
+    () =>
+      new Intl.Collator("fr", {
+        sensitivity: "base",
+        numeric: true,
+      }),
+    []
+  );
 
   const sortedItems = useMemo(() => {
     if (!sortField) {
@@ -36,13 +45,9 @@ export default function useSort(items) {
       if (isNumber) {
         comparison = numberA - numberB;
       } else {
-        comparison = String(valueA ?? "").localeCompare(
-          String(valueB ?? ""),
-          "fr",
-          {
-            sensitivity: "base",
-            numeric: true,
-          }
+        comparison = collator.compare(
+          String(valueA ?? ""),
+          String(valueB ?? "")
         );
       }
 
@@ -50,12 +55,30 @@ export default function useSort(items) {
         ? comparison
         : -comparison;
     });
-  }, [items, sortField, sortDirection]);
+  }, [collator, items, sortField, sortDirection]);
+
+  const getSortMeta = useCallback((field) => {
+    const isActive = sortField === field;
+
+    return {
+      isActive,
+      direction: isActive ? sortDirection : null,
+      ariaSort: isActive
+        ? sortDirection === "asc"
+          ? "ascending"
+          : "descending"
+        : "none",
+      ariaLabel: isActive
+        ? `Trie ${sortDirection === "asc" ? "croissant" : "decroissant"}. Cliquer pour inverser.`
+        : "Non trie. Cliquer pour trier.",
+    };
+  }, [sortDirection, sortField]);
 
   return {
     sortedItems,
     sortField,
     sortDirection,
     handleSort,
+    getSortMeta,
   };
 }

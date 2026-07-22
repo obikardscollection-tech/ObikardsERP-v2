@@ -15,6 +15,8 @@ import useStock from "../hooks/useStock";
 function Inventory() {
   const {
     loading,
+    refreshing,
+    error,
     categories,
     searchTerm,
     setSearchTerm,
@@ -28,11 +30,13 @@ function Inventory() {
     sortField,
     sortDirection,
     handleSort,
+    getSortMeta,
     sortedItems,
     loadInventory,
     handleDelete: deleteInventoryItem,
     handleToggleSelect,
     handleToggleSelectAll,
+    selectedCount,
   } = useInventory();
 
   const {
@@ -105,12 +109,17 @@ function Inventory() {
       <main className="flex-1 p-8">
         <InventoryHeader
           totalItems={sortedItems.length}
+          selectedCount={selectedCount}
+          refreshing={refreshing}
           onCreate={handleCreate}
           onImportCsv={handleOpenCsvImport}
+          onRefresh={() => loadInventory({ silent: true })}
         />
 
         <InventoryContent
           loading={loading}
+          refreshing={refreshing}
+          error={error}
           sortedItems={sortedItems}
           categories={categories}
           searchTerm={searchTerm}
@@ -128,6 +137,7 @@ function Inventory() {
           onAdjustStock={openStockModal}
           sortField={sortField}
           sortDirection={sortDirection}
+          getSortMeta={getSortMeta}
           onSort={handleSort}
           onToggleSelect={handleToggleSelect}
           onToggleSelectAll={handleToggleSelectAll}

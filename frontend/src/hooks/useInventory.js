@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useDeferredValue, useEffect, useMemo, useState } from "react";
+import toast from "react-hot-toast";
 
 import {
   getInventory,
@@ -10,6 +11,8 @@ import useSort from "./useSort";
 export default function useInventory() {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState("");
 
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] =
@@ -20,27 +23,68 @@ export default function useInventory() {
   const [selectedItems, setSelectedItems] =
     useState([]);
 
-  async function loadInventory() {
+  const deferredSearchTerm = useDeferredValue(searchTerm);
+
+  const searchIndex = useMemo(() => {
+    return new Map(
+      items.map((item) => {
+        const searchable = [
+          item.sku,
+          item.title,
+          item.category,
+          item.status,
+          item.brand,
+          item.sport,
+          item.team,
+          item.player,
+          item.series,
+          item.cardNumber,
+          item.condition,
+        ]
+          .filter((value) => value !== null && value !== undefined)
+          .join(" ")
+          .toLowerCase();
+
+        return [item.id, searchable];
+      })
+    );
+  }, [items]);
+
+  const loadInventory = useCallback(async ({ silent = false } = {}) => {
     try {
-      setLoading(true);
+      setError("");
+
+      if (silent) {
+        setRefreshing(true);
+      } else {
+        setLoading(true);
+      }
 
       const data = await getInventory();
 
       setItems(data);
-      setSelectedItems([]);
+      setSelectedItems((previous) => {
+        const validIds = new Set(data.map((item) => item.id));
+        return previous.filter((id) => validIds.has(id));
+      });
     } catch (error) {
       console.error(error);
-      alert(
-        "Impossible de charger l'inventaire."
-      );
+
+      const message = "Impossible de charger l'inventaire.";
+      setError(message);
+
+      if (silent) {
+        toast.error(message);
+      }
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
-  }
+  }, []);
 
   useEffect(() => {
     loadInventory();
-  }, []);
+  }, [loadInventory]);
 
   const categories = useMemo(() => {
     return [
@@ -53,18 +97,14 @@ export default function useInventory() {
   }, [items]);
 
   const filteredItems = useMemo(() => {
-    return items.filter((item) => {
-      const search = searchTerm
-        .trim()
-        .toLowerCase();
+    const search = deferredSearchTerm
+      .trim()
+      .toLowerCase();
 
+    return items.filter((item) => {
       const matchesSearch =
         !search ||
-        Object.values(item).some((value) =>
-          String(value ?? "")
-            .toLowerCase()
-            .includes(search)
-        );
+        (searchIndex.get(item.id) || "").includes(search);
 
       const matchesCategory =
         !categoryFilter ||
@@ -82,9 +122,10 @@ export default function useInventory() {
     });
   }, [
     items,
-    searchTerm,
+    deferredSearchTerm,
     categoryFilter,
     statusFilter,
+    searchIndex,
   ]);
 
   const {
@@ -92,20 +133,26 @@ export default function useInventory() {
     sortField,
     sortDirection,
     handleSort,
+    getSortMeta,
   } = useSort(filteredItems);
 
-  function clearSelection() {
-    setSelectedItems([]);
-  }
+  const selectedItemsSet = useMemo(
+    () => new Set(selectedItems),
+    [selectedItems]
+  );
 
-  function resetFilters() {
+  const clearSelection = useCallback(() => {
+    setSelectedItems([]);
+  }, []);
+
+  const resetFilters = useCallback(() => {
     setSearchTerm("");
     setCategoryFilter("");
     setStatusFilter("");
     clearSelection();
-  }
+  }, [clearSelection]);
 
-  function handleToggleSelect(id) {
+  const handleToggleSelect = useCallback((id) => {
     setSelectedItems((previous) => {
       if (previous.includes(id)) {
         return previous.filter(
@@ -115,15 +162,15 @@ export default function useInventory() {
 
       return [...previous, id];
     });
-  }
+  }, []);
 
-  function handleToggleSelectAll(currentItems) {
+  const handleToggleSelectAll = useCallback((currentItems) => {
     const ids = currentItems.map(
       (item) => item.id
     );
 
     const allSelected = ids.every((id) =>
-      selectedItems.includes(id)
+      selectedItemsSet.has(id)
     );
 
     if (allSelected) {
@@ -140,22 +187,27 @@ export default function useInventory() {
         ]),
       ]);
     }
-  }
+  }, [selectedItemsSet]);
 
   async function handleDelete(item) {
     try {
       await deleteInventory(item.id);
 
       await loadInventory();
+      toast.success("Article supprime.");
     } catch (error) {
       console.error(error);
 
-      alert("Impossible de supprimer la carte.");
+      toast.error("Impossible de supprimer la carte.");
     }
   }
 
+  const selectedCount = selectedItems.length;
+
   return {
     loading,
+    refreshing,
+    error,
     items,
 
     categories,
@@ -177,6 +229,7 @@ export default function useInventory() {
     sortField,
     sortDirection,
     handleSort,
+    getSortMeta,
 
     sortedItems,
 
@@ -185,5 +238,7 @@ export default function useInventory() {
 
     handleToggleSelect,
     handleToggleSelectAll,
+
+    selectedCount,
   };
 }

@@ -33,7 +33,7 @@ function ReceptionForm({ reception, purchases = [], onClose, onSaved, addRecepti
         notes: reception.notes || "",
         items: reception.receptionItems?.map((item) => ({
           purchaseItemId: item.purchaseItemId,
-          quantityReceived: item.quantityReceived,
+          quantityReceived: Number(item.quantityReceived || 0),
           notes: item.notes || "",
         })) || [],
       });
@@ -56,10 +56,26 @@ function ReceptionForm({ reception, purchases = [], onClose, onSaved, addRecepti
         const purchase = purchases.find((entry) => entry.id === form.purchaseId);
         const availableItems = (purchase?.purchaseItems || []).map((item) => ({
           ...item,
-          currentReceived: (data || []).reduce((sum, reception) => sum + Number(reception.receptionItems?.find((entry) => entry.purchaseItemId === item.id)?.quantityReceived || 0), 0),
+          orderedQuantity: Number(item.quantity || 0),
+          alreadyReceived: (data || []).reduce((sum, receptionEntry) => {
+            if (reception && receptionEntry.id === reception.id) {
+              return sum;
+            }
+
+            const receivedOnReception = receptionEntry.receptionItems
+              ?.filter((entry) => entry.purchaseItemId === item.id)
+              .reduce((lineSum, entry) => lineSum + Number(entry.quantityReceived || 0), 0) || 0;
+
+            return sum + receivedOnReception;
+          }, 0),
         }));
 
-        setPurchaseItems(availableItems);
+        setPurchaseItems(
+          availableItems.map((item) => ({
+            ...item,
+            remainingQuantity: Math.max(0, Number(item.orderedQuantity || 0) - Number(item.alreadyReceived || 0)),
+          }))
+        );
       } catch (err) {
         console.error(err);
         toast.error("Impossible de charger les lignes d'achat.");
@@ -81,10 +97,28 @@ function ReceptionForm({ reception, purchases = [], onClose, onSaved, addRecepti
   }
 
   function handleItemChange(index, field, value) {
+    const nextValue = field === "quantityReceived" ? Number(value || 0) : value;
+
     setForm((previous) => ({
       ...previous,
-      items: previous.items.map((item, itemIndex) => (itemIndex === index ? { ...item, [field]: value } : item)),
+      items: previous.items.map((item, itemIndex) => (itemIndex === index ? { ...item, [field]: nextValue } : item)),
     }));
+  }
+
+  function removeLine(index) {
+    setForm((previous) => ({
+      ...previous,
+      items: previous.items.filter((_, itemIndex) => itemIndex !== index),
+    }));
+
+    setErrors((previous) => {
+      const nextErrors = { ...previous };
+
+      delete nextErrors[`items.${index}.purchaseItemId`];
+      delete nextErrors[`items.${index}.quantityReceived`];
+
+      return nextErrors;
+    });
   }
 
   function validate() {
@@ -105,6 +139,12 @@ function ReceptionForm({ reception, purchases = [], onClose, onSaved, addRecepti
 
       if (Number(item.quantityReceived || 0) <= 0) {
         newErrors[`items.${index}.quantityReceived`] = "La quantité reçue doit être supérieure à 0.";
+      }
+
+      const selectedPurchaseItem = purchaseItems.find((purchaseItem) => purchaseItem.id === item.purchaseItemId);
+
+      if (selectedPurchaseItem && Number(item.quantityReceived || 0) > Number(selectedPurchaseItem.remainingQuantity || 0)) {
+        newErrors[`items.${index}.quantityReceived`] = `La quantite recue ne peut pas depasser ${selectedPurchaseItem.remainingQuantity}.`;
       }
     });
 
@@ -153,6 +193,10 @@ function ReceptionForm({ reception, purchases = [], onClose, onSaved, addRecepti
 
   function addLine() {
     setForm((previous) => ({ ...previous, items: [...previous.items, { purchaseItemId: "", quantityReceived: 1, notes: "" }] }));
+  }
+
+  function getItemAvailability(purchaseItemId) {
+    return purchaseItems.find((purchaseItem) => purchaseItem.id === purchaseItemId) || null;
   }
 
   return (
@@ -206,18 +250,37 @@ function ReceptionForm({ reception, purchases = [], onClose, onSaved, addRecepti
                       </option>
                     ))}
                   </select>
+                  {getItemAvailability(item.purchaseItemId) ? (
+                    <p className="mt-1 text-xs text-slate-500">
+                      Commande: {getItemAvailability(item.purchaseItemId).orderedQuantity} | Deja recu: {getItemAvailability(item.purchaseItemId).alreadyReceived} | Restant: {getItemAvailability(item.purchaseItemId).remainingQuantity}
+                    </p>
+                  ) : null}
                   {errors[`items.${index}.purchaseItemId`] && <p className="mt-1 text-sm text-red-600">{errors[`items.${index}.purchaseItemId`]}</p>}
                 </div>
 
                 <div>
                   <label className="mb-2 block text-sm text-slate-700">Quantité reçue</label>
-                  <input type="number" min="1" value={item.quantityReceived} onChange={(event) => handleItemChange(index, "quantityReceived", event.target.value)} className="w-full rounded-lg border border-slate-200 p-2.5" />
+                  <input
+                    type="number"
+                    min="1"
+                    max={getItemAvailability(item.purchaseItemId)?.remainingQuantity || undefined}
+                    value={item.quantityReceived}
+                    onChange={(event) => handleItemChange(index, "quantityReceived", event.target.value)}
+                    className="w-full rounded-lg border border-slate-200 p-2.5"
+                  />
                   {errors[`items.${index}.quantityReceived`] && <p className="mt-1 text-sm text-red-600">{errors[`items.${index}.quantityReceived`]}</p>}
                 </div>
 
                 <div>
                   <label className="mb-2 block text-sm text-slate-700">Notes</label>
                   <input type="text" value={item.notes || ""} onChange={(event) => handleItemChange(index, "notes", event.target.value)} className="w-full rounded-lg border border-slate-200 p-2.5" />
+                  <button
+                    type="button"
+                    onClick={() => removeLine(index)}
+                    className="mt-2 text-sm font-medium text-red-600 transition hover:text-red-700"
+                  >
+                    Supprimer la ligne
+                  </button>
                 </div>
               </div>
             ))}

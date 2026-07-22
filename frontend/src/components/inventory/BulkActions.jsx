@@ -1,3 +1,6 @@
+import { useState } from "react";
+import toast from "react-hot-toast";
+
 import { deleteInventoryBatch } from "../../services/inventoryService";
 
 export default function BulkActions({
@@ -5,6 +8,8 @@ export default function BulkActions({
   loadInventory,
   clearSelection,
 }) {
+  const [deleting, setDeleting] = useState(false);
+
   if (selectedItems.length === 0) {
     return null;
   }
@@ -17,40 +22,42 @@ export default function BulkActions({
     if (!confirmed) return;
 
     try {
+      setDeleting(true);
       await deleteInventoryBatch(selectedItems);
 
       await loadInventory();
       clearSelection();
 
-      alert(
-        `${selectedItems.length} article(s) supprimé(s).`
-      );
+      toast.success(`${selectedItems.length} article(s) supprime(s).`);
     } catch (error) {
       console.error(error);
 
-      alert(
-        "Une erreur est survenue pendant la suppression."
-      );
+      toast.error("Une erreur est survenue pendant la suppression.");
+    } finally {
+      setDeleting(false);
     }
   }
 
   return (
-    <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6 flex flex-col md:flex-row justify-between items-center gap-4">
-      <div className="font-medium text-blue-900">
-        {selectedItems.length} article(s) sélectionné(s)
+    <div className="mb-6 flex flex-col gap-4 rounded-xl border border-blue-200 bg-blue-50 p-4 md:flex-row md:items-center md:justify-between">
+      <div>
+        <p className="text-sm font-semibold text-blue-900">Actions de masse</p>
+        <p className="text-sm text-blue-800">{selectedItems.length} article(s) selectionne(s)</p>
       </div>
 
-      <div className="flex gap-3">
+      <div className="flex flex-wrap gap-3">
         <button
           onClick={handleDeleteSelected}
-          className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg"
+          disabled={deleting}
+          className="rounded-lg bg-red-600 px-4 py-2 text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
         >
-          Supprimer
+          {deleting ? "Suppression..." : "Supprimer"}
         </button>
 
         <button
           onClick={clearSelection}
-          className="bg-gray-300 hover:bg-gray-400 px-4 py-2 rounded-lg"
+          disabled={deleting}
+          className="rounded-lg bg-gray-300 px-4 py-2 transition hover:bg-gray-400 disabled:cursor-not-allowed disabled:opacity-60"
         >
           Annuler la sélection
         </button>
