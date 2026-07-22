@@ -12,6 +12,7 @@ const purchasesRoutes = require("./routes/purchasesRoutes");
 const expensesRoutes = require("./routes/expensesRoutes");
 const receptionsRoutes = require("./routes/receptionsRoutes");
 const dashboardRoutes = require("./routes/dashboardRoutes");
+const statisticsRoutes = require("./routes/statisticsRoutes");
 
 const marketProviderRoutes = require("./routes/marketProviderRoutes");
 const marketCardRoutes = require("./routes/marketCardRoutes");
@@ -46,6 +47,7 @@ app.use("/purchases", purchasesRoutes);
 app.use("/expenses", expensesRoutes);
 app.use("/receptions", receptionsRoutes);
 app.use("/dashboard", dashboardRoutes);
+app.use("/statistics", statisticsRoutes);
 
 app.use("/market/providers", marketProviderRoutes);
 app.use("/market/cards", marketCardRoutes);
