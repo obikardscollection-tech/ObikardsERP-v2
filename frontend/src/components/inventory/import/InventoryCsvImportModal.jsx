@@ -5,6 +5,15 @@ import {
   importInventoryCsv,
   previewInventoryCsv,
 } from "../../../services/inventoryService";
+import ImportRowsTable from "./ImportRowsTable";
+import MessageList from "./MessageList";
+import PreviewRowsTable from "./PreviewRowsTable";
+import StatCard from "./StatCard";
+import {
+  formatDuration,
+  formatPercentage,
+  normalizeMessages,
+} from "../../../utils/inventoryCsvImportUtils";
 
 function getErrorMessage(error, fallback) {
   if (error?.response?.data?.error) {
@@ -16,169 +25,6 @@ function getErrorMessage(error, fallback) {
   }
 
   return fallback;
-}
-
-function normalizeMessages(messages) {
-  if (!Array.isArray(messages)) {
-    return [];
-  }
-
-  return messages
-    .map((entry) => {
-      if (typeof entry === "string") {
-        return entry;
-      }
-
-      if (entry && typeof entry === "object") {
-        const row = Number.isFinite(entry.row) ? `Ligne ${entry.row}: ` : "";
-        const message = typeof entry.message === "string" ? entry.message : JSON.stringify(entry);
-
-        return `${row}${message}`;
-      }
-
-      return String(entry);
-    })
-    .filter(Boolean);
-}
-
-function formatPercentage(value) {
-  const numberValue = Number(value);
-
-  if (!Number.isFinite(numberValue)) {
-    return "0%";
-  }
-
-  return `${(numberValue * 100).toFixed(0)}%`;
-}
-
-function formatDuration(durationMs) {
-  const value = Number(durationMs);
-
-  if (!Number.isFinite(value) || value <= 0) {
-    return "-";
-  }
-
-  return `${value} ms`;
-}
-
-function StatCard({ label, value }) {
-  return (
-    <div className="rounded-lg border border-slate-200 bg-white px-4 py-3">
-      <p className="text-xs uppercase tracking-wide text-slate-500">{label}</p>
-      <p className="mt-1 text-xl font-semibold text-slate-900">{value}</p>
-    </div>
-  );
-}
-
-function MessageList({ title, messages, tone = "default" }) {
-  if (!messages.length) {
-    return null;
-  }
-
-  const toneClass =
-    tone === "danger"
-      ? "border-red-200 bg-red-50 text-red-800"
-      : tone === "warning"
-        ? "border-amber-200 bg-amber-50 text-amber-800"
-        : "border-slate-200 bg-slate-50 text-slate-700";
-
-  return (
-    <section className={`rounded-xl border p-4 ${toneClass}`}>
-      <h4 className="text-sm font-semibold">{title}</h4>
-
-      <ul className="mt-2 space-y-1 text-sm">
-        {messages.slice(0, 25).map((message) => (
-          <li key={message}>- {message}</li>
-        ))}
-      </ul>
-
-      {messages.length > 25 ? (
-        <p className="mt-2 text-xs">+ {messages.length - 25} element(s) supplementaire(s)</p>
-      ) : null}
-    </section>
-  );
-}
-
-function PreviewRowsTable({ rows }) {
-  if (!Array.isArray(rows) || rows.length === 0) {
-    return null;
-  }
-
-  return (
-    <section className="rounded-xl border border-slate-200 bg-white p-4">
-      <h4 className="text-sm font-semibold text-slate-900">Apercu des lignes</h4>
-
-      <div className="mt-3 overflow-x-auto">
-        <table className="w-full min-w-[760px] text-sm">
-          <thead className="bg-slate-900 text-white">
-            <tr>
-              <th className="px-3 py-2 text-left">Ligne</th>
-              <th className="px-3 py-2 text-left">Statut</th>
-              <th className="px-3 py-2 text-left">Identifiant</th>
-              <th className="px-3 py-2 text-left">Matching</th>
-              <th className="px-3 py-2 text-left">Avertissements</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((row) => (
-              <tr key={row.row} className="border-b border-slate-100">
-                <td className="px-3 py-2">{row.row}</td>
-                <td className="px-3 py-2">{row.status || "-"}</td>
-                <td className="px-3 py-2">{row.identifier || "-"}</td>
-                <td className="px-3 py-2">{row?.matching?.status || "UNKNOWN"}</td>
-                <td className="px-3 py-2">{Array.isArray(row.warnings) ? row.warnings.join(" | ") : "-"}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </section>
-  );
-}
-
-function ImportRowsTable({ rows }) {
-  if (!Array.isArray(rows) || rows.length === 0) {
-    return null;
-  }
-
-  return (
-    <section className="rounded-xl border border-slate-200 bg-white p-4">
-      <h4 className="text-sm font-semibold text-slate-900">Rapport detaille des lignes</h4>
-
-      <div className="mt-3 overflow-x-auto">
-        <table className="w-full min-w-[920px] text-sm">
-          <thead className="bg-slate-900 text-white">
-            <tr>
-              <th className="px-3 py-2 text-left">Ligne</th>
-              <th className="px-3 py-2 text-left">Statut</th>
-              <th className="px-3 py-2 text-left">Identifiant</th>
-              <th className="px-3 py-2 text-left">Matching</th>
-              <th className="px-3 py-2 text-left">Modifs</th>
-              <th className="px-3 py-2 text-left">Warnings</th>
-              <th className="px-3 py-2 text-left">Erreurs</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.slice(0, 50).map((row) => (
-              <tr key={row.row} className="border-b border-slate-100">
-                <td className="px-3 py-2">{row.row}</td>
-                <td className="px-3 py-2">{row.status || "-"}</td>
-                <td className="px-3 py-2">{row.identifier || "-"}</td>
-                <td className="px-3 py-2">{row?.matching?.status || "UNKNOWN"}</td>
-                <td className="px-3 py-2">{Array.isArray(row.changes) ? row.changes.join(", ") : "-"}</td>
-                <td className="px-3 py-2">{Array.isArray(row.warnings) ? row.warnings.join(" | ") : "-"}</td>
-                <td className="px-3 py-2">{Array.isArray(row.errors) ? row.errors.join(" | ") : "-"}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      {rows.length > 50 ? (
-        <p className="mt-2 text-xs text-slate-500">Affichage limite aux 50 premieres lignes ({rows.length} au total).</p>
-      ) : null}
-    </section>
-  );
 }
 
 export default function InventoryCsvImportModal({
@@ -388,13 +234,22 @@ export default function InventoryCsvImportModal({
                     ? previewReport.missingCriticalColumns.join(", ")
                     : "Aucune"}
                 </p>
+                <p className="mt-2">
+                  <span className="font-semibold">Headers matches provider:</span>{" "}
+                  {Array.isArray(previewReport.matchedHeaders) && previewReport.matchedHeaders.length > 0
+                    ? previewReport.matchedHeaders.join(", ")
+                    : "-"}
+                </p>
               </div>
 
               <MessageList title="Conflits" messages={previewConflicts} tone="danger" />
               <MessageList title="Warnings" messages={previewWarnings} tone="warning" />
               <MessageList title="Lignes invalides" messages={previewInvalidLines} tone="danger" />
 
-              <PreviewRowsTable rows={previewReport.previewRows} />
+              <PreviewRowsTable
+                rows={previewReport.previewRows}
+                missingCriticalColumns={previewReport.missingCriticalColumns}
+              />
             </section>
           ) : null}
 
