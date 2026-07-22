@@ -141,7 +141,8 @@ export default function useInventory() {
       ]);
     }
   }
-    async function handleDelete(item) {
+
+  async function handleDelete(item) {
     try {
       await deleteInventory(item.id);
 

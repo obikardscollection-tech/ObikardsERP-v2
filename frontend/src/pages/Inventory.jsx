@@ -4,6 +4,7 @@ import Sidebar from "../components/layout/Sidebar";
 import AddInventoryDrawer from "../components/drawer/AddInventoryDrawer";
 import DeleteInventoryModal from "../components/inventory/DeleteInventoryModal";
 import StockAdjustmentModal from "../components/inventory/stock/StockAdjustmentModal";
+import InventoryCsvImportModal from "../components/inventory/import/InventoryCsvImportModal";
 
 import InventoryHeader from "../components/inventory/InventoryHeader";
 import InventoryContent from "../components/inventory/InventoryContent";
@@ -14,7 +15,6 @@ import useStock from "../hooks/useStock";
 function Inventory() {
   const {
     loading,
-    items,
     categories,
     searchTerm,
     setSearchTerm,
@@ -50,6 +50,7 @@ function Inventory() {
   const [selectedItem, setSelectedItem] = useState(null);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState(null);
+  const [csvImportOpen, setCsvImportOpen] = useState(false);
 
   function handleCreate() {
     setSelectedItem(null);
@@ -85,6 +86,18 @@ function Inventory() {
     setSelectedItem(null);
   }
 
+  function handleOpenCsvImport() {
+    setCsvImportOpen(true);
+  }
+
+  function handleCloseCsvImport() {
+    setCsvImportOpen(false);
+  }
+
+  async function handleImportedCsv() {
+    await loadInventory();
+  }
+
   return (
     <div className="flex min-h-screen bg-gray-100">
       <Sidebar />
@@ -93,11 +106,11 @@ function Inventory() {
         <InventoryHeader
           totalItems={sortedItems.length}
           onCreate={handleCreate}
+          onImportCsv={handleOpenCsvImport}
         />
 
         <InventoryContent
           loading={loading}
-          items={items}
           sortedItems={sortedItems}
           categories={categories}
           searchTerm={searchTerm}
@@ -143,6 +156,12 @@ function Inventory() {
         movements={movements}
         historyLoading={historyLoading}
         loading={stockLoading}
+      />
+
+      <InventoryCsvImportModal
+        open={csvImportOpen}
+        onClose={handleCloseCsvImport}
+        onImported={handleImportedCsv}
       />
     </div>
   );

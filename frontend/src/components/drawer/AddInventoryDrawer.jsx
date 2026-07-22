@@ -1,5 +1,8 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
+import {
+  createInventory,
+  updateInventory,
+} from "../../services/inventoryService";
 
 import GeneralSection from "./sections/GeneralSection";
 import FeaturesSection from "./sections/FeaturesSection";
@@ -148,15 +151,9 @@ export default function AddInventoryDrawer({
       setSaving(true);
 
       if (isEdit) {
-        await axios.put(
-          `http://localhost:3000/inventory/${item.id}`,
-          form
-        );
+        await updateInventory(item.id, form);
       } else {
-        await axios.post(
-          "http://localhost:3000/inventory",
-          form
-        );
+        await createInventory(form);
       }
 
       setForm(initialForm);

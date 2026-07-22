@@ -1,4 +1,4 @@
-import axios from "axios";
+import { deleteInventoryBatch } from "../../services/inventoryService";
 
 export default function BulkActions({
   selectedItems,
@@ -17,11 +17,7 @@ export default function BulkActions({
     if (!confirmed) return;
 
     try {
-      await Promise.all(
-        selectedItems.map((id) =>
-          axios.delete(`http://localhost:3000/inventory/${id}`)
-        )
-      );
+      await deleteInventoryBatch(selectedItems);
 
       await loadInventory();
       clearSelection();

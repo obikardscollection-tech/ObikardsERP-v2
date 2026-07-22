@@ -1,6 +1,7 @@
 export default function InventoryHeader({
   totalItems,
   onCreate,
+  onImportCsv,
 }) {
   return (
     <div className="flex justify-between items-center mb-8">
@@ -14,12 +15,21 @@ export default function InventoryHeader({
         </p>
       </div>
 
-      <button
-        onClick={onCreate}
-        className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-3 rounded-lg shadow"
-      >
-        + Ajouter un article
-      </button>
+      <div className="flex items-center gap-3">
+        <button
+          onClick={onImportCsv}
+          className="bg-white border border-slate-300 hover:bg-slate-100 text-slate-800 px-5 py-3 rounded-lg shadow-sm"
+        >
+          Import CSV
+        </button>
+
+        <button
+          onClick={onCreate}
+          className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-3 rounded-lg shadow"
+        >
+          + Ajouter un article
+        </button>
+      </div>
     </div>
   );
 }
