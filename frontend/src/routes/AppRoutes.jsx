@@ -8,6 +8,7 @@ import Purchases from "../pages/Purchases";
 import Receptions from "../pages/Receptions";
 import Sales from "../pages/Sales";
 import Expenses from "../pages/Expenses";
+import Statistics from "../pages/Statistics";
 
 function AppRoutes() {
   return (
@@ -22,6 +23,7 @@ function AppRoutes() {
       <Route path="/receptions" element={<Receptions />} />
       <Route path="/sales" element={<Sales />} />
       <Route path="/expenses" element={<Expenses />} />
+      <Route path="/statistics" element={<Statistics />} />
     </Routes>
   );
 }

@@ -1,6 +1,7 @@
 import {
   LayoutDashboard,
   Package,
+  ChartNoAxesCombined,
   ShoppingCart,
   Truck,
   Users,
@@ -19,6 +20,11 @@ const menu = [
     icon: Package,
     label: "Inventaire",
     to: "/inventory",
+  },
+  {
+    icon: ChartNoAxesCombined,
+    label: "Statistiques",
+    to: "/statistics",
   },
   {
     icon: Users,
