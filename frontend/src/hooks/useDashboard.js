@@ -5,27 +5,22 @@ export function useDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [data, setData] = useState({
-    stats: {
-      stockValue: 0,
-      stockCount: 0,
-      saleCount: 0,
-      purchaseCount: 0,
-      expenseCount: 0,
-      customerCount: 0,
+    overview: {
+      totalItems: 0,
+      totalQuantity: 0,
+      estimatedStockValue: 0,
+      totalSalesCount: 0,
+      totalSalesAmount: 0,
+      totalSoldItems: 0,
+      totalPurchasesCount: 0,
+      totalPurchasesAmount: 0,
+      totalExpensesCount: 0,
+      totalExpensesAmount: 0,
+      totalCustomers: 0,
     },
-    cards: {
-      revenue: 0,
-      expenses: 0,
-      margin: 0,
-      marginPercent: 0,
-      itemsSold: 0,
-      purchasesThisMonth: 0,
-    },
-    recentSales: [],
-    recentPurchases: [],
-    recentExpenses: [],
-    lowStockItems: [],
-    expensesByCategory: {},
+    recentActivity: [],
+    alerts: [],
+    generatedAt: null,
   });
 
   const loadDashboard = useCallback(async () => {
