@@ -1,8 +1,8 @@
 const PERIOD_OPTIONS = [
-  { value: "7d", label: "7 jours" },
-  { value: "30d", label: "30 jours" },
-  { value: "90d", label: "90 jours" },
-  { value: "365d", label: "12 mois" },
+  { value: "today", label: "Aujourd'hui" },
+  { value: "week", label: "Cette semaine" },
+  { value: "month", label: "Ce mois" },
+  { value: "year", label: "Cette annee" },
 ];
 
 export default function StatisticsFilters({

@@ -1,4 +1,6 @@
 import Sidebar from "../components/layout/Sidebar";
+import FinanceKpiGrid from "../components/statistics/FinanceKpiGrid";
+import StatisticsSection from "../components/statistics/StatisticsSection";
 import StatisticsFilters from "../components/statistics/StatisticsFilters";
 import StockByBrandTable from "../components/statistics/StockByBrandTable";
 import StockBySportTable from "../components/statistics/StockBySportTable";
@@ -11,12 +13,15 @@ function StatisticsPage() {
     period,
     statistics,
     distribution,
+    financialTemporal,
     loading,
     refreshing,
-    error,
+    financeLoading,
+    financeError,
+    stockError,
     updatePeriod,
     refresh,
-  } = useStatistics({ period: "30d" });
+  } = useStatistics({ period: "month" });
 
   return (
     <div className="flex min-h-screen bg-gray-100">
@@ -26,7 +31,7 @@ function StatisticsPage() {
         <div className="mb-6 flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold text-slate-900">Statistiques</h1>
-            <p className="mt-1 text-sm text-slate-500">Analyse du stock par periode, sport et marque.</p>
+            <p className="mt-1 text-sm text-slate-500">Analyse finance et stock par periode.</p>
           </div>
         </div>
 
@@ -39,9 +44,20 @@ function StatisticsPage() {
             refreshing={refreshing}
           />
 
-          {error ? (
+          <StatisticsSection
+            title="Finance"
+            subtitle="Les valeurs, variations et comparaisons proviennent exclusivement du backend."
+            loading={financeLoading}
+            error={financeError}
+            loadingContent={<FinanceKpiGrid data={financialTemporal} loading />}
+            errorContent={<FinanceKpiGrid data={financialTemporal} error={financeError} />}
+          >
+            <FinanceKpiGrid data={financialTemporal} />
+          </StatisticsSection>
+
+          {stockError ? (
             <div className="rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800">
-              {error}
+              {stockError}
             </div>
           ) : null}
 

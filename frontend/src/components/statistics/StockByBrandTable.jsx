@@ -1,12 +1,4 @@
-function formatCurrency(value) {
-  const numberValue = Number(value) || 0;
-
-  return new Intl.NumberFormat("fr-FR", {
-    style: "currency",
-    currency: "EUR",
-    minimumFractionDigits: 2,
-  }).format(numberValue);
-}
+import { formatCurrency } from "../../utils/statisticsFormatter";
 
 export default function StockByBrandTable({ stockData = [] }) {
   return (

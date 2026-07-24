@@ -4,6 +4,7 @@ import {
   getStockDistribution,
   getStockStatistics,
 } from "../services/statisticsService";
+import useFinanceStatistics, { SUPPORTED_PERIOD_FALLBACK } from "./useFinanceStatistics";
 
 const INITIAL_STATE = {
   metrics: {
@@ -25,54 +26,88 @@ const INITIAL_DISTRIBUTION = {
   byBrand: [],
 };
 
-export default function useStatistics(initialFilters = { period: "30d" }) {
+function getErrorMessage(error, fallbackMessage) {
+  return error?.response?.data?.message || error?.message || fallbackMessage;
+}
+
+export default function useStatistics(initialFilters = { period: SUPPORTED_PERIOD_FALLBACK }) {
   const [filters, setFilters] = useState(initialFilters);
   const [statistics, setStatistics] = useState(INITIAL_STATE);
   const [distribution, setDistribution] = useState(INITIAL_DISTRIBUTION);
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-  const [error, setError] = useState("");
+  const [loadingState, setLoadingState] = useState({ stock: true });
+  const [refreshingState, setRefreshingState] = useState({ stock: false });
+  const [errors, setErrors] = useState({ stock: "" });
 
-  const loadStatistics = useCallback(async ({ silent = false, nextFilters } = {}) => {
+  const {
+    financialTemporal,
+    financeLoading,
+    financeRefreshing,
+    financeError,
+    loadFinanceStatistics,
+  } = useFinanceStatistics(filters, { autoLoad: false });
+
+  const loadStockStatistics = useCallback(async ({ silent = false, nextFilters } = {}) => {
     const requestFilters = nextFilters || filters;
 
-    try {
-      setError("");
+    setErrors({ stock: "" });
 
-      if (silent) {
-        setRefreshing(true);
-      } else {
-        setLoading(true);
-      }
+    if (silent) {
+      setRefreshingState({ stock: true });
+    } else {
+      setLoadingState({ stock: true });
+    }
 
-      const [statsData, distributionData] = await Promise.all([
-        getStockStatistics(requestFilters),
-        getStockDistribution(requestFilters),
-      ]);
+    const [statsResult, distributionResult] = await Promise.allSettled([
+      getStockStatistics(requestFilters),
+      getStockDistribution(requestFilters),
+    ]);
 
+    if (statsResult.status === "fulfilled") {
       setStatistics({
         ...INITIAL_STATE,
-        ...statsData,
+        ...statsResult.value,
       });
+    } else {
+      console.error(statsResult.reason);
+      setStatistics(INITIAL_STATE);
+    }
 
+    if (distributionResult.status === "fulfilled") {
       setDistribution({
         ...INITIAL_DISTRIBUTION,
-        ...distributionData,
+        ...distributionResult.value,
       });
-    } catch (err) {
-      console.error(err);
-      setError(err.message || "Impossible de charger les statistiques.");
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
+    } else {
+      console.error(distributionResult.reason);
+      setDistribution(INITIAL_DISTRIBUTION);
     }
+
+    setErrors({
+      stock:
+        statsResult.status === "rejected" || distributionResult.status === "rejected"
+          ? getErrorMessage(
+              statsResult.status === "rejected" ? statsResult.reason : distributionResult.reason,
+              "Impossible de charger les statistiques de stock."
+            )
+          : "",
+    });
+
+    setLoadingState({ stock: false });
+    setRefreshingState({ stock: false });
   }, [filters]);
+
+  const loadStatistics = useCallback(async ({ silent = false, nextFilters } = {}) => {
+    await Promise.all([
+      loadStockStatistics({ silent, nextFilters }),
+      loadFinanceStatistics({ silent, nextFilters }),
+    ]);
+  }, [loadFinanceStatistics, loadStockStatistics]);
 
   useEffect(() => {
     loadStatistics();
   }, [loadStatistics]);
 
-  const period = useMemo(() => filters?.period || "30d", [filters]);
+  const period = useMemo(() => filters?.period || SUPPORTED_PERIOD_FALLBACK, [filters]);
 
   const updatePeriod = useCallback((nextPeriod) => {
     setFilters((previous) => ({
@@ -83,16 +118,22 @@ export default function useStatistics(initialFilters = { period: "30d" }) {
 
   const refresh = useCallback(async () => {
     await loadStatistics({ silent: true });
-  }, [loadStatistics]);
+  }, [loadFinanceStatistics, loadStatistics]);
 
   return {
     filters,
     period,
     statistics,
     distribution,
-    loading,
-    refreshing,
-    error,
+    financialTemporal,
+    loading: loadingState.stock || financeLoading,
+    refreshing: refreshingState.stock || financeRefreshing,
+    stockLoading: loadingState.stock,
+    financeLoading,
+    stockRefreshing: refreshingState.stock,
+    financeRefreshing,
+    stockError: errors.stock,
+    financeError,
     loadStatistics,
     updatePeriod,
     refresh,

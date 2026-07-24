@@ -2,6 +2,14 @@ import api from "./api";
 
 const API_URL = "/statistics";
 
+export async function getFinancialTemporalAnalysis(filters = {}) {
+  const { data } = await api.get(`${API_URL}/temporal`, {
+    params: filters,
+  });
+
+  return data;
+}
+
 export async function getStockStatistics(filters = {}) {
   const { data } = await api.get(`${API_URL}/stock`, {
     params: filters,
