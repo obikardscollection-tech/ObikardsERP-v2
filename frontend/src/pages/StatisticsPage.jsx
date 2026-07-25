@@ -1,4 +1,5 @@
 import Sidebar from "../components/layout/Sidebar";
+import BusinessDistributionsGrid from "../components/statistics/businessDistributions/BusinessDistributionsGrid";
 import FinanceKpiGrid from "../components/statistics/FinanceKpiGrid";
 import StatisticsSection from "../components/statistics/StatisticsSection";
 import StatisticsFilters from "../components/statistics/StatisticsFilters";
@@ -6,6 +7,7 @@ import StockByBrandTable from "../components/statistics/StockByBrandTable";
 import StockBySportTable from "../components/statistics/StockBySportTable";
 import StockDistributionCharts from "../components/statistics/StockDistributionCharts";
 import StockMetricsCards from "../components/statistics/StockMetricsCards";
+import useBusinessDistributions from "../hooks/useBusinessDistributions";
 import useStatistics from "../hooks/useStatistics";
 
 function StatisticsPage() {
@@ -23,6 +25,18 @@ function StatisticsPage() {
     refresh,
   } = useStatistics({ period: "month" });
 
+  const {
+    distributions,
+    businessLoading,
+    businessRefreshing,
+    businessError,
+    refreshBusinessDistributions,
+  } = useBusinessDistributions({ period });
+
+  async function handleRefresh() {
+    await Promise.all([refresh(), refreshBusinessDistributions()]);
+  }
+
   return (
     <div className="flex min-h-screen bg-gray-100">
       <Sidebar />
@@ -39,9 +53,9 @@ function StatisticsPage() {
           <StatisticsFilters
             period={period}
             onPeriodChange={updatePeriod}
-            onRefresh={refresh}
-            loading={loading}
-            refreshing={refreshing}
+            onRefresh={handleRefresh}
+            loading={loading || businessLoading}
+            refreshing={refreshing || businessRefreshing}
           />
 
           <StatisticsSection
@@ -64,6 +78,15 @@ function StatisticsPage() {
           <StockMetricsCards metrics={statistics.metrics} />
 
           <StockDistributionCharts distribution={distribution} />
+
+          <StatisticsSection
+            title="Business"
+            subtitle="Distributions des ventes par dimension depuis les endpoints backend."
+            loading={businessLoading}
+            error={businessError}
+          >
+            <BusinessDistributionsGrid distributions={distributions} />
+          </StatisticsSection>
 
           <div className="grid grid-cols-1 gap-6 2xl:grid-cols-2">
             <StockBySportTable stockData={statistics.stockParSport} />
