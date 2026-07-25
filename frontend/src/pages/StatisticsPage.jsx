@@ -1,4 +1,5 @@
 import Sidebar from "../components/layout/Sidebar";
+import ChartsSection from "../components/statistics/charts/ChartsSection";
 import BusinessDistributionsGrid from "../components/statistics/businessDistributions/BusinessDistributionsGrid";
 import FinanceKpiGrid from "../components/statistics/FinanceKpiGrid";
 import StatisticsSection from "../components/statistics/StatisticsSection";
@@ -7,6 +8,7 @@ import StockByBrandTable from "../components/statistics/StockByBrandTable";
 import StockBySportTable from "../components/statistics/StockBySportTable";
 import StockDistributionCharts from "../components/statistics/StockDistributionCharts";
 import StockMetricsCards from "../components/statistics/StockMetricsCards";
+import useChartsStatistics from "../hooks/useChartsStatistics";
 import useBusinessDistributions from "../hooks/useBusinessDistributions";
 import useStatistics from "../hooks/useStatistics";
 
@@ -33,8 +35,16 @@ function StatisticsPage() {
     refreshBusinessDistributions,
   } = useBusinessDistributions({ period });
 
+  const {
+    charts,
+    chartsLoading,
+    chartsRefreshing,
+    chartsError,
+    refreshChartsStatistics,
+  } = useChartsStatistics({ period });
+
   async function handleRefresh() {
-    await Promise.all([refresh(), refreshBusinessDistributions()]);
+    await Promise.all([refresh(), refreshBusinessDistributions(), refreshChartsStatistics()]);
   }
 
   return (
@@ -54,8 +64,8 @@ function StatisticsPage() {
             period={period}
             onPeriodChange={updatePeriod}
             onRefresh={handleRefresh}
-            loading={loading || businessLoading}
-            refreshing={refreshing || businessRefreshing}
+            loading={loading || businessLoading || chartsLoading}
+            refreshing={refreshing || businessRefreshing || chartsRefreshing}
           />
 
           <StatisticsSection
@@ -86,6 +96,17 @@ function StatisticsPage() {
             error={businessError}
           >
             <BusinessDistributionsGrid distributions={distributions} />
+          </StatisticsSection>
+
+          <StatisticsSection
+            title="Charts"
+            subtitle="Evolutions et distributions alimentees exclusivement par les endpoints backend."
+            loading={chartsLoading}
+            error={chartsError}
+            loadingContent={<ChartsSection charts={charts} loading />}
+            errorContent={<ChartsSection charts={charts} error={chartsError} />}
+          >
+            <ChartsSection charts={charts} />
           </StatisticsSection>
 
           <div className="grid grid-cols-1 gap-6 2xl:grid-cols-2">
