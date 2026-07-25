@@ -2,6 +2,7 @@ import Sidebar from "../components/layout/Sidebar";
 import ChartsSection from "../components/statistics/charts/ChartsSection";
 import BusinessDistributionsGrid from "../components/statistics/businessDistributions/BusinessDistributionsGrid";
 import FinanceKpiGrid from "../components/statistics/FinanceKpiGrid";
+import MarketSection from "../components/statistics/market/MarketSection";
 import StatisticsSection from "../components/statistics/StatisticsSection";
 import StatisticsFilters from "../components/statistics/StatisticsFilters";
 import StockByBrandTable from "../components/statistics/StockByBrandTable";
@@ -10,6 +11,7 @@ import StockDistributionCharts from "../components/statistics/StockDistributionC
 import StockMetricsCards from "../components/statistics/StockMetricsCards";
 import useChartsStatistics from "../hooks/useChartsStatistics";
 import useBusinessDistributions from "../hooks/useBusinessDistributions";
+import useMarketStatistics from "../hooks/useMarketStatistics";
 import useStatistics from "../hooks/useStatistics";
 
 function StatisticsPage() {
@@ -43,8 +45,21 @@ function StatisticsPage() {
     refreshChartsStatistics,
   } = useChartsStatistics({ period });
 
+  const {
+    marketStatistics,
+    marketLoading,
+    marketRefreshing,
+    marketError,
+    refreshMarketStatistics,
+  } = useMarketStatistics({ period });
+
   async function handleRefresh() {
-    await Promise.all([refresh(), refreshBusinessDistributions(), refreshChartsStatistics()]);
+    await Promise.all([
+      refresh(),
+      refreshBusinessDistributions(),
+      refreshChartsStatistics(),
+      refreshMarketStatistics(),
+    ]);
   }
 
   return (
@@ -64,8 +79,8 @@ function StatisticsPage() {
             period={period}
             onPeriodChange={updatePeriod}
             onRefresh={handleRefresh}
-            loading={loading || businessLoading || chartsLoading}
-            refreshing={refreshing || businessRefreshing || chartsRefreshing}
+            loading={loading || businessLoading || chartsLoading || marketLoading}
+            refreshing={refreshing || businessRefreshing || chartsRefreshing || marketRefreshing}
           />
 
           <StatisticsSection
@@ -108,6 +123,12 @@ function StatisticsPage() {
           >
             <ChartsSection charts={charts} />
           </StatisticsSection>
+
+          <MarketSection
+            market={marketStatistics}
+            loading={marketLoading}
+            error={marketError}
+          />
 
           <div className="grid grid-cols-1 gap-6 2xl:grid-cols-2">
             <StockBySportTable stockData={statistics.stockParSport} />
