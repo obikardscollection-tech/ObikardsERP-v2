@@ -1,3 +1,4 @@
+import { useCallback, useEffect, useRef } from "react";
 import {
   LayoutDashboard,
   Package,
@@ -8,7 +9,11 @@ import {
   Receipt,
 } from "lucide-react";
 
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
+
+import GlobalSearchBar from "../globalSearch/GlobalSearchBar";
+import GlobalSearchResults from "../globalSearch/GlobalSearchResults";
+import useGlobalSearch from "../../hooks/useGlobalSearch";
 
 const menu = [
   {
@@ -59,6 +64,116 @@ const menu = [
 ];
 
 function Sidebar() {
+  const navigate = useNavigate();
+  const searchContainerRef = useRef(null);
+  const searchInputRef = useRef(null);
+
+  const {
+    query,
+    setQuery,
+    resultsByCategory,
+    categoryLabels,
+    categoryOrder,
+    loading,
+    error,
+    hasSearched,
+    totalResults,
+    isOpen,
+    openSearch,
+    closeSearch,
+    clearSearch,
+    selectedResultId,
+    onSearchInputKeyDown,
+  } = useGlobalSearch({
+    minChars: 2,
+    debounceMs: 250,
+    limitPerCategory: 5,
+  });
+
+  const focusSearchInput = useCallback(() => {
+    requestAnimationFrame(() => {
+      searchInputRef.current?.focus();
+    });
+  }, []);
+
+  useEffect(() => {
+    function handleGlobalSearchShortcut(event) {
+      const isShortcut = (event.ctrlKey || event.metaKey)
+        && !event.shiftKey
+        && !event.altKey
+        && event.key.toLowerCase() === "k";
+
+      if (!isShortcut) {
+        return;
+      }
+
+      event.preventDefault();
+      openSearch();
+      focusSearchInput();
+    }
+
+    window.addEventListener("keydown", handleGlobalSearchShortcut);
+
+    return () => {
+      window.removeEventListener("keydown", handleGlobalSearchShortcut);
+    };
+  }, [focusSearchInput, openSearch]);
+
+  useEffect(() => {
+    function handleOutsideClick(event) {
+      if (!searchContainerRef.current) {
+        return;
+      }
+
+      if (!searchContainerRef.current.contains(event.target)) {
+        closeSearch();
+      }
+    }
+
+    document.addEventListener("mousedown", handleOutsideClick);
+
+    return () => {
+      document.removeEventListener("mousedown", handleOutsideClick);
+    };
+  }, [closeSearch]);
+
+  useEffect(() => {
+    if (!isOpen || !selectedResultId || !searchContainerRef.current) {
+      return;
+    }
+
+    const escapedId = window.CSS?.escape
+      ? window.CSS.escape(selectedResultId)
+      : selectedResultId.replaceAll('"', '\\"');
+
+    const selectedElement = searchContainerRef.current.querySelector(
+      `[data-search-result-id="${escapedId}"]`
+    );
+
+    selectedElement?.scrollIntoView({
+      block: "nearest",
+      behavior: "smooth",
+    });
+  }, [isOpen, selectedResultId]);
+
+  function handleSelectResult(result) {
+    navigate(result.to);
+    closeSearch();
+  }
+
+  function handleSearchKeyDown(event) {
+    const resultToOpen = onSearchInputKeyDown(event);
+
+    if (resultToOpen) {
+      handleSelectResult(resultToOpen);
+    }
+  }
+
+  function handleClearSearch() {
+    clearSearch();
+    closeSearch();
+  }
+
   return (
     <aside className="w-64 bg-slate-900 text-white flex flex-col">
       <div className="border-b border-slate-800 p-6">
@@ -69,6 +184,34 @@ function Sidebar() {
         <p className="text-sm text-slate-400 mt-1">
           ERP v2
         </p>
+
+        <div className="relative mt-4" ref={searchContainerRef}>
+          <GlobalSearchBar
+            value={query}
+            onChange={setQuery}
+            onClear={handleClearSearch}
+            onFocus={openSearch}
+            onKeyDown={handleSearchKeyDown}
+            loading={loading}
+            placeholder="Recherche globale..."
+            inputRef={searchInputRef}
+          />
+
+          {isOpen ? (
+            <GlobalSearchResults
+              loading={loading}
+              error={error}
+              hasSearched={hasSearched}
+              query={query}
+              totalResults={totalResults}
+              categoryOrder={categoryOrder}
+              categoryLabels={categoryLabels}
+              resultsByCategory={resultsByCategory}
+              onSelectResult={handleSelectResult}
+              selectedResultId={selectedResultId}
+            />
+          ) : null}
+        </div>
       </div>
 
       <nav className="flex-1 p-4">
