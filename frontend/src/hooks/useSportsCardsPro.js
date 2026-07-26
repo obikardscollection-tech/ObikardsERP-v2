@@ -33,10 +33,16 @@ export default function useSportsCardsPro() {
   });
 
   const requestIdRef = useRef(0);
+  const isLoadInFlightRef = useRef(false);
 
   const load = useCallback(async ({ manual = false } = {}) => {
+    if (isLoadInFlightRef.current) {
+      return;
+    }
+
     const requestId = requestIdRef.current + 1;
     requestIdRef.current = requestId;
+    isLoadInFlightRef.current = true;
 
     if (manual) {
       setRefreshing(true);
@@ -73,6 +79,8 @@ export default function useSportsCardsPro() {
         setLoading(false);
         setRefreshing(false);
       }
+
+      isLoadInFlightRef.current = false;
     }
   }, []);
 

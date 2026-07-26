@@ -1,6 +1,7 @@
 import {
   Alert,
   Button,
+  Box,
   CircularProgress,
   Dialog,
   DialogActions,
@@ -25,11 +26,11 @@ export default function SportsCardsProProgressDialog({
         <DialogTitle>Synchronisation SportsCardsPro</DialogTitle>
         <DialogContent>
           <Stack direction="row" spacing={2} alignItems="center" sx={{ mt: 1 }}>
-            <CircularProgress size={28} />
+            {syncing ? <CircularProgress size={28} /> : <Box sx={{ width: 28, height: 28 }} />}
             <Typography variant="body2" sx={{ color: "text.secondary" }}>
               {syncing
                 ? "Import en cours. Veuillez patienter, un seul lancement est autorise a la fois."
-                : "Demarrer une synchronisation manuelle SportsCardsPro."}
+                : "Lancer une synchronisation manuelle SportsCardsPro."}
             </Typography>
           </Stack>
         </DialogContent>

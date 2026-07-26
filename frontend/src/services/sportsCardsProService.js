@@ -3,6 +3,8 @@ import api from "./api";
 const SPORTS_CARDS_PRO_CODE = "SPORTSCARDSPRO";
 const IMPORT_JOBS_API_URL = "/market/import-jobs";
 const IMPORT_ERRORS_API_URL = "/market/import-errors";
+const HISTORY_PAGE_SIZE = 200;
+const ERRORS_PAGE_SIZE = 500;
 
 function toErrorMessage(error, fallback) {
   return error?.response?.data?.message || error?.message || fallback;
@@ -19,7 +21,13 @@ export async function getSportsCardsProStatistics() {
 
 export async function getSportsCardsProImportJobs() {
   try {
-    const response = await api.get(IMPORT_JOBS_API_URL);
+    const response = await api.get(IMPORT_JOBS_API_URL, {
+      params: {
+        providerCode: SPORTS_CARDS_PRO_CODE,
+        take: HISTORY_PAGE_SIZE,
+      },
+    });
+
     return Array.isArray(response.data) ? response.data : [];
   } catch (error) {
     throw new Error(toErrorMessage(error, "Erreur lors du chargement de l'historique des imports."));
@@ -28,7 +36,13 @@ export async function getSportsCardsProImportJobs() {
 
 export async function getSportsCardsProImportErrors() {
   try {
-    const response = await api.get(IMPORT_ERRORS_API_URL);
+    const response = await api.get(IMPORT_ERRORS_API_URL, {
+      params: {
+        providerCode: SPORTS_CARDS_PRO_CODE,
+        take: ERRORS_PAGE_SIZE,
+      },
+    });
+
     return Array.isArray(response.data) ? response.data : [];
   } catch (error) {
     throw new Error(toErrorMessage(error, "Erreur lors du chargement des erreurs d'import."));
@@ -56,8 +70,8 @@ export function filterSportsCardsProData(statistics, jobs, errors) {
 
   if (!providerId) {
     return {
-      jobs: [],
-      errors: [],
+      jobs,
+      errors,
     };
   }
 
