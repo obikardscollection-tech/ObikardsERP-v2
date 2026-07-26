@@ -1,4 +1,4 @@
-export default function PhotosSection({ form, setForm }) {
+export default function PhotosSection({ setForm }) {
   function update(field, value) {
     setForm((prev) => ({
       ...prev,

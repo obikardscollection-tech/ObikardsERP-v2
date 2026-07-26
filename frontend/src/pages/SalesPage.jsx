@@ -15,7 +15,6 @@ import { getInventory } from "../services/inventoryService";
 
 function SalesPage() {
   const {
-    sales,
     filteredSales,
     loading,
     error,
@@ -30,7 +29,6 @@ function SalesPage() {
     dateFilter,
     setDateFilter,
     platforms,
-    customers,
     statuses,
     resetFilters,
     loadSales,

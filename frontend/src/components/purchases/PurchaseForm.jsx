@@ -6,7 +6,8 @@ import {
   updatePurchase,
 } from "../../services/purchaseService";
 import { getPurchaseSourceLabel, getPurchaseStatusLabel } from "../../constants/labels";
-import PurchaseItems, { emptyItem } from "./PurchaseItems";
+import PurchaseItems from "./PurchaseItems";
+import { emptyItem } from "./purchaseItemDefaults";
 
 const defaultForm = {
   supplierId: "",

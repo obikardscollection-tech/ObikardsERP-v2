@@ -1,14 +1,5 @@
 import { Plus, Trash2 } from "lucide-react";
-
-const emptyItem = {
-  name: "",
-  cardReference: "",
-  quantity: 1,
-  unitPrice: 0,
-  condition: "",
-  sku: "",
-  notes: "",
-};
+import { emptyItem } from "./purchaseItemDefaults";
 
 function PurchaseItems({
   items = [],
@@ -233,5 +224,4 @@ function PurchaseItems({
   );
 }
 
-export { emptyItem };
 export default PurchaseItems;

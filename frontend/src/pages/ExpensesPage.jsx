@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 
 import Sidebar from "../components/layout/Sidebar";
@@ -14,7 +14,6 @@ import { getSuppliers } from "../services/suppliersService";
 
 function ExpensesPage() {
   const {
-    expenses,
     filteredExpenses,
     loading,
     error,

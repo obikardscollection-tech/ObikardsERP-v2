@@ -13,7 +13,6 @@ import useCustomers from "../hooks/useCustomers";
 
 function Customers() {
   const {
-    customers,
     filteredCustomers,
     loading,
 

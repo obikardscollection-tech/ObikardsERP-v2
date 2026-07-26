@@ -83,7 +83,7 @@ function ReceptionForm({ reception, purchases = [], onClose, onSaved, addRecepti
     }
 
     loadPurchaseItems();
-  }, [form.purchaseId, purchases]);
+  }, [form.purchaseId, purchases, reception]);
 
   const totals = useMemo(() => {
     return form.items.reduce((total, item) => total + Number(item.quantityReceived || 0), 0);

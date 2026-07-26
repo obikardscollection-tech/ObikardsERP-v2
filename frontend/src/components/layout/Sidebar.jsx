@@ -3,6 +3,7 @@ import {
   LayoutDashboard,
   Package,
   ChartNoAxesCombined,
+  Database,
   ShoppingCart,
   Truck,
   Users,
@@ -30,6 +31,11 @@ const menu = [
     icon: ChartNoAxesCombined,
     label: "Statistiques",
     to: "/statistics",
+  },
+  {
+    icon: Database,
+    label: "SportsCardsPro",
+    to: "/sports-cards-pro",
   },
   {
     icon: Users,

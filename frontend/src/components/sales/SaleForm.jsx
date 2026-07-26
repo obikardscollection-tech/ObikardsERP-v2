@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
-import { getPurchaseSourceLabel, getPurchaseStatusLabel } from "../../constants/labels";
+import { getPurchaseSourceLabel } from "../../constants/labels";
 
 const defaultForm = {
   customerId: "",

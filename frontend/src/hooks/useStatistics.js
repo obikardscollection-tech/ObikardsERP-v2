@@ -118,7 +118,7 @@ export default function useStatistics(initialFilters = { period: SUPPORTED_PERIO
 
   const refresh = useCallback(async () => {
     await loadStatistics({ silent: true });
-  }, [loadFinanceStatistics, loadStatistics]);
+  }, [loadStatistics]);
 
   return {
     filters,

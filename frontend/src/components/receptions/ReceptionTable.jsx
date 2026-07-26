@@ -35,8 +35,6 @@ function ReceptionTable({
   onEdit,
   onDelete,
   onReceiveAll,
-  sortField,
-  sortDirection,
   getSortMeta,
   onSort,
   selectedItems,

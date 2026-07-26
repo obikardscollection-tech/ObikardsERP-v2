@@ -1,9 +1,3 @@
-import {
-  formatCurrency,
-  formatNumber,
-  formatPercent,
-} from "../../../utils/statisticsFormatter";
-
 import SalesPlatformTable from "./SalesPlatformTable";
 import SalesStatusTable from "./SalesStatusTable";
 import BenefitsTable from "./BenefitsTable";

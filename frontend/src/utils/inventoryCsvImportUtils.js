@@ -76,7 +76,7 @@ export function stringifyValue(value) {
   if (isPlainObject(value)) {
     try {
       return JSON.stringify(value);
-    } catch (_error) {
+    } catch {
       return "[objet]";
     }
   }
@@ -101,7 +101,7 @@ export function toJsonBlock(value) {
 
   try {
     return JSON.stringify(value, null, 2);
-  } catch (_error) {
+  } catch {
     return String(value);
   }
 }

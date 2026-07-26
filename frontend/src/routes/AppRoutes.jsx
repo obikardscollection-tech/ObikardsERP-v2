@@ -9,6 +9,7 @@ import Receptions from "../pages/Receptions";
 import Sales from "../pages/Sales";
 import Expenses from "../pages/Expenses";
 import Statistics from "../pages/Statistics";
+import SportsCardsProPage from "../pages/SportsCardsPro/SportsCardsProPage";
 
 function AppRoutes() {
   return (
@@ -24,6 +25,7 @@ function AppRoutes() {
       <Route path="/sales" element={<Sales />} />
       <Route path="/expenses" element={<Expenses />} />
       <Route path="/statistics" element={<Statistics />} />
+      <Route path="/sports-cards-pro" element={<SportsCardsProPage />} />
     </Routes>
   );
 }

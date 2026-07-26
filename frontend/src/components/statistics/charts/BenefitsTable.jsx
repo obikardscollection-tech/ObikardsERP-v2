@@ -1,4 +1,4 @@
-import { formatCurrency, formatNumber, formatPercent } from '../../../utils/statisticsFormatter';
+import { formatCurrency, formatPercent } from '../../../utils/statisticsFormatter';
 
 function BenefitsTable({
   title = "Bénéfices",
