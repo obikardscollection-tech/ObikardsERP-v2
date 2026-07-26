@@ -16,7 +16,11 @@ async function create(req, res) {
 
 async function getAll(req, res) {
   try {
-    const importErrors = await marketImportErrorService.getMarketImportErrors();
+    const importErrors = await marketImportErrorService.getMarketImportErrors({
+      providerCode: req.query.providerCode,
+      take: req.query.take,
+      skip: req.query.skip,
+    });
 
     return res.json(importErrors);
   } catch (error) {

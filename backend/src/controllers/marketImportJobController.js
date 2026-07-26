@@ -16,7 +16,11 @@ async function create(req, res) {
 
 async function getAll(req, res) {
   try {
-    const importJobs = await marketImportJobService.getMarketImportJobs();
+    const importJobs = await marketImportJobService.getMarketImportJobs({
+      providerCode: req.query.providerCode,
+      take: req.query.take,
+      skip: req.query.skip,
+    });
 
     return res.json(importJobs);
   } catch (error) {

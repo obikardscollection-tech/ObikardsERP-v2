@@ -55,7 +55,7 @@ function mapEntry(entry) {
     set: toNullableString(cardReference.set),
     cardNumber: toNullableString(cardReference.cardNumber),
     brand: toNullableString(cardReference.brand),
-    season: toNullableString(cardReference.season),
+    season: toNullableString(cardReference.league),
     parallel: toNullableString(cardReference.parallel),
     variation: toNullableString(cardReference.variation),
     grade: null,

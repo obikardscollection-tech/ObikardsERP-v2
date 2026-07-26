@@ -1,4 +1,5 @@
 const { searchSportsCardsPro } = require("./sportsCardsProSearchService");
+const { buildConnectorSearchQuery } = require("../../reference/services/referenceSearchQueryService");
 
 const KEYS = {
   PLAYER: "player",
@@ -12,9 +13,6 @@ const KEYS = {
 
 const INTERNALS = {
   KEYS,
-  FORMATS: {
-    CARD_NUMBER_PREFIX: "#",
-  },
   SEARCH_ORDER: [
     KEYS.PLAYER,
     KEYS.YEAR,
@@ -37,60 +35,18 @@ function assertCard(card) {
 }
 
 /**
- * Return a normalized non-empty string value.
- * @param {unknown} value
- * @returns {string}
- */
-function toSearchPart(value) {
-  if (typeof value !== "string" && typeof value !== "number") {
-    return "";
-  }
-
-  const part = String(value).trim();
-
-  if (part === "") {
-    return "";
-  }
-
-  return part;
-}
-
-/**
- * Build card number search token.
- * @param {unknown} cardNumber
- * @returns {string}
- */
-function buildCardNumberPart(cardNumber) {
-  const value = toSearchPart(cardNumber);
-
-  if (value === "") {
-    return "";
-  }
-
-  return `${INTERNALS.FORMATS.CARD_NUMBER_PREFIX}${value}`;
-}
-
-/**
  * Build SportsCardsPro search query from ERP card fields.
  * @param {object} card
  * @returns {string}
  */
 function createSearchQuery(card) {
-  const queryParts = [];
-
-  for (const field of INTERNALS.SEARCH_ORDER) {
-    let part = toSearchPart(card[field]);
-
-    if (field === INTERNALS.KEYS.CARD_NUMBER) {
-      part = buildCardNumberPart(card[field]);
-    }
-
-    if (part !== "") {
-      queryParts.push(part);
-    }
-  }
-
-  return queryParts.join(" ");
+  return buildConnectorSearchQuery(card, {
+    order: INTERNALS.SEARCH_ORDER,
+    numberField: INTERNALS.KEYS.CARD_NUMBER,
+    numberKeys: [INTERNALS.KEYS.CARD_NUMBER],
+    numberPrefix: "#",
+    strict: false,
+  });
 }
 
 /**

@@ -26,7 +26,6 @@ model CardReference {
 
   language String?
 
-  // Will be generated automatically in a future sprint.
   referenceFingerprint String
 
   sportsCardsProId String?
@@ -49,6 +48,11 @@ model CardReference {
   @@index([parallel])
   @@index([variation])
   @@index([cardNumber])
+  @@index([sportsCardsProId])
+  @@index([tcdbId])
+  @@index([beckettId])
+  @@index([psaPopulationId])
+  @@index([cardUuid])
 
   @@index([sport, player])
   @@index([sport, year])

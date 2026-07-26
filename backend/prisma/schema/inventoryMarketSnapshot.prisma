@@ -1,4 +1,4 @@
-enum MarketProvider {
+enum InventoryMarketProvider {
   SPORTSCARDSPRO
 }
 
@@ -13,7 +13,7 @@ model InventoryMarketSnapshot {
   inventoryId String
   inventory   Inventory @relation(fields: [inventoryId], references: [id], onDelete: Cascade)
 
-  provider       MarketProvider
+  provider       InventoryMarketProvider
   providerCardId String?
 
   currency CurrencyCode

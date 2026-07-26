@@ -3,14 +3,37 @@ const cardReferenceRepository = require("../repositories/cardReferenceRepository
 const {
   buildReferenceFingerprint,
 } = require("./referenceFingerprintService");
+const {
+  EXTERNAL_IDENTIFIER_FIELDS,
+  isSupportedExternalIdentifierField,
+  resolveExternalIdentifierField,
+  normalizeExternalIdentifierValue,
+} = require("./referenceExternalIdentifierService");
 
-const EXTERNAL_IDENTIFIER_FIELDS = new Set([
-  "sportsCardsProId",
-  "tcdbId",
-  "beckettId",
-  "psaPopulationId",
-  "cardUuid",
-]);
+const ENRICHABLE_STRING_FIELDS = [
+  "league",
+  "manufacturer",
+  "brand",
+  "set",
+  "subset",
+  "cardNumber",
+  "playerDisplayName",
+  "team",
+  "parallel",
+  "variation",
+  "language",
+];
+
+const ENRICHABLE_INTEGER_FIELDS = [
+  "printRun",
+];
+
+const ENRICHABLE_BOOLEAN_FIELDS = [
+  "rookie",
+  "autograph",
+  "memorabilia",
+  "insert",
+];
 
 /**
  * Return module-level metadata for the Card Reference foundation.
@@ -33,6 +56,47 @@ function isPlainObject(value) {
 
 function isBlankIdentifier(value) {
   return value == null || String(value).trim() === "";
+}
+
+function isBlankValue(value) {
+  return value === null || value === undefined || String(value).trim() === "";
+}
+
+function isUniqueConstraintError(error) {
+  return Boolean(error) && error.code === "P2002";
+}
+
+function toNullableInteger(value) {
+  if (typeof value === "number" && Number.isInteger(value)) {
+    return value;
+  }
+
+  if (typeof value === "string") {
+    const normalized = value.trim();
+
+    if (normalized === "") {
+      return null;
+    }
+
+    const asInteger = Number.parseInt(normalized, 10);
+
+    return Number.isNaN(asInteger) ? null : asInteger;
+  }
+
+  return null;
+}
+
+function normalizeCardReferenceInput(input) {
+  const source = buildSource(input);
+  const payload = cardReferenceMapper.toPersistence(source);
+
+  payload.year = toNullableInteger(payload.year);
+
+  if (payload.printRun !== undefined) {
+    payload.printRun = toNullableInteger(payload.printRun);
+  }
+
+  return payload;
 }
 
 /**
@@ -70,7 +134,9 @@ function hasRequiredCardReferenceFields(cardReference) {
  * @param {object} entry
  */
 async function prepareCardReference(input, entry) {
-  const cardReferenceInput = resolveCardReferenceInput(input, entry);
+  const cardReferenceInput = normalizeCardReferenceInput(
+    resolveCardReferenceInput(input, entry)
+  );
 
   if (!hasRequiredCardReferenceFields(cardReferenceInput)) {
     return null;
@@ -90,6 +156,14 @@ async function prepareCardReferenceEntry(
   entry,
   externalIdentifierField
 ) {
+  const resolvedExternalIdentifierField = resolveExternalIdentifierField(
+    externalIdentifierField
+  );
+
+  if (!resolvedExternalIdentifierField) {
+    throw new Error("Unsupported external identifier field.");
+  }
+
   const cardReference = await prepareCardReference(input, entry);
 
   if (!cardReference) {
@@ -108,7 +182,7 @@ async function prepareCardReferenceEntry(
 
   const syncedCardReference = await syncExternalIdentifier(
     cardReference,
-    externalIdentifierField,
+    resolvedExternalIdentifierField,
     entry.externalId
   );
 
@@ -124,7 +198,7 @@ async function prepareCardReferenceEntry(
  * @param {object} input
  */
 async function createCardReferenceDefinition(input) {
-  const source = buildSource(input);
+  const source = normalizeCardReferenceInput(input);
   const referenceFingerprint = buildReferenceFingerprint(source);
 
   source.referenceFingerprint = referenceFingerprint;
@@ -139,10 +213,83 @@ async function createCardReferenceDefinition(input) {
  * @param {object} input
  */
 async function findCardReferenceByFingerprint(input) {
-  const source = buildSource(input);
+  const source = normalizeCardReferenceInput(input);
   const referenceFingerprint = buildReferenceFingerprint(source);
 
   return cardReferenceRepository.findByReferenceFingerprint(referenceFingerprint);
+}
+
+async function findCardReferenceByExternalIdentifier(field, value) {
+  if (!isSupportedExternalIdentifierField(field)) {
+    throw new Error("Unsupported external identifier field.");
+  }
+
+  const normalizedValue = normalizeExternalIdentifierValue(value);
+
+  if (normalizedValue === "") {
+    return null;
+  }
+
+  return cardReferenceRepository.findByExternalIdentifier(field, normalizedValue);
+}
+
+function buildCardReferenceEnrichmentPatch(existingCardReference, incomingCardReference) {
+  const patch = {};
+
+  for (const field of ENRICHABLE_STRING_FIELDS) {
+    if (isBlankValue(existingCardReference[field]) && !isBlankValue(incomingCardReference[field])) {
+      patch[field] = incomingCardReference[field];
+    }
+  }
+
+  for (const field of ENRICHABLE_INTEGER_FIELDS) {
+    if (
+      (existingCardReference[field] === null || existingCardReference[field] === undefined)
+      && Number.isInteger(incomingCardReference[field])
+    ) {
+      patch[field] = incomingCardReference[field];
+    }
+  }
+
+  for (const field of ENRICHABLE_BOOLEAN_FIELDS) {
+    if (existingCardReference[field] === false && incomingCardReference[field] === true) {
+      patch[field] = true;
+    }
+  }
+
+  return patch;
+}
+
+async function enrichCardReference(existingCardReference, input) {
+  const incomingCardReference = normalizeCardReferenceInput(input);
+  const patch = buildCardReferenceEnrichmentPatch(
+    existingCardReference,
+    incomingCardReference
+  );
+
+  if (Object.keys(patch).length === 0) {
+    return existingCardReference;
+  }
+
+  return cardReferenceRepository.updateById(existingCardReference.id, patch);
+}
+
+async function synchronizeKnownExternalIdentifiers(cardReference, input) {
+  let currentCardReference = cardReference;
+
+  for (const field of EXTERNAL_IDENTIFIER_FIELDS) {
+    if (!Object.prototype.hasOwnProperty.call(input || {}, field)) {
+      continue;
+    }
+
+    currentCardReference = await syncExternalIdentifier(
+      currentCardReference,
+      field,
+      input[field]
+    );
+  }
+
+  return currentCardReference;
 }
 
 /**
@@ -151,13 +298,40 @@ async function findCardReferenceByFingerprint(input) {
  * @param {object} input
  */
 async function findOrCreateCardReference(input) {
-  const existingCardReference = await findCardReferenceByFingerprint(input);
+  const normalizedInput = normalizeCardReferenceInput(input);
+  const existingCardReference = await findCardReferenceByFingerprint(normalizedInput);
 
   if (existingCardReference) {
-    return existingCardReference;
+    const enrichedCardReference = await enrichCardReference(
+      existingCardReference,
+      normalizedInput
+    );
+
+    return synchronizeKnownExternalIdentifiers(enrichedCardReference, normalizedInput);
   }
 
-  return createCardReferenceDefinition(input);
+  try {
+    const createdCardReference = await createCardReferenceDefinition(normalizedInput);
+
+    return synchronizeKnownExternalIdentifiers(createdCardReference, normalizedInput);
+  } catch (error) {
+    if (!isUniqueConstraintError(error)) {
+      throw error;
+    }
+
+    const cardReferenceAfterRace = await findCardReferenceByFingerprint(normalizedInput);
+
+    if (!cardReferenceAfterRace) {
+      throw error;
+    }
+
+    const enrichedCardReference = await enrichCardReference(
+      cardReferenceAfterRace,
+      normalizedInput
+    );
+
+    return synchronizeKnownExternalIdentifiers(enrichedCardReference, normalizedInput);
+  }
 }
 
 /**
@@ -195,18 +369,29 @@ async function attachExternalIdentifier(cardReferenceId, field, value) {
     throw new Error("Card reference id is required.");
   }
 
-  if (!EXTERNAL_IDENTIFIER_FIELDS.has(field)) {
+  if (!isSupportedExternalIdentifierField(field)) {
     throw new Error("Unsupported external identifier field.");
   }
 
-  if (isBlankIdentifier(value)) {
+  const normalizedValue = normalizeExternalIdentifierValue(value);
+
+  if (normalizedValue === "") {
     throw new Error("External identifier value is required.");
+  }
+
+  const alreadyLinkedCardReference = await findCardReferenceByExternalIdentifier(
+    field,
+    normalizedValue
+  );
+
+  if (alreadyLinkedCardReference && alreadyLinkedCardReference.id !== cardReferenceId) {
+    throw new Error(`External identifier conflict on field ${field}.`);
   }
 
   return cardReferenceRepository.updateExternalIdentifier(
     cardReferenceId,
     field,
-    value
+    normalizedValue
   );
 }
 
@@ -225,11 +410,27 @@ async function syncExternalIdentifier(cardReference, field, value) {
     throw new Error("Card reference id is required.");
   }
 
-  if (!isBlankIdentifier(cardReference[field])) {
+  if (!isSupportedExternalIdentifierField(field)) {
+    throw new Error("Unsupported external identifier field.");
+  }
+
+  const normalizedValue = normalizeExternalIdentifierValue(value);
+
+  if (normalizedValue === "") {
     return cardReference;
   }
 
-  return attachExternalIdentifier(cardReference.id, field, value);
+  const currentValue = normalizeExternalIdentifierValue(cardReference[field]);
+
+  if (currentValue !== "") {
+    if (currentValue === normalizedValue) {
+      return cardReference;
+    }
+
+    throw new Error(`CardReference already bound to a different ${field}.`);
+  }
+
+  return attachExternalIdentifier(cardReference.id, field, normalizedValue);
 }
 
 module.exports = {
@@ -238,4 +439,7 @@ module.exports = {
   prepareCardReferenceEntry,
   findCardReferenceBySportsCardsProId,
   findCardReferenceByTcdbId,
+  findCardReferenceByExternalIdentifier,
+  findOrCreateCardReference,
+  syncExternalIdentifier,
 };

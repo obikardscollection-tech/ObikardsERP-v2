@@ -37,6 +37,23 @@ async function getRunningImport(providerId) {
   });
 }
 
+async function getCurrentLockOwner(providerId) {
+  return prisma.marketImportJob.findFirst({
+    where: {
+      marketProviderId: providerId,
+      status: IMPORT_STATUS.RUNNING,
+    },
+    orderBy: [
+      {
+        startedAt: "asc",
+      },
+      {
+        createdAt: "asc",
+      },
+    ],
+  });
+}
+
 async function assertNoRunningImport(providerId) {
   const runningJob = await getRunningImport(providerId);
 
@@ -55,7 +72,7 @@ async function acquireImportLock({ providerId, source, fileName, startedAt }) {
   await recoverStaleRunningImports(providerId);
   await assertNoRunningImport(providerId);
 
-  return prisma.marketImportJob.create({
+  const createdJob = await prisma.marketImportJob.create({
     data: {
       marketProviderId: providerId,
       status: IMPORT_STATUS.RUNNING,
@@ -64,6 +81,35 @@ async function acquireImportLock({ providerId, source, fileName, startedAt }) {
       startedAt,
     },
   });
+
+  // Guard against near-simultaneous starts that can pass the pre-check together.
+  const lockOwner = await getCurrentLockOwner(providerId);
+
+  if (lockOwner && lockOwner.id !== createdJob.id) {
+    const now = new Date();
+
+    await prisma.marketImportJob.update({
+      where: {
+        id: createdJob.id,
+      },
+      data: {
+        status: IMPORT_STATUS.FAILED,
+        finishedAt: now,
+        durationMs: now.getTime() - new Date(startedAt).getTime(),
+        errorsCount: 1,
+      },
+    });
+
+    throw new SyncError(
+      "Une synchronisation SportsCardsPro est deja en cours.",
+      ERROR_CODES.IMPORT_ALREADY_RUNNING,
+      {
+        runningJobId: lockOwner.id,
+      }
+    );
+  }
+
+  return createdJob;
 }
 
 async function releaseImportLockSuccess({

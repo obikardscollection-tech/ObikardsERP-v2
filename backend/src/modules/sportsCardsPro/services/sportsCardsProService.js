@@ -1,6 +1,10 @@
 const { requestSportsCardsPro } = require("../clients/sportsCardsProClient");
 const { mapSportsCardsProResponse } = require("../mappers/sportsCardsProMapper");
 const { prepareCardReferenceEntry } = require("../../reference/services/cardReferenceService");
+const { buildConnectorSearchQuery } = require("../../reference/services/referenceSearchQueryService");
+const {
+  resolveExternalIdentifierField,
+} = require("../../reference/services/referenceExternalIdentifierService");
 
 const INTERNALS = {
   SEARCH: {
@@ -8,7 +12,6 @@ const INTERNALS = {
     CARD_PRODUCT: "/api/product",
     QUERY_KEY: "q",
     ID_QUERY_KEY: "id",
-    CARD_NUMBER_PREFIX: "#",
   },
   CRITERIA: {
     NUMBER_KEY: "number",
@@ -19,7 +22,7 @@ const INTERNALS = {
     ENTRY_ID_KEYS: ["id", "product-id"],
   },
   REFERENCES: {
-    PROVIDER_ID_KEY: "sportsCardsProId",
+    PROVIDER_ID: "sportscardspro",
   },
 };
 
@@ -55,57 +58,20 @@ function isPlainObject(value) {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value);
 }
 
-function toSearchPart(value, label) {
-  if (value === undefined || value === null) {
-    return "";
-  }
-
-  if (typeof value !== "string" && typeof value !== "number") {
-    throw new Error(`Le critere ${label} SportsCardsPro est invalide.`);
-  }
-
-  const normalized = String(value).trim();
-
-  if (normalized === "") {
-    throw new Error(`Le critere ${label} SportsCardsPro est invalide.`);
-  }
-
-  return normalized;
-}
-
-function resolveNumberPart(criteria) {
-  const rawNumber = criteria.number !== undefined ? criteria.number : criteria.cardNumber;
-  const numberPart = toSearchPart(rawNumber, "number");
-
-  if (numberPart === "") {
-    return "";
-  }
-
-  return `${INTERNALS.SEARCH.CARD_NUMBER_PREFIX}${numberPart}`;
-}
-
 function buildSearchQuery(criteria) {
-  const queryParts = [];
+  const query = buildConnectorSearchQuery(criteria, {
+    order: INTERNALS.CRITERIA.ORDER,
+    numberField: INTERNALS.CRITERIA.NUMBER_KEY,
+    numberKeys: ["number", "cardNumber"],
+    numberPrefix: "#",
+    strict: true,
+  });
 
-  for (const key of INTERNALS.CRITERIA.ORDER) {
-    let part = "";
-
-    if (key === INTERNALS.CRITERIA.NUMBER_KEY) {
-      part = resolveNumberPart(criteria);
-    } else {
-      part = toSearchPart(criteria[key], key);
-    }
-
-    if (part !== "") {
-      queryParts.push(part);
-    }
-  }
-
-  if (queryParts.length === 0) {
+  if (query === "") {
     throw new Error("Au moins un critere de recherche SportsCardsPro est requis.");
   }
 
-  return queryParts.join(" ");
+  return query;
 }
 
 function buildSearchRequest(criteria) {
@@ -206,9 +172,17 @@ async function executeSearch(input) {
   const responseToMap =
     typeof input.adaptResponse === "function" ? input.adaptResponse(rawResponse) : rawResponse;
   const mappedResponse = mapSportsCardsProResponse(responseToMap);
+  const externalIdentifierField = resolveExternalIdentifierField(
+    INTERNALS.REFERENCES.PROVIDER_ID
+  );
+
+  if (!externalIdentifierField) {
+    throw new Error("Le mapping d'identifiant externe SportsCardsPro est introuvable.");
+  }
+
   const entries = await Promise.all(
     mappedResponse.entries.map((entry) =>
-      prepareCardReferenceEntry(input, entry, INTERNALS.REFERENCES.PROVIDER_ID_KEY)
+      prepareCardReferenceEntry(input, entry, externalIdentifierField)
     )
   );
 
