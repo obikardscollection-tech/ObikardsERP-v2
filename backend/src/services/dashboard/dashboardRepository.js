@@ -59,9 +59,9 @@ async function getDashboardSnapshot() {
         status: true,
         supplier: {
           select: {
+            name: true,
             company: true,
-            firstName: true,
-            lastName: true,
+            contactName: true,
           },
         },
       },

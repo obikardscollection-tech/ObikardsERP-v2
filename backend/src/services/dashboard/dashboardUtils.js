@@ -55,7 +55,8 @@ function getSupplierName(supplier) {
 
   return (
     supplier.company
-    || [supplier.firstName, supplier.lastName].filter(Boolean).join(" ")
+    || supplier.name
+    || supplier.contactName
     || "-"
   );
 }

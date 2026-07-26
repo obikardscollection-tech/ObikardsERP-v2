@@ -12,7 +12,13 @@ model StockMovement {
   newQuantity      Int
 
   purchaseId String?
-  saleId     String?
+  purchase   Purchase? @relation(fields: [purchaseId], references: [id], onDelete: SetNull)
+
+  saleId String?
+  sale   Sale?   @relation(fields: [saleId], references: [id], onDelete: SetNull)
+
+  receptionId String?
+  reception   Reception? @relation(fields: [receptionId], references: [id], onDelete: SetNull)
 
   reason String?
 
@@ -27,5 +33,7 @@ model StockMovement {
   @@index([source])
   @@index([purchaseId])
   @@index([saleId])
+  @@index([receptionId])
   @@index([createdAt])
+  @@index([inventoryId, createdAt])
 }

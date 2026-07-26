@@ -28,11 +28,13 @@ model CardReference {
 
   referenceFingerprint String
 
-  sportsCardsProId String?
-  tcdbId           String?
-  beckettId        String?
-  psaPopulationId  String?
-  cardUuid         String?
+  sportsCardsProId String? @unique
+  tcdbId           String? @unique
+  beckettId        String? @unique
+  psaPopulationId  String? @unique
+  cardUuid         String? @unique
+
+  inventories Inventory[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -48,12 +50,6 @@ model CardReference {
   @@index([parallel])
   @@index([variation])
   @@index([cardNumber])
-  @@index([sportsCardsProId])
-  @@index([tcdbId])
-  @@index([beckettId])
-  @@index([psaPopulationId])
-  @@index([cardUuid])
-
   @@index([sport, player])
   @@index([sport, year])
   @@index([player, year])

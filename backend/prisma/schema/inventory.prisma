@@ -8,6 +8,9 @@ model Inventory {
   id  String @id @default(cuid())
   sku String @unique
 
+  cardReferenceId String?
+  cardReference   CardReference? @relation(fields: [cardReferenceId], references: [id], onDelete: SetNull)
+
   purchaseItemId String?
   purchaseItem   PurchaseItem? @relation(fields: [purchaseItemId], references: [id], onDelete: SetNull)
 
@@ -88,6 +91,7 @@ model Inventory {
   saleItems      SaleItem[]
   stockMovements StockMovement[]
 
+  @@index([cardReferenceId])
   @@index([purchaseItemId])
   @@index([receptionItemId])
 }

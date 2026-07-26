@@ -14,6 +14,7 @@ model Reception {
   receivedAt DateTime @default(now())
 
   receptionItems ReceptionItem[]
+  stockMovements StockMovement[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
