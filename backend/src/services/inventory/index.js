@@ -1,5 +1,6 @@
 const { generateSku } = require("./skuService");
 const { getInventory } = require("./getInventoryService");
+const { searchInventory } = require("./searchInventoryService");
 const { createInventory } = require("./createInventoryService");
 const { updateInventory } = require("./updateInventoryService");
 const { deleteInventory } = require("./deleteInventoryService");
@@ -9,6 +10,7 @@ const { importInventoryFromCsv, previewInventoryFromCsv } = require("./importCsv
 module.exports = {
   generateSku,
   getInventory,
+  searchInventory,
   createInventory,
   updateInventory,
   deleteInventory,

@@ -13,6 +13,7 @@ const expensesRoutes = require("./routes/expensesRoutes");
 const receptionsRoutes = require("./routes/receptionsRoutes");
 const dashboardRoutes = require("./routes/dashboardRoutes");
 const statisticsRoutes = require("./routes/statisticsRoutes");
+const searchRoutes = require("./routes/searchRoutes");
 
 const marketProviderRoutes = require("./routes/marketProviderRoutes");
 const marketCardRoutes = require("./routes/marketCardRoutes");
@@ -23,6 +24,9 @@ const marketAnalyticsRoutes = require("./routes/marketAnalyticsRoutes");
 const marketReferenceRoutes = require("./routes/marketReferenceRoutes");
 const marketImportJobRoutes = require("./routes/marketImportJobRoutes");
 const marketImportErrorRoutes = require("./routes/marketImportErrorRoutes");
+const {
+  startSportsCardsProAutoSync,
+} = require("./services/marketImportJob/sportsCardsProAutoSyncService");
 
 const app = express();
 const PORT = 3000;
@@ -48,6 +52,7 @@ app.use("/expenses", expensesRoutes);
 app.use("/receptions", receptionsRoutes);
 app.use("/dashboard", dashboardRoutes);
 app.use("/statistics", statisticsRoutes);
+app.use("/search", searchRoutes);
 
 app.use("/market/providers", marketProviderRoutes);
 app.use("/market/cards", marketCardRoutes);
@@ -61,4 +66,5 @@ app.use("/market/import-errors", marketImportErrorRoutes);
 
 app.listen(PORT, () => {
   console.log(`🚀 Obikards ERP démarré sur http://localhost:${PORT}`);
+  startSportsCardsProAutoSync();
 });

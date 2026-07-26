@@ -123,9 +123,19 @@ async function getFinancialIndicators(filters = {}) {
 
 function buildTemporalComparaison(currentMetrics, previousMetrics) {
   return {
+    chiffreAffairesHT: growthRate(currentMetrics.chiffreAffairesHT, previousMetrics.chiffreAffairesHT),
+    chiffreAffairesTTC: growthRate(currentMetrics.chiffreAffairesTTC, previousMetrics.chiffreAffairesTTC),
+    coutAchat: growthRate(currentMetrics.coutAchat, previousMetrics.coutAchat),
+    beneficeBrut: growthRate(currentMetrics.beneficeBrut, previousMetrics.beneficeBrut),
+    beneficeNet: growthRate(currentMetrics.beneficeNet, previousMetrics.beneficeNet),
+    ticketMoyen: growthRate(currentMetrics.ticketMoyen, previousMetrics.ticketMoyen),
+    panierMoyen: growthRate(currentMetrics.panierMoyen, previousMetrics.panierMoyen),
+    margePct: growthRate(currentMetrics.margePct, previousMetrics.margePct),
+    roiPct: growthRate(currentMetrics.roiPct, previousMetrics.roiPct),
     chiffreAffaires: growthRate(currentMetrics.chiffreAffairesTTC, previousMetrics.chiffreAffairesTTC),
     benefice: growthRate(currentMetrics.beneficeBrut, previousMetrics.beneficeBrut),
     roi: growthRate(currentMetrics.roiPct, previousMetrics.roiPct),
+    marge: growthRate(currentMetrics.margePct, previousMetrics.margePct),
     nombreVentes: growthRate(currentMetrics.nombreVentes, previousMetrics.nombreVentes),
     quantiteVendue: growthRate(currentMetrics.quantiteVendue, previousMetrics.quantiteVendue),
   };

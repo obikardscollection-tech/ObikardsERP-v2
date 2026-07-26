@@ -73,10 +73,50 @@ async function remove(req, res) {
   }
 }
 
+async function triggerSportsCardsProSync(req, res) {
+  try {
+    const payload = req.body || {};
+    const result = await marketImportJobService.executeSportsCardsProSync({
+      source: "MANUAL",
+      filePath: payload.filePath,
+    });
+
+    return res.status(202).json(result);
+  } catch (error) {
+    console.error(error);
+
+    if (error && error.code === "IMPORT_ALREADY_RUNNING") {
+      return res.status(409).json({
+        message: error.message,
+      });
+    }
+
+    return res.status(400).json({
+      message: error.message,
+    });
+  }
+}
+
+async function getSportsCardsProSyncStats(req, res) {
+  try {
+    const stats = await marketImportJobService.getSportsCardsProSyncStatistics();
+
+    return res.json(stats);
+  } catch (error) {
+    console.error(error);
+
+    return res.status(500).json({
+      message: error.message,
+    });
+  }
+}
+
 module.exports = {
   create,
   getAll,
   getById,
   update,
   remove,
+  triggerSportsCardsProSync,
+  getSportsCardsProSyncStats,
 };

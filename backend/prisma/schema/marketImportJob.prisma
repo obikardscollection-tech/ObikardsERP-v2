@@ -14,6 +14,10 @@ model MarketImportJob {
 
   durationMs Int?
 
+  totalRows     Int @default(0)
+  processedRows Int @default(0)
+  skippedRows   Int @default(0)
+
   cardsCreated Int @default(0)
   cardsUpdated Int @default(0)
 
