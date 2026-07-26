@@ -25,7 +25,8 @@ function PurchaseTable({
 }) {
   return (
     <div className="overflow-hidden rounded-xl bg-white shadow">
-      <table className="min-w-full">
+      <div className="overflow-x-auto">
+        <table className="min-w-[920px] w-full">
         <thead className="bg-slate-100">
           <tr>
             <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">
@@ -118,6 +119,7 @@ function PurchaseTable({
                       onClick={() => onView(purchase)}
                       className="text-slate-600 hover:text-slate-900"
                       title="Voir"
+                      aria-label={`Voir ${purchase.purchaseNumber || "l'achat"}`}
                     >
                       <Eye size={18} />
                     </button>
@@ -127,6 +129,7 @@ function PurchaseTable({
                       onClick={() => onEdit(purchase)}
                       className="text-blue-600 hover:text-blue-800"
                       title="Modifier"
+                      aria-label={`Modifier ${purchase.purchaseNumber || "l'achat"}`}
                     >
                       <Pencil size={18} />
                     </button>
@@ -136,6 +139,7 @@ function PurchaseTable({
                       onClick={() => onDelete(purchase)}
                       className="text-red-600 hover:text-red-800"
                       title="Supprimer"
+                      aria-label={`Supprimer ${purchase.purchaseNumber || "l'achat"}`}
                     >
                       <Trash2 size={18} />
                     </button>
@@ -145,7 +149,8 @@ function PurchaseTable({
             ))
           )}
         </tbody>
-      </table>
+        </table>
+      </div>
     </div>
   );
 }

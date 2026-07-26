@@ -9,17 +9,17 @@ export default function BulkActions({
   clearSelection,
 }) {
   const [deleting, setDeleting] = useState(false);
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
 
   if (selectedItems.length === 0) {
     return null;
   }
 
   async function handleDeleteSelected() {
-    const confirmed = window.confirm(
-      `Supprimer définitivement ${selectedItems.length} article(s) ?`
-    );
-
-    if (!confirmed) return;
+    if (!confirmingDelete) {
+      setConfirmingDelete(true);
+      return;
+    }
 
     try {
       setDeleting(true);
@@ -27,6 +27,7 @@ export default function BulkActions({
 
       await loadInventory();
       clearSelection();
+      setConfirmingDelete(false);
 
       toast.success(`${selectedItems.length} article(s) supprime(s).`);
     } catch (error) {
@@ -47,20 +48,33 @@ export default function BulkActions({
 
       <div className="flex flex-wrap gap-3">
         <button
+          type="button"
           onClick={handleDeleteSelected}
           disabled={deleting}
-          className="rounded-lg bg-red-600 px-4 py-2 text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
+          className={`rounded-lg px-4 py-2 text-white transition disabled:cursor-not-allowed disabled:opacity-60 ${confirmingDelete ? "bg-rose-700 hover:bg-rose-800" : "bg-red-600 hover:bg-red-700"}`}
         >
-          {deleting ? "Suppression..." : "Supprimer"}
+          {deleting ? "Suppression..." : confirmingDelete ? "Confirmer la suppression" : "Supprimer"}
         </button>
 
         <button
+          type="button"
           onClick={clearSelection}
           disabled={deleting}
           className="rounded-lg bg-gray-300 px-4 py-2 transition hover:bg-gray-400 disabled:cursor-not-allowed disabled:opacity-60"
         >
           Annuler la sélection
         </button>
+
+        {confirmingDelete ? (
+          <button
+            type="button"
+            onClick={() => setConfirmingDelete(false)}
+            disabled={deleting}
+            className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            Annuler suppression
+          </button>
+        ) : null}
       </div>
     </div>
   );

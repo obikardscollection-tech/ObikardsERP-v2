@@ -36,7 +36,7 @@ export default function SportsCardsProPage() {
           <Stack spacing={3}>
             <SportsCardsProHeader onSyncNow={handleOpenDialog} syncing={syncing} />
 
-            {loading ? <CircularProgress /> : null}
+            {loading && !statistics ? <CircularProgress size={28} /> : null}
 
             {errorMessage ? <Alert severity="error">{errorMessage}</Alert> : null}
 

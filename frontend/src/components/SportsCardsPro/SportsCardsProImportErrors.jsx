@@ -63,11 +63,16 @@ export default function SportsCardsProImportErrors({ rows, loading }) {
       <DataGrid
         rows={rows}
         columns={columns}
+        getRowId={(row) => row.id ?? `${row.marketImportJobId || "na"}-${row.lineNumber || "na"}-${row.createdAt || "na"}`}
         loading={loading}
         density="compact"
         autoHeight
         disableRowSelectionOnClick
+        disableColumnMenu
         pageSizeOptions={[10, 25, 50]}
+        localeText={{
+          noRowsLabel: "Aucune erreur d'import.",
+        }}
         initialState={{
           pagination: {
             paginationModel: {
@@ -78,6 +83,7 @@ export default function SportsCardsProImportErrors({ rows, loading }) {
         }}
         sx={{
           borderColor: "divider",
+          minHeight: 280,
           "& .MuiDataGrid-columnHeaders": {
             backgroundColor: "#f8fafc",
           },

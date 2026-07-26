@@ -16,7 +16,8 @@ function formatAmount(value) {
 function SalesTable({ sales = [], onView, onEdit, onDelete }) {
   return (
     <div className="overflow-hidden rounded-xl bg-white shadow">
-      <table className="min-w-full">
+      <div className="overflow-x-auto">
+        <table className="min-w-[920px] w-full">
         <thead className="bg-slate-100">
           <tr>
             <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">Référence</th>
@@ -49,15 +50,33 @@ function SalesTable({ sales = [], onView, onEdit, onDelete }) {
                 <td className="px-6 py-4">{getStatusLabel(sale.status) || "-"}</td>
                 <td className="px-6 py-4">
                   <div className="flex justify-center gap-3">
-                    <button type="button" onClick={() => onView(sale)} className="text-slate-600 hover:text-slate-900" title="Voir">
+                    <button
+                      type="button"
+                      onClick={() => onView(sale)}
+                      className="text-slate-600 hover:text-slate-900"
+                      title="Voir"
+                      aria-label={`Voir ${sale.orderNumber || "la vente"}`}
+                    >
                       <Eye size={18} />
                     </button>
 
-                    <button type="button" onClick={() => onEdit(sale)} className="text-blue-600 hover:text-blue-800" title="Modifier">
+                    <button
+                      type="button"
+                      onClick={() => onEdit(sale)}
+                      className="text-blue-600 hover:text-blue-800"
+                      title="Modifier"
+                      aria-label={`Modifier ${sale.orderNumber || "la vente"}`}
+                    >
                       <Pencil size={18} />
                     </button>
 
-                    <button type="button" onClick={() => onDelete(sale)} className="text-red-600 hover:text-red-800" title="Supprimer">
+                    <button
+                      type="button"
+                      onClick={() => onDelete(sale)}
+                      className="text-red-600 hover:text-red-800"
+                      title="Supprimer"
+                      aria-label={`Supprimer ${sale.orderNumber || "la vente"}`}
+                    >
                       <Trash2 size={18} />
                     </button>
                   </div>
@@ -66,7 +85,8 @@ function SalesTable({ sales = [], onView, onEdit, onDelete }) {
             ))
           )}
         </tbody>
-      </table>
+        </table>
+      </div>
     </div>
   );
 }

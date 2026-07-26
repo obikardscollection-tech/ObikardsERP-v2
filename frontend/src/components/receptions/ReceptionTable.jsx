@@ -54,8 +54,8 @@ function ReceptionTable({
 
       <div className="overflow-x-auto">
         <table className="min-w-[980px] w-full">
-        <thead className="bg-slate-100">
-          <tr>
+          <thead className="bg-slate-100">
+            <tr>
             <th className="w-12 px-4 py-4">
               <input
                 type="checkbox"
@@ -72,9 +72,9 @@ function ReceptionTable({
             <SortableHeader field="_supplierName" onSort={onSort} getSortMeta={getSortMeta}>Fournisseur</SortableHeader>
             <SortableHeader field="_itemCount" onSort={onSort} getSortMeta={getSortMeta}>Articles</SortableHeader>
             <SortableHeader field="_status" onSort={onSort} getSortMeta={getSortMeta}>Statut</SortableHeader>
-            <th className="px-6 py-4 text-center text-sm font-semibold text-slate-700">Actions</th>
-          </tr>
-        </thead>
+              <th className="px-6 py-4 text-center text-sm font-semibold text-slate-700">Actions</th>
+            </tr>
+          </thead>
 
         <tbody>
           {receptions.length === 0 ? (
@@ -125,11 +125,23 @@ function ReceptionTable({
                         </button>
                       ) : null}
 
-                      <button type="button" onClick={() => onView(reception)} className="text-slate-600 hover:text-slate-900" title="Voir">
+                      <button
+                        type="button"
+                        onClick={() => onView(reception)}
+                        className="text-slate-600 hover:text-slate-900"
+                        title="Voir"
+                        aria-label={`Voir ${reception.receptionNumber || "la reception"}`}
+                      >
                         <Eye size={18} />
                       </button>
 
-                      <button type="button" onClick={() => onEdit(reception)} className="text-blue-600 hover:text-blue-800" title="Modifier">
+                      <button
+                        type="button"
+                        onClick={() => onEdit(reception)}
+                        className="text-blue-600 hover:text-blue-800"
+                        title="Modifier"
+                        aria-label={`Modifier ${reception.receptionNumber || "la reception"}`}
+                      >
                         <Pencil size={18} />
                       </button>
 
@@ -139,6 +151,7 @@ function ReceptionTable({
                         disabled={isVirtual}
                         className="text-red-600 hover:text-red-800 disabled:cursor-not-allowed disabled:opacity-40"
                         title={isVirtual ? "Plan de réception non supprimable" : "Supprimer"}
+                        aria-label={isVirtual ? `Suppression indisponible pour ${reception.receptionNumber || "ce plan"}` : `Supprimer ${reception.receptionNumber || "la reception"}`}
                       >
                         <Trash2 size={18} />
                       </button>
@@ -149,7 +162,7 @@ function ReceptionTable({
             })
           )}
         </tbody>
-      </table>
+        </table>
       </div>
     </div>
   );

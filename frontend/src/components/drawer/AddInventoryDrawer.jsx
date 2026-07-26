@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import toast from "react-hot-toast";
 import {
   createInventory,
   updateInventory,
@@ -166,7 +167,7 @@ export default function AddInventoryDrawer({
     } catch (error) {
       console.error(error);
 
-      alert(
+      toast.error(
         error?.response?.data?.error ??
           "Erreur lors de l'enregistrement."
       );
@@ -181,14 +182,28 @@ export default function AddInventoryDrawer({
     setForm(initialForm);
     onClose();
   }
-    return (
+
+  function handleOverlayClick() {
+    if (saving) return;
+
+    setForm(initialForm);
+    onClose();
+  }
+
+  return (
     <div className="fixed inset-0 z-50">
       <div
         className="absolute inset-0 bg-black/40"
-        onClick={handleClose}
+        onClick={handleOverlayClick}
+        aria-hidden="true"
       />
 
-      <div className="absolute right-0 top-0 h-full w-[700px] bg-gray-100 shadow-2xl overflow-y-auto">
+      <div
+        className="absolute right-0 top-0 h-full w-full overflow-y-auto bg-gray-100 shadow-2xl sm:w-[700px]"
+        role="dialog"
+        aria-modal="true"
+        aria-label={isEdit ? "Modifier un article" : "Ajouter un article"}
+      >
         <div className="sticky top-0 bg-white border-b px-8 py-6 flex justify-between items-center z-10">
           <div>
             <h1 className="text-2xl font-bold">
@@ -203,9 +218,11 @@ export default function AddInventoryDrawer({
           </div>
 
           <button
+            type="button"
             onClick={handleClose}
             disabled={saving}
             className="text-2xl"
+            aria-label="Fermer"
           >
             ✕
           </button>
@@ -248,8 +265,9 @@ export default function AddInventoryDrawer({
           />
         </div>
 
-        <div className="fixed bottom-0 right-0 w-[700px] bg-white border-t px-8 py-4 flex justify-end gap-4">
+        <div className="sticky bottom-0 border-t bg-white px-8 py-4 flex justify-end gap-4">
           <button
+            type="button"
             onClick={handleClose}
             disabled={saving}
             className="border px-6 py-3 rounded-lg hover:bg-gray-100 disabled:opacity-50"
@@ -258,6 +276,7 @@ export default function AddInventoryDrawer({
           </button>
 
           <button
+            type="button"
             onClick={handleSave}
             disabled={saving}
             className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed text-white px-6 py-3 rounded-lg font-medium"

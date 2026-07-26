@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 
 import Sidebar from "../components/layout/Sidebar";
@@ -35,48 +35,61 @@ function Suppliers() {
   const [supplierToDelete, setSupplierToDelete] =
     useState(null);
 
-  const filteredSuppliers =
-    suppliers.filter((supplier) => {
-      const search =
-        searchTerm.toLowerCase();
+  const search = useMemo(
+    () => searchTerm.toLowerCase(),
+    [searchTerm]
+  );
 
-      return (
-        supplier.name
-          ?.toLowerCase()
-          .includes(search) ||
-        supplier.company
-          ?.toLowerCase()
-          .includes(search) ||
-        supplier.email
-          ?.toLowerCase()
-          .includes(search) ||
-        supplier.city
-          ?.toLowerCase()
-          .includes(search)
-      );
-    });
+  const filteredSuppliers = useMemo(
+    () =>
+      suppliers.filter((supplier) => {
+        if (!search) {
+          return true;
+        }
 
-  function handleCreate() {
+        return (
+          supplier.name
+            ?.toLowerCase()
+            .includes(search) ||
+          supplier.company
+            ?.toLowerCase()
+            .includes(search) ||
+          supplier.email
+            ?.toLowerCase()
+            .includes(search) ||
+          supplier.city
+            ?.toLowerCase()
+            .includes(search)
+        );
+      }),
+    [suppliers, search]
+  );
+
+  const handleCreate = useCallback(() => {
     setSelectedSupplier(null);
     setDrawerOpen(true);
-  }
+  }, []);
 
-  function handleEdit(supplier) {
+  const handleEdit = useCallback((supplier) => {
     setSelectedSupplier(supplier);
     setDrawerOpen(true);
-  }
+  }, []);
 
-  function handleCloseDrawer() {
+  const handleCloseDrawer = useCallback(() => {
     setDrawerOpen(false);
     setSelectedSupplier(null);
-  }
+  }, []);
 
-  function handleAskDelete(supplier) {
+  const handleAskDelete = useCallback((supplier) => {
     setSupplierToDelete(supplier);
     setDeleteOpen(true);
-  }
+  }, []);
 
-  async function handleConfirmDelete() {
+  const handleConfirmDelete = useCallback(async () => {
+    if (!supplierToDelete) {
+      return;
+    }
+
     try {
       await removeSupplier(
         supplierToDelete.id
@@ -95,18 +108,22 @@ function Suppliers() {
         "Impossible de supprimer le fournisseur."
       );
     }
-  }
+  }, [removeSupplier, supplierToDelete]);
 
-  function handleCloseDelete() {
+  const handleCloseDelete = useCallback(() => {
     setDeleteOpen(false);
     setSupplierToDelete(null);
-  }
+  }, []);
+
+  const handleResetSearch = useCallback(() => {
+    setSearchTerm("");
+  }, []);
 
   return (
     <div className="flex min-h-screen bg-gray-100">
       <Sidebar />
 
-      <main className="flex-1 p-8">
+      <main className="flex-1 p-4 sm:p-6 xl:p-8">
         <SupplierHeader
           totalSuppliers={
             filteredSuppliers.length
@@ -121,9 +138,7 @@ function Suppliers() {
         <SupplierFilters
           searchTerm={searchTerm}
           onSearchChange={setSearchTerm}
-          onReset={() =>
-            setSearchTerm("")
-          }
+          onReset={handleResetSearch}
         />
 
         {loading ? (

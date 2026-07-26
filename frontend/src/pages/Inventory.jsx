@@ -106,7 +106,7 @@ function Inventory() {
     <div className="flex min-h-screen bg-gray-100">
       <Sidebar />
 
-      <main className="flex-1 p-8">
+      <main className="flex-1 p-4 sm:p-6 xl:p-8">
         <InventoryHeader
           totalItems={sortedItems.length}
           selectedCount={selectedCount}

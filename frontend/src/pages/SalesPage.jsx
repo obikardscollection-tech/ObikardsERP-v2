@@ -130,7 +130,7 @@ function SalesPage() {
     <div className="flex min-h-screen bg-gray-100">
       <Sidebar />
 
-      <main className="flex-1 p-8">
+      <main className="flex-1 p-4 sm:p-6 xl:p-8">
         <div className="mb-6 flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold text-slate-900">Ventes</h1>

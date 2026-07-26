@@ -3,7 +3,6 @@ import { getInventoryCategoryLabel, getInventoryStatusLabel } from "../constants
 
 export default function exportExcel(items) {
   if (!items || items.length === 0) {
-    alert("Aucun article à exporter.");
     return;
   }
 

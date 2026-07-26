@@ -1,4 +1,5 @@
 import { useState } from "react";
+import toast from "react-hot-toast";
 
 import {
   adjustStock,
@@ -24,7 +25,7 @@ export default function useStock(loadInventory) {
     } catch (error) {
       console.error(error);
 
-      alert("Impossible de charger l'historique.");
+      toast.error("Impossible de charger l'historique.");
     } finally {
       setHistoryLoading(false);
     }
@@ -60,7 +61,7 @@ export default function useStock(loadInventory) {
     } catch (error) {
       console.error(error);
 
-      alert(
+      toast.error(
         error.response?.data?.error ??
           "Impossible de modifier le stock."
       );

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import {
   getSuppliers,
@@ -10,6 +10,7 @@ import {
 export default function useSuppliers() {
   const [suppliers, setSuppliers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const hasLoadedInitiallyRef = useRef(false);
 
   const loadSuppliers = useCallback(async () => {
     try {
@@ -26,23 +27,28 @@ export default function useSuppliers() {
   }, []);
 
   useEffect(() => {
+    if (hasLoadedInitiallyRef.current) {
+      return;
+    }
+
+    hasLoadedInitiallyRef.current = true;
     loadSuppliers();
   }, [loadSuppliers]);
 
-  async function addSupplier(supplier) {
+  const addSupplier = useCallback(async (supplier) => {
     await createSupplier(supplier);
     await loadSuppliers();
-  }
+  }, [loadSuppliers]);
 
-  async function editSupplier(id, supplier) {
+  const editSupplier = useCallback(async (id, supplier) => {
     await updateSupplier(id, supplier);
     await loadSuppliers();
-  }
+  }, [loadSuppliers]);
 
-  async function removeSupplier(id) {
+  const removeSupplier = useCallback(async (id) => {
     await deleteSupplier(id);
     await loadSuppliers();
-  }
+  }, [loadSuppliers]);
 
   return {
     suppliers,
