@@ -4,6 +4,7 @@ import toast from "react-hot-toast";
 import {
   getInventory,
   deleteInventory,
+  refreshInventoryMarket,
 } from "../services/inventoryService";
 
 import useSort from "./useSort";
@@ -202,6 +203,28 @@ export default function useInventory() {
     }
   }
 
+  async function handleRefreshMarket(item) {
+    try {
+      const result = await refreshInventoryMarket(item.id);
+      await loadInventory({ silent: true });
+
+      if (result && result.marketLinkStatus === "MULTIPLE_MATCHES") {
+        return {
+          type: "multiple_matches",
+          item,
+          matches: result.marketMatches || [],
+        };
+      }
+
+      toast.success("Mise a jour Market appliquee.");
+      return { type: "updated", item, result };
+    } catch (error) {
+      console.error(error);
+      toast.error("Impossible de rafraichir le Market pour cette carte.");
+      return { type: "error", item };
+    }
+  }
+
   const selectedCount = selectedItems.length;
 
   return {
@@ -235,6 +258,7 @@ export default function useInventory() {
 
     loadInventory,
     handleDelete,
+    handleRefreshMarket,
 
     handleToggleSelect,
     handleToggleSelectAll,

@@ -2,6 +2,7 @@ const { findSportsCardsProMatches } = require("../../modules/market/sportscardsp
 const { mapSportsCardsProSearchResult } = require("../../modules/market/sportscardspro/sportsCardsProSearchResultMapper");
 const { refreshSportsCardsProCard } = require("../../modules/market/sportscardspro/sportsCardsProRefreshService");
 const { resolveSportsCardsProSearchEntries } = require("../../modules/market/sportscardspro/sportsCardsProSearchMatchesResolver");
+const { resolveBestSportsCardsProSearchEntry } = require("../../modules/market/sportscardspro/sportsCardsProSearchResultResolver");
 
 const INTERNALS = {
   STATUSES: {
@@ -116,8 +117,10 @@ function createBaseMarketPatch() {
  */
 function createCardLinkPayload(card) {
   return {
+    sport: card.sport,
     player: card.player,
     year: card.year,
+    brand: card.brand,
     set: resolveCardSet(card),
     cardNumber: card.cardNumber,
     parallel: card.parallel,
@@ -133,8 +136,10 @@ function createCardLinkPayload(card) {
  */
 function createRefreshPayload(card) {
   return {
+    sport: card.sport,
     player: card.player,
     year: card.year,
+    brand: card.brand,
     set: resolveCardSet(card),
     cardNumber: card.cardNumber,
     parallel: card.parallel,
@@ -239,6 +244,17 @@ async function resolveInventoryMarketPatch(card) {
 async function resolveInventoryMarketIntegration(card) {
   assertCard(card);
 
+  if (card.sportsCardsProId && typeof card.sportsCardsProId === "string" && card.sportsCardsProId.trim() !== "") {
+    const refreshCard = {
+      ...createRefreshPayload(card),
+      sportsCardsProId: card.sportsCardsProId,
+    };
+
+    const refresh = await refreshSportsCardsProCard(refreshCard);
+
+    return createIntegrationResult(createLinkedPatch(refresh), refresh);
+  }
+
   const cardLinkPayload = createCardLinkPayload(card);
 
   if (!canSearchMarket(cardLinkPayload)) {
@@ -252,15 +268,19 @@ async function resolveInventoryMarketIntegration(card) {
     return createIntegrationResult(createNotFoundPatch(), null);
   }
 
-  if (searchEntries.length > 1) {
-    const mappedMatches = searchEntries.map((entry) => mapSportsCardsProSearchResult(entry));
+  const mappedMatches = searchEntries.map((entry) => mapSportsCardsProSearchResult(entry));
 
-    return createIntegrationResult(createMultipleMatchesPatch(mappedMatches), null);
+  if (searchEntries.length === 1) {
+    const singleEntry = searchEntries[0];
+    const refresh = await refreshSportsCardsProCard({
+      ...createRefreshPayload(card),
+      sportsCardsProId: mapSportsCardsProSearchResult(singleEntry).sportsCardsProId,
+    });
+
+    return createIntegrationResult(createLinkedPatch(refresh), refresh);
   }
 
-  const refresh = await refreshSportsCardsProCard(createRefreshPayload(card));
-
-  return createIntegrationResult(createLinkedPatch(refresh), refresh);
+  return createIntegrationResult(createMultipleMatchesPatch(mappedMatches), null);
 }
 
 module.exports = {

@@ -45,6 +45,21 @@ async function updateInventory(req, res) {
   }
 }
 
+async function refreshInventoryMarket(req, res) {
+  try {
+    const explicitSportsCardsProId = req.body && req.body.sportsCardsProId ? req.body.sportsCardsProId : null;
+    const item = await inventoryService.refreshInventoryMarket(req.params.id, explicitSportsCardsProId);
+
+    res.json(item);
+  } catch (error) {
+    console.error(error);
+
+    res.status(500).json({
+      error: error.message,
+    });
+  }
+}
+
 async function deleteInventory(req, res) {
   try {
     const result = await inventoryService.deleteInventory(req.params.id);
@@ -95,6 +110,7 @@ module.exports = {
   getInventory,
   createInventory,
   updateInventory,
+  refreshInventoryMarket,
   deleteInventory,
   importInventoryCsv,
   previewInventoryCsv,

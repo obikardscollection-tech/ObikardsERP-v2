@@ -1,10 +1,93 @@
 import InventoryActions from "./inventory/InventoryActions";
 import { getInventoryCategoryLabel, getInventoryStatusLabel } from "../constants/labels";
 
+const moneyFormatter = new Intl.NumberFormat("fr-FR", {
+  style: "currency",
+  currency: "EUR",
+  maximumFractionDigits: 2,
+});
+
+const dateFormatter = new Intl.DateTimeFormat("fr-FR", {
+  day: "2-digit",
+  month: "2-digit",
+  year: "numeric",
+  hour: "2-digit",
+  minute: "2-digit",
+});
+
+function asNumber(value) {
+  const numeric = Number(value);
+  return Number.isFinite(numeric) ? numeric : null;
+}
+
+function formatMoney(value) {
+  const numeric = asNumber(value);
+
+  if (numeric === null) {
+    return "—";
+  }
+
+  return moneyFormatter.format(numeric);
+}
+
+function formatPercent(value) {
+  const numeric = asNumber(value);
+
+  if (numeric === null) {
+    return "—";
+  }
+
+  return `${numeric.toFixed(1)}%`;
+}
+
+function formatDate(value) {
+  if (!value) {
+    return "—";
+  }
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return "—";
+  }
+
+  return dateFormatter.format(date);
+}
+
+function getMarketStatusMeta(status) {
+  switch (status) {
+    case "LINKED":
+      return {
+        label: "Market lié",
+        className: "bg-emerald-100 text-emerald-700",
+        dotClassName: "bg-emerald-500",
+      };
+    case "MULTIPLE_MATCHES":
+      return {
+        label: "À vérifier",
+        className: "bg-amber-100 text-amber-700",
+        dotClassName: "bg-amber-500",
+      };
+    case "NOT_FOUND":
+      return {
+        label: "Aucun match",
+        className: "bg-rose-100 text-rose-700",
+        dotClassName: "bg-rose-500",
+      };
+    default:
+      return {
+        label: "Non relié",
+        className: "bg-slate-200 text-slate-700",
+        dotClassName: "bg-slate-500",
+      };
+  }
+}
+
 export default function InventoryTable({
   items = [],
   onEdit,
   onDelete,
+  onRefreshMarket,
   onAdjustStock,
   sortField,
   sortDirection,
@@ -109,6 +192,10 @@ export default function InventoryTable({
               Achat
             </SortableHeader>
 
+            <th className="p-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-200">
+              Market
+            </th>
+
             <SortableHeader field="salePrice">
               Vente
             </SortableHeader>
@@ -170,11 +257,57 @@ export default function InventoryTable({
                 </td>
 
                 <td className="p-3 align-middle tabular-nums text-slate-700">
-                  {item.purchasePrice ?? "-"} €
+                  {formatMoney(item.purchasePrice)}
+                </td>
+
+                <td className="p-3 align-middle text-slate-700">
+                  <div className="min-w-[260px] space-y-1.5 rounded-lg border border-slate-200 bg-slate-50 p-2.5">
+                    <div className="flex items-center justify-between gap-3 text-[11px] uppercase tracking-wide text-slate-500">
+                      <span>Valeur</span>
+                      <span className="font-semibold text-slate-800">{formatMoney(item.marketValueEur)}</span>
+                    </div>
+
+                    <div className="flex items-center justify-between gap-3 text-[11px] text-slate-500">
+                      <span>Profit</span>
+                      <span className="font-semibold text-slate-800">{formatMoney(item.profit)}</span>
+                    </div>
+
+                    <div className="flex items-center justify-between gap-3 text-[11px] text-slate-500">
+                      <span>Marge</span>
+                      <span className="font-semibold text-slate-800">{formatPercent(item.margin)}</span>
+                    </div>
+
+                    <div className="flex items-center justify-between gap-3 text-[11px] text-slate-500">
+                      <span>ROI</span>
+                      <span className="font-semibold text-slate-800">{formatPercent(item.roi)}</span>
+                    </div>
+
+                    <div className="flex items-center justify-between gap-3 text-[11px] text-slate-500">
+                      <span>MAJ</span>
+                      <span className="font-semibold text-slate-800" title={item.marketLastRefreshAt || undefined}>
+                        {formatDate(item.marketLastRefreshAt)}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-between gap-3 text-[11px] text-slate-500">
+                      <span>Source</span>
+                      <span className="font-semibold text-slate-800">{item.marketSource || "—"}</span>
+                    </div>
+
+                    <div className="flex items-center justify-between gap-3 text-[11px] text-slate-500">
+                      <span>Match</span>
+                      <span
+                        className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 font-medium ${getMarketStatusMeta(item.marketLinkStatus).className}`}
+                      >
+                        <span className={`h-1.5 w-1.5 rounded-full ${getMarketStatusMeta(item.marketLinkStatus).dotClassName}`} />
+                        {getMarketStatusMeta(item.marketLinkStatus).label}
+                      </span>
+                    </div>
+                  </div>
                 </td>
 
                 <td className="p-3 align-middle tabular-nums text-slate-700">
-                  {item.salePrice ?? "-"} €
+                  {formatMoney(item.salePrice)}
                 </td>
 
                 <td className="p-3 align-middle tabular-nums font-medium text-slate-700">
@@ -200,6 +333,7 @@ export default function InventoryTable({
                     item={item}
                     onEdit={onEdit}
                     onDelete={onDelete}
+                    onRefreshMarket={onRefreshMarket}
                     onAdjustStock={onAdjustStock}
                   />
                 </td>

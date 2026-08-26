@@ -2,6 +2,7 @@ export default function InventoryActions({
   item,
   onEdit,
   onDelete,
+  onRefreshMarket,
   onAdjustStock,
 }) {
   const itemLabel = item?.sku || item?.title || "article";
@@ -15,6 +16,15 @@ export default function InventoryActions({
         aria-label={`Modifier ${itemLabel}`}
       >
         Modifier
+      </button>
+
+      <button
+        type="button"
+        onClick={() => onRefreshMarket?.(item)}
+        className="text-violet-600 hover:text-violet-800 hover:underline"
+        aria-label={`Rafraichir le Market de ${itemLabel}`}
+      >
+        Market
       </button>
 
       <button

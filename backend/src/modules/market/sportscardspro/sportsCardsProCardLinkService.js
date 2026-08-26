@@ -2,8 +2,10 @@ const { searchSportsCardsPro } = require("./sportsCardsProSearchService");
 const { buildConnectorSearchQuery } = require("../../reference/services/referenceSearchQueryService");
 
 const KEYS = {
+  SPORT: "sport",
   PLAYER: "player",
   YEAR: "year",
+  BRAND: "brand",
   SET: "set",
   CARD_NUMBER: "cardNumber",
   PARALLEL: "parallel",
@@ -16,6 +18,8 @@ const INTERNALS = {
   SEARCH_ORDER: [
     KEYS.PLAYER,
     KEYS.YEAR,
+    KEYS.SPORT,
+    KEYS.BRAND,
     KEYS.SET,
     KEYS.CARD_NUMBER,
     KEYS.PARALLEL,

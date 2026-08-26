@@ -14,7 +14,14 @@ const {
 } = require("./sportsCardsProHelpers");
 
 function readMarketValue(indexedRow, key) {
-  return toNullableDecimal(readAliasedValue(indexedRow, KEY_ALIASES[key]));
+  const rawValue = readAliasedValue(indexedRow, KEY_ALIASES[key]);
+  const numericValue = toNullableDecimal(rawValue);
+
+  if (numericValue === null) {
+    return null;
+  }
+
+  return Number((numericValue / 100).toFixed(2));
 }
 
 function mapRowToSyncPayload(row, synchronizedAt) {
@@ -89,7 +96,7 @@ function mapRowToSyncPayload(row, synchronizedAt) {
       printRun: toNullableInteger(row.printRun),
       language: toNullableString(readAliasedValue(indexed, KEY_ALIASES.language)) || "EN",
       country: toNullableString(readAliasedValue(indexed, KEY_ALIASES.country)),
-      releaseDate: toNullableDate(readAliasedValue(indexed, KEY_ALIASES.year)),
+      releaseDate: toNullableDate(readAliasedValue(indexed, KEY_ALIASES.releaseDate)),
       slug,
       fingerprint,
       searchText,

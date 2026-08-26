@@ -78,12 +78,18 @@ function assertSportsCardsProId(sportsCardsProId) {
  * Ensure grade is present.
  * @param {unknown} grade
  */
-function assertGrade(grade) {
+function normalizeGrade(grade) {
   if (typeof grade !== "string" || grade.trim() === "") {
-    throw new Error("Le grade SportsCardsPro est invalide.");
+    return GRADES.RAW;
   }
 
-  if (!isSupportedGrade(grade)) {
+  return grade.trim();
+}
+
+function assertGrade(grade) {
+  const normalizedGrade = normalizeGrade(grade);
+
+  if (!isSupportedGrade(normalizedGrade)) {
     throw new Error("Le grade SportsCardsPro n'est pas supporte.");
   }
 }
@@ -127,36 +133,50 @@ function resolvePrimaryPriceKey(grade) {
  * @param {string} grade
  * @returns {unknown}
  */
+function normalizeSportsCardsProUsdPrice(value) {
+  if (!hasPriceValue(value)) {
+    return value;
+  }
+
+  const numericValue = Number(value);
+
+  if (!Number.isFinite(numericValue)) {
+    return value;
+  }
+
+  return numericValue / 100;
+}
+
 function resolveMarketPrice(raw, grade) {
   const primaryKey = resolvePrimaryPriceKey(grade);
   const primaryPrice = raw[primaryKey];
 
   if (hasPriceValue(primaryPrice)) {
-    return primaryPrice;
+    return normalizeSportsCardsProUsdPrice(primaryPrice);
   }
 
   const gradedFallback = raw[INTERNALS.PRICE_KEYS.GRADED];
 
   if (hasPriceValue(gradedFallback)) {
-    return gradedFallback;
+    return normalizeSportsCardsProUsdPrice(gradedFallback);
   }
 
   const rawFallback = raw[INTERNALS.PRICE_KEYS.RAW];
 
   if (hasPriceValue(rawFallback)) {
-    return rawFallback;
+    return normalizeSportsCardsProUsdPrice(rawFallback);
   }
 
   const newFallback = raw[INTERNALS.PRICE_KEYS.NEW];
 
   if (hasPriceValue(newFallback)) {
-    return newFallback;
+    return normalizeSportsCardsProUsdPrice(newFallback);
   }
 
   const manualOnlyFallback = raw[INTERNALS.PRICE_KEYS.MANUAL_ONLY];
 
   if (hasPriceValue(manualOnlyFallback)) {
-    return manualOnlyFallback;
+    return normalizeSportsCardsProUsdPrice(manualOnlyFallback);
   }
 
   return null;
@@ -190,12 +210,14 @@ function createMarketValuePayload(sportsCardsProId, grade, marketValue, raw) {
 async function getSportsCardsProCardMarketValue(card) {
   assertCard(card);
   assertSportsCardsProId(card.sportsCardsProId);
-  assertGrade(card.grade);
+
+  const normalizedGrade = normalizeGrade(card.grade);
+  assertGrade(normalizedGrade);
 
   const raw = await getSportsCardsProCardDetails(card.sportsCardsProId);
-  const marketValue = resolveMarketPrice(raw, card.grade);
+  const marketValue = resolveMarketPrice(raw, normalizedGrade);
 
-  return createMarketValuePayload(card.sportsCardsProId, card.grade, marketValue, raw);
+  return createMarketValuePayload(card.sportsCardsProId, normalizedGrade, marketValue, raw);
 }
 
 module.exports = {

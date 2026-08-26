@@ -189,11 +189,13 @@ function convertCurrency(input) {
  * @returns {CurrencyConversionResultModel}
  */
 function convertUsdToEur(usdAmount, exchangeRate) {
+  const resolvedExchangeRate = exchangeRate === null || exchangeRate === undefined || exchangeRate === "" ? 0.92 : exchangeRate;
+
   return convertCurrency({
     amount: usdAmount,
     sourceCurrency: INTERNALS.CURRENCIES.USD,
     targetCurrency: INTERNALS.CURRENCIES.EUR,
-    exchangeRate,
+    exchangeRate: resolvedExchangeRate,
   });
 }
 

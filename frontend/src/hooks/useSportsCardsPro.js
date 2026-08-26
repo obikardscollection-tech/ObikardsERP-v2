@@ -5,6 +5,7 @@ import {
   getSportsCardsProImportJobs,
   getSportsCardsProStatistics,
   startSportsCardsProSynchronization,
+  syncSingleSportsCardsProCard,
 } from "../services/sportsCardsProService";
 import { resolveGlobalStatus } from "../utils/formatStatistics";
 
@@ -23,7 +24,10 @@ export default function useSportsCardsPro() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [syncing, setSyncing] = useState(false);
+  const [singleCardSyncing, setSingleCardSyncing] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [singleCardMessage, setSingleCardMessage] = useState("");
+  const [singleCardError, setSingleCardError] = useState("");
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [snackbar, setSnackbar] = useState({
@@ -135,6 +139,29 @@ export default function useSportsCardsPro() {
     }
   }, [load, syncing]);
 
+  const handleSyncSingleCard = useCallback(async (payload = {}) => {
+    if (singleCardSyncing) {
+      return null;
+    }
+
+    setSingleCardSyncing(true);
+    setSingleCardError("");
+    setSingleCardMessage("");
+
+    try {
+      const result = await syncSingleSportsCardsProCard(payload);
+      setSingleCardMessage(result?.message || "Carte SportsCardsPro synchronisee.");
+      await load({ manual: true });
+      return result;
+    } catch (error) {
+      const message = toMessage(error, "Impossible de synchroniser la carte SportsCardsPro.");
+      setSingleCardError(message);
+      throw error;
+    } finally {
+      setSingleCardSyncing(false);
+    }
+  }, [load, singleCardSyncing]);
+
   const currentStatus = useMemo(() => resolveGlobalStatus(statistics), [statistics]);
 
   useEffect(() => {
@@ -162,8 +189,11 @@ export default function useSportsCardsPro() {
     loading,
     refreshing,
     syncing,
+    singleCardSyncing,
     currentStatus,
     errorMessage,
+    singleCardMessage,
+    singleCardError,
     isDialogOpen,
     snackbar,
     load,
@@ -171,5 +201,6 @@ export default function useSportsCardsPro() {
     handleCloseDialog,
     handleCloseSnackbar,
     startSynchronization,
+    handleSyncSingleCard,
   };
 }

@@ -2,7 +2,7 @@ const { generateSku } = require("./skuService");
 const { getInventory } = require("./getInventoryService");
 const { searchInventory } = require("./searchInventoryService");
 const { createInventory } = require("./createInventoryService");
-const { updateInventory } = require("./updateInventoryService");
+const { updateInventory, refreshInventoryMarket } = require("./updateInventoryService");
 const { deleteInventory } = require("./deleteInventoryService");
 const { resolveInventoryMarketPatch } = require("./marketAutoLinkService");
 const { importInventoryFromCsv, previewInventoryFromCsv } = require("./importCsvService");
@@ -13,6 +13,7 @@ module.exports = {
   searchInventory,
   createInventory,
   updateInventory,
+  refreshInventoryMarket,
   deleteInventory,
   resolveInventoryMarketPatch,
   importInventoryFromCsv,

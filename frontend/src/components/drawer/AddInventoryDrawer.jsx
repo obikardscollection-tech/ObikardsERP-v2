@@ -83,6 +83,69 @@ export default function AddInventoryDrawer({
 
   const isEdit = !!item;
 
+  const moneyFormatter = new Intl.NumberFormat("fr-FR", {
+    style: "currency",
+    currency: "EUR",
+    maximumFractionDigits: 2,
+  });
+
+  const dateFormatter = new Intl.DateTimeFormat("fr-FR", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+
+  function formatMoney(value) {
+    const numeric = Number(value);
+    return Number.isFinite(numeric) ? moneyFormatter.format(numeric) : "—";
+  }
+
+  function formatPercent(value) {
+    const numeric = Number(value);
+    return Number.isFinite(numeric) ? `${numeric.toFixed(1)}%` : "—";
+  }
+
+  function formatDate(value) {
+    if (!value) {
+      return "—";
+    }
+
+    const date = new Date(value);
+
+    if (Number.isNaN(date.getTime())) {
+      return "—";
+    }
+
+    return dateFormatter.format(date);
+  }
+
+  function getMarketStatusMeta(status) {
+    switch (status) {
+      case "LINKED":
+        return {
+          label: "Market lié",
+          className: "bg-emerald-100 text-emerald-700",
+        };
+      case "MULTIPLE_MATCHES":
+        return {
+          label: "À vérifier",
+          className: "bg-amber-100 text-amber-700",
+        };
+      case "NOT_FOUND":
+        return {
+          label: "Aucun match",
+          className: "bg-rose-100 text-rose-700",
+        };
+      default:
+        return {
+          label: "Non relié",
+          className: "bg-slate-200 text-slate-700",
+        };
+    }
+  }
+
   useEffect(() => {
     if (!open) return;
 
@@ -258,6 +321,69 @@ export default function AddInventoryDrawer({
             form={form}
             setForm={setForm}
           />
+
+          {(item && (
+            item.marketValueEur != null ||
+            item.marketLinkStatus ||
+            item.marketSource ||
+            item.marketLastRefreshAt ||
+            item.profit != null ||
+            item.margin != null ||
+            item.roi != null
+          )) ? (
+            <div className="mt-6 rounded-xl border border-slate-200 bg-slate-50 p-4">
+              <div className="mb-3 flex items-center justify-between gap-4">
+                <h2 className="text-lg font-semibold text-slate-800">Informations Market</h2>
+                <span
+                  className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${getMarketStatusMeta(item.marketLinkStatus).className}`}
+                >
+                  {getMarketStatusMeta(item.marketLinkStatus).label}
+                </span>
+              </div>
+
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div className="rounded-lg bg-white p-3">
+                  <p className="text-[11px] uppercase tracking-wide text-slate-500">Coût d'achat</p>
+                  <p className="mt-1 text-lg font-semibold text-slate-800">{formatMoney(item.purchasePrice)}</p>
+                </div>
+
+                <div className="rounded-lg bg-white p-3">
+                  <p className="text-[11px] uppercase tracking-wide text-slate-500">Valeur marché EUR</p>
+                  <p className="mt-1 text-lg font-semibold text-slate-800">{formatMoney(item.marketValueEur)}</p>
+                </div>
+
+                <div className="rounded-lg bg-white p-3">
+                  <p className="text-[11px] uppercase tracking-wide text-slate-500">Profit potentiel</p>
+                  <p className="mt-1 text-lg font-semibold text-slate-800">{formatMoney(item.profit)}</p>
+                </div>
+
+                <div className="rounded-lg bg-white p-3">
+                  <p className="text-[11px] uppercase tracking-wide text-slate-500">Marge</p>
+                  <p className="mt-1 text-lg font-semibold text-slate-800">{formatPercent(item.margin)}</p>
+                </div>
+
+                <div className="rounded-lg bg-white p-3">
+                  <p className="text-[11px] uppercase tracking-wide text-slate-500">ROI</p>
+                  <p className="mt-1 text-lg font-semibold text-slate-800">{formatPercent(item.roi)}</p>
+                </div>
+
+                <div className="rounded-lg bg-white p-3">
+                  <p className="text-[11px] uppercase tracking-wide text-slate-500">Dernière mise à jour</p>
+                  <p className="mt-1 text-sm font-medium text-slate-800">{formatDate(item.marketLastRefreshAt)}</p>
+                </div>
+              </div>
+
+              <div className="mt-3 rounded-lg bg-white p-3 text-sm text-slate-600">
+                <p>
+                  <span className="font-medium text-slate-700">Source :</span> {item.marketSource || "—"}
+                </p>
+              </div>
+
+              <p className="mt-3 text-xs text-slate-500">
+                Rafraîchissement Market individuel non exposé dans l'API Inventory actuelle.
+              </p>
+            </div>
+          ) : null}
 
           <PhotosSection
             form={form}

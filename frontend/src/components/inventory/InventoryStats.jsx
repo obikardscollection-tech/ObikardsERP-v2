@@ -39,6 +39,12 @@ export default function InventoryStats({ items }) {
     return total;
   }, 0);
 
+  const marketValue = items.reduce((total, item) => {
+    const value = Number(item.marketValueEur ?? 0);
+    const quantity = Number(item.quantity ?? 0);
+    return total + value * quantity;
+  }, 0);
+
   const cards = [
     {
       title: "Articles",
@@ -55,6 +61,10 @@ export default function InventoryStats({ items }) {
     {
       title: "Valeur du stock",
       value: `${stockValue.toFixed(2)} €`,
+    },
+    {
+      title: "Valeur marché",
+      value: `${marketValue.toFixed(2)} €`,
     },
     {
       title: "Coût d'achat",

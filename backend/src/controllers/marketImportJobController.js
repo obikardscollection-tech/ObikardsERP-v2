@@ -115,6 +115,21 @@ async function getSportsCardsProSyncStats(req, res) {
   }
 }
 
+async function triggerSingleSportsCardsProCardSync(req, res) {
+  try {
+    const payload = req.body || {};
+    const result = await marketImportJobService.syncSingleSportsCardsProCard(payload);
+
+    return res.status(202).json(result);
+  } catch (error) {
+    console.error(error);
+
+    return res.status(400).json({
+      message: error.message,
+    });
+  }
+}
+
 module.exports = {
   create,
   getAll,
@@ -123,4 +138,5 @@ module.exports = {
   remove,
   triggerSportsCardsProSync,
   getSportsCardsProSyncStats,
+  triggerSingleSportsCardsProCardSync,
 };

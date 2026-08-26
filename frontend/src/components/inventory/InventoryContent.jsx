@@ -41,6 +41,7 @@ export default function InventoryContent({
 
   onEdit,
   onDelete,
+  onRefreshMarket,
   onAdjustStock,
 
   sortField,
@@ -111,6 +112,7 @@ export default function InventoryContent({
           items={sortedItems}
           onEdit={onEdit}
           onDelete={onDelete}
+          onRefreshMarket={onRefreshMarket}
           onAdjustStock={onAdjustStock}
           sortField={sortField}
           sortDirection={sortDirection}

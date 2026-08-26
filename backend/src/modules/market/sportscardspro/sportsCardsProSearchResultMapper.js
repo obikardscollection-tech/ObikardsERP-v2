@@ -141,15 +141,36 @@ function mapRetail(searchResult) {
 function mapSportsCardsProSearchResult(searchResult) {
   assertSearchResult(searchResult);
 
+  const year =
+    searchResult.year ??
+    searchResult["release-year"] ??
+    searchResult["card-year"] ??
+    null;
+
+  const subset =
+    searchResult.subset ??
+    searchResult["sub-set"] ??
+    null;
+
+  const productName = searchResult[INTERNALS.FIELDS.PRODUCT_NAME] ?? null;
+  const consoleName = searchResult[INTERNALS.FIELDS.CONSOLE_NAME] ?? null;
+  const releaseDate = searchResult[INTERNALS.FIELDS.RELEASE_DATE] ?? null;
+
   return {
     sportsCardsProId: resolveSportsCardsProId(searchResult),
-    productName: searchResult[INTERNALS.FIELDS.PRODUCT_NAME] ?? null,
-    consoleName: searchResult[INTERNALS.FIELDS.CONSOLE_NAME] ?? null,
-    releaseDate: searchResult[INTERNALS.FIELDS.RELEASE_DATE] ?? null,
-    prices: mapPrices(searchResult),
-    retail: mapRetail(searchResult),
-    // SportsCardsPro currently exposes sales-volume as a string.
-    // Keep it unchanged; numeric conversion belongs to downstream business services.
+    productName,
+    consoleName,
+    year,
+    sport: searchResult.sport ?? searchResult["sport-name"] ?? searchResult["card-sport"] ?? null,
+    brand: searchResult.brand ?? searchResult.manufacturer ?? searchResult.publisher ?? null,
+    set: searchResult.set ?? searchResult["set-name"] ?? searchResult.series ?? null,
+    cardNumber: searchResult["card-number"] ?? searchResult.number ?? null,
+    subset,
+    parallel: searchResult.parallel ?? null,
+    variation: searchResult.variation ?? null,
+    releaseDate,
+    loosePrice: searchResult["loose-price"] ?? null,
+    gradedPrice: searchResult["graded-price"] ?? null,
     salesVolume: searchResult[INTERNALS.FIELDS.SALES_VOLUME] ?? null,
     raw: searchResult,
   };

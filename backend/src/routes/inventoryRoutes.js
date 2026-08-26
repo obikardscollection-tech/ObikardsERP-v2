@@ -23,6 +23,7 @@ router.post("/import/csv/preview", uploadInventoryCsv, inventoryController.previ
 // Modification
 // ===============================
 
+router.post("/:id/market/refresh", inventoryController.refreshInventoryMarket);
 router.put("/:id", inventoryController.updateInventory);
 
 // ===============================

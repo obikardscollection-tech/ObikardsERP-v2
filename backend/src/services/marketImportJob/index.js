@@ -7,6 +7,7 @@ const {
   executeSportsCardsProSync,
   getSportsCardsProSyncStatistics,
   SyncError,
+  syncSingleSportsCardsProCard,
 } = require("./sportsCardsProSyncService");
 const {
   startSportsCardsProAutoSync,
@@ -22,6 +23,7 @@ module.exports = {
   deleteMarketImportJob,
   executeSportsCardsProSync,
   getSportsCardsProSyncStatistics,
+  syncSingleSportsCardsProCard,
   SyncError,
   startSportsCardsProAutoSync,
   stopSportsCardsProAutoSync,

@@ -69,6 +69,61 @@ async function updateInventory(id, data) {
   return item;
 }
 
+async function refreshInventoryMarket(id, explicitSportsCardsProId = null) {
+  const existingItem = await prisma.inventory.findUnique({
+    where: {
+      id,
+    },
+  });
+
+  if (!existingItem) {
+    throw new Error("Inventory introuvable.");
+  }
+
+  const marketInput = {
+    sport: existingItem.sport,
+    player: existingItem.player,
+    year: existingItem.year,
+    brand: existingItem.brand,
+    set: existingItem.set ?? existingItem.series,
+    series: existingItem.series,
+    cardNumber: existingItem.cardNumber,
+    parallel: existingItem.parallel,
+    variation: existingItem.variation,
+    grade: existingItem.grade,
+    purchasePrice: existingItem.purchasePrice,
+    fees: existingItem.fees ?? null,
+    exchangeRate: existingItem.exchangeRate ?? null,
+    sportsCardsProId: explicitSportsCardsProId ?? existingItem.sportsCardsProId ?? null,
+  };
+
+  const marketIntegration = await resolveInventoryMarketIntegration(marketInput);
+
+  const item = await prisma.$transaction(async (tx) => {
+    const updatedItem = await tx.inventory.update({
+      where: {
+        id,
+      },
+      data: {
+        ...marketIntegration.patch,
+      },
+    });
+
+    if (marketIntegration.refreshResult) {
+      await createMarketSnapshot({
+        inventoryId: updatedItem.id,
+        refreshResult: marketIntegration.refreshResult,
+        db: tx,
+      });
+    }
+
+    return updatedItem;
+  });
+
+  return item;
+}
+
 module.exports = {
   updateInventory,
+  refreshInventoryMarket,
 };

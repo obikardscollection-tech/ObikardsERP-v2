@@ -58,6 +58,15 @@ export async function startSportsCardsProSynchronization(payload = {}) {
   }
 }
 
+export async function syncSingleSportsCardsProCard(payload = {}) {
+  try {
+    const response = await api.post(`${IMPORT_JOBS_API_URL}/sync/sportscardspro/single`, payload);
+    return response.data;
+  } catch (error) {
+    throw new Error(toErrorMessage(error, "Erreur lors de la synchronisation de la carte SportsCardsPro."));
+  }
+}
+
 export function filterSportsCardsProData(statistics, jobs, errors) {
   if (!statistics || statistics.providerCode !== SPORTS_CARDS_PRO_CODE) {
     return {

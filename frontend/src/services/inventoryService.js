@@ -37,6 +37,11 @@ export async function updateInventory(id, item) {
   return data;
 }
 
+export async function refreshInventoryMarket(id, payload = null) {
+  const { data } = await api.post(`${API_URL}/${id}/market/refresh`, payload || {});
+  return data;
+}
+
 export async function deleteInventory(id, config = {}) {
   await api.delete(`${API_URL}/${id}`, config);
 }

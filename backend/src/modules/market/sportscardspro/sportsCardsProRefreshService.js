@@ -1,7 +1,7 @@
 const { findSportsCardsProMatches } = require("./sportsCardsProCardLinkService");
 const { mapSportsCardsProSearchResult } = require("./sportsCardsProSearchResultMapper");
 const { getSportsCardsProCardMarketValue } = require("./sportsCardsProCardMarketValueService");
-const { resolveFirstSportsCardsProSearchEntry } = require("./sportsCardsProSearchResultResolver");
+const { resolveBestSportsCardsProSearchEntry, resolveFirstSportsCardsProSearchEntry } = require("./sportsCardsProSearchResultResolver");
 const { convertUsdToEur } = require("./currencyConversionService");
 const { calculateFinancialMetrics } = require("./financialMetricsService");
 
@@ -69,8 +69,10 @@ function assertCard(card) {
  */
 function createCardLinkPayload(card) {
   return {
+    sport: card.sport,
     player: card.player,
     year: card.year,
+    brand: card.brand,
     set: card.set,
     cardNumber: card.cardNumber,
     parallel: card.parallel,
@@ -148,18 +150,37 @@ function createRefreshPayload(sportsCardsProId, marketValuePayload, conversion, 
 async function refreshSportsCardsProCard(card) {
   assertCard(card);
 
-  const searchResponse = await findSportsCardsProMatches(createCardLinkPayload(card));
-  const firstSearchEntry = resolveFirstSportsCardsProSearchEntry(searchResponse);
-  const mappedSearchResult = mapSportsCardsProSearchResult(firstSearchEntry);
+  let sportsCardsProId = card.sportsCardsProId;
+
+  if (!sportsCardsProId || typeof sportsCardsProId !== "string" || sportsCardsProId.trim() === "") {
+    const searchResponse = await findSportsCardsProMatches(createCardLinkPayload(card));
+    const searchEntries = Array.isArray(searchResponse)
+      ? searchResponse
+      : searchResponse && typeof searchResponse === "object"
+        ? (searchResponse.results || searchResponse.products || searchResponse.data || [])
+        : [];
+
+    if (searchEntries.length > 1) {
+      throw new Error("Plusieurs variantes SportsCardsPro correspondent a la recherche. Selectionnez l'article attendu.");
+    }
+
+    const selectedEntry = searchEntries.length === 1 ? searchEntries[0] : resolveFirstSportsCardsProSearchEntry(searchResponse);
+
+    if (!selectedEntry) {
+      throw new Error("Aucun produit SportsCardsPro correspondant n'a ete trouve.");
+    }
+
+    sportsCardsProId = mapSportsCardsProSearchResult(selectedEntry).sportsCardsProId;
+  }
 
   const marketValuePayload = await getSportsCardsProCardMarketValue(
-    createMarketValueInput(mappedSearchResult.sportsCardsProId, card.grade)
+    createMarketValueInput(sportsCardsProId, card.grade)
   );
 
   const conversion = convertUsdToEur(marketValuePayload.marketValue, card.exchangeRate);
   const financial = calculateFinancialMetrics(createFinancialInput(card, conversion.convertedAmount));
 
-  return createRefreshPayload(mappedSearchResult.sportsCardsProId, marketValuePayload, conversion, financial);
+  return createRefreshPayload(sportsCardsProId, marketValuePayload, conversion, financial);
 }
 
 module.exports = {
