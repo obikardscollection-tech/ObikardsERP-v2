@@ -119,6 +119,21 @@ export default function FeaturesSection({ form, setForm }) {
         <div>
 
           <label className="block text-sm font-medium mb-2">
+            Insert / Subset
+          </label>
+
+          <input
+            value={form.subset ?? ""}
+            onChange={(e) => update("subset", e.target.value)}
+            placeholder="Punched Ticket"
+            className="w-full border rounded-lg p-3"
+          />
+
+        </div>
+
+        <div>
+
+          <label className="block text-sm font-medium mb-2">
             Variante
           </label>
 

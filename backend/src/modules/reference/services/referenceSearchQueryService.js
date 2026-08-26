@@ -48,6 +48,7 @@ function buildConnectorSearchQuery(criteria, options) {
   const numberKeys = Array.isArray(config.numberKeys)
     ? config.numberKeys
     : ["number", "cardNumber"];
+  const subsetKey = typeof config.subsetKey === "string" ? config.subsetKey : "subset";
   const numberField = typeof config.numberField === "string" ? config.numberField : "number";
   const numberPrefix = typeof config.numberPrefix === "string" ? config.numberPrefix : "#";
   const strict = Boolean(config.strict);
@@ -63,6 +64,14 @@ function buildConnectorSearchQuery(criteria, options) {
         queryParts.push(`${numberPrefix}${numberPart}`);
       }
 
+      continue;
+    }
+
+    if (key === subsetKey) {
+      const part = normalizeSearchValue(source[key], key, strict);
+      if (part !== "") {
+        queryParts.push(part);
+      }
       continue;
     }
 

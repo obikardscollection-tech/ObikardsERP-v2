@@ -61,6 +61,7 @@ model Inventory {
   rookie         Boolean   @default(false)
   serialNumber   String?
   series         String?
+  subset         String?
   shippingCost   Float?
   sp             Boolean   @default(false)
   sport          String?

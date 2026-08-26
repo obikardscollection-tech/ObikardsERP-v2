@@ -2,7 +2,7 @@ const { findSportsCardsProMatches } = require("../../modules/market/sportscardsp
 const { mapSportsCardsProSearchResult } = require("../../modules/market/sportscardspro/sportsCardsProSearchResultMapper");
 const { refreshSportsCardsProCard } = require("../../modules/market/sportscardspro/sportsCardsProRefreshService");
 const { resolveSportsCardsProSearchEntries } = require("../../modules/market/sportscardspro/sportsCardsProSearchMatchesResolver");
-const { resolveBestSportsCardsProSearchEntry } = require("../../modules/market/sportscardspro/sportsCardsProSearchResultResolver");
+const { evaluateSearchEntry } = require("../../modules/market/sportscardspro/sportsCardsProSearchResultResolver");
 
 const INTERNALS = {
   STATUSES: {
@@ -31,6 +31,7 @@ function createIntegrationResult(patch, refreshResult) {
  * @property {unknown} year
  * @property {unknown} set
  * @property {unknown} series
+ * @property {unknown} subset
  * @property {unknown} cardNumber
  * @property {unknown} parallel
  * @property {unknown} variation
@@ -122,6 +123,7 @@ function createCardLinkPayload(card) {
     year: card.year,
     brand: card.brand,
     set: resolveCardSet(card),
+    subset: card.subset,
     cardNumber: card.cardNumber,
     parallel: card.parallel,
     variation: card.variation,
@@ -141,6 +143,7 @@ function createRefreshPayload(card) {
     year: card.year,
     brand: card.brand,
     set: resolveCardSet(card),
+    subset: card.subset,
     cardNumber: card.cardNumber,
     parallel: card.parallel,
     variation: card.variation,
@@ -161,6 +164,7 @@ function canSearchMarket(payload) {
     payload.player,
     payload.year,
     payload.set,
+    payload.subset,
     payload.cardNumber,
     payload.parallel,
     payload.variation,
@@ -268,10 +272,24 @@ async function resolveInventoryMarketIntegration(card) {
     return createIntegrationResult(createNotFoundPatch(), null);
   }
 
-  const mappedMatches = searchEntries.map((entry) => mapSportsCardsProSearchResult(entry));
+  const rankedEntries = searchEntries
+    .map((entry) => ({
+      entry,
+      score: evaluateSearchEntry(entry, card).score,
+    }))
+    .sort((left, right) => right.score - left.score);
 
-  if (searchEntries.length === 1) {
-    const singleEntry = searchEntries[0];
+  const bestScore = rankedEntries[0]?.score ?? 0;
+  const relevantEntries = rankedEntries.filter(({ score }) => score >= Math.max(90, bestScore - 35));
+
+  if (relevantEntries.length === 0) {
+    return createIntegrationResult(createNotFoundPatch(), null);
+  }
+
+  const mappedMatches = relevantEntries.map(({ entry }) => mapSportsCardsProSearchResult(entry));
+
+  if (relevantEntries.length === 1) {
+    const singleEntry = relevantEntries[0].entry;
     const refresh = await refreshSportsCardsProCard({
       ...createRefreshPayload(card),
       sportsCardsProId: mapSportsCardsProSearchResult(singleEntry).sportsCardsProId,

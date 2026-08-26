@@ -8,6 +8,7 @@ function inventoryMapper(data) {
     year: data.year ? Number(data.year) : null,
     brand: data.brand || null,
     series: data.series || null,
+    subset: data.subset || null,
     product: data.product || null,
     player: data.player || null,
     team: data.team || null,

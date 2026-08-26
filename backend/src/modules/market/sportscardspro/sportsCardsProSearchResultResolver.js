@@ -11,6 +11,7 @@ const INTERNALS = {
     BRAND: ["brand", "manufacturer"],
     SET: ["set", "series", "subset"],
     SERIES: ["series", "set"],
+    SUBSET: ["subset", "sub-set"],
     CARD_NUMBER: ["card-number", "cardNumber", "number"],
     PARALLEL: ["parallel", "subset", "variation"],
     VARIATION: ["variation", "parallel", "subset"],
@@ -41,6 +42,42 @@ function toNumericString(value) {
   const numericValue = String(value).replace(/[^0-9]/g, "");
 
   return numericValue === "" ? null : numericValue;
+}
+
+function normalizeComparableCardNumber(value) {
+  if (value === null || value === undefined || value === "") {
+    return null;
+  }
+
+  const normalized = String(value).trim();
+
+  if (normalized === "") {
+    return null;
+  }
+
+  return normalized.replace(/^#/, "").replace(/\s+/g, "").toLowerCase();
+}
+
+function areCardNumbersComparable(referenceValue, candidateValue) {
+  const left = normalizeComparableCardNumber(referenceValue);
+  const right = normalizeComparableCardNumber(candidateValue);
+
+  if (!left || !right) {
+    return false;
+  }
+
+  if (left === right) {
+    return true;
+  }
+
+  const leftHasDigits = /\d/.test(left);
+  const rightHasDigits = /\d/.test(right);
+
+  if (!leftHasDigits || !rightHasDigits) {
+    return false;
+  }
+
+  return true;
 }
 
 function findExactValue(source, keys) {
@@ -118,6 +155,7 @@ function extractSearchEntryFields(entry) {
     brand: getEntryField(entry, INTERNALS.FIELD_ALIASES.BRAND),
     set: getEntryField(entry, INTERNALS.FIELD_ALIASES.SET) || getEntryField(entry, INTERNALS.FIELD_ALIASES.SERIES),
     series: getEntryField(entry, INTERNALS.FIELD_ALIASES.SERIES) || getEntryField(entry, INTERNALS.FIELD_ALIASES.SET),
+    subset: getEntryField(entry, INTERNALS.FIELD_ALIASES.SUBSET),
     cardNumber: toNumericString(getEntryField(entry, INTERNALS.FIELD_ALIASES.CARD_NUMBER)),
     parallel: getEntryField(entry, INTERNALS.FIELD_ALIASES.PARALLEL) || inferParallelFromProductName(productName),
     variation: getEntryField(entry, INTERNALS.FIELD_ALIASES.VARIATION) || getEntryField(entry, INTERNALS.FIELD_ALIASES.PARALLEL) || inferParallelFromProductName(productName),
@@ -185,6 +223,7 @@ function evaluateSearchEntry(entry, referenceCard) {
   const refYear = referenceCard && referenceCard.year !== undefined && referenceCard.year !== null ? String(referenceCard.year) : null;
   const refBrand = referenceCard && referenceCard.brand ? String(referenceCard.brand) : null;
   const refSet = referenceCard && (referenceCard.set || referenceCard.series) ? String(referenceCard.set || referenceCard.series) : null;
+  const refSubset = referenceCard && referenceCard.subset ? String(referenceCard.subset) : null;
   const refCardNumber = referenceCard && referenceCard.cardNumber !== undefined && referenceCard.cardNumber !== null ? String(referenceCard.cardNumber) : null;
   const refParallel = referenceCard && referenceCard.parallel ? String(referenceCard.parallel) : null;
   const refVariation = referenceCard && referenceCard.variation ? String(referenceCard.variation) : null;
@@ -193,7 +232,17 @@ function evaluateSearchEntry(entry, referenceCard) {
   let score = 0;
 
   if (isExactNormalizedMatch(refPlayer, fields.player)) score += 80;
-  if (refCardNumber && fields.cardNumber && refCardNumber === fields.cardNumber) score += 100;
+  if (refYear && isExactNormalizedMatch(refYear, fields.year)) score += 40;
+  if (refSport && isExactNormalizedMatch(refSport, fields.sport)) score += 15;
+  if (refBrand && isExactNormalizedMatch(refBrand, fields.brand)) score += 25;
+  if (refSet && (isExactNormalizedMatch(refSet, fields.set) || isExactNormalizedMatch(refSet, fields.series) || isTokenMatch(refSet, fields.consoleName))) score += 60;
+  if (refSubset) {
+    if (isExactNormalizedMatch(refSubset, fields.subset)) {
+      score += 70;
+    } else if (isTokenMatch(refSubset, fields.subset)) {
+      score += 25;
+    }
+  }
   if (refParallel) {
     score += Math.max(
       scoreParallelMatch(refParallel, fields.parallel),
@@ -210,16 +259,27 @@ function evaluateSearchEntry(entry, referenceCard) {
     ) * 0.5;
   }
 
-  if (refSet && (isExactNormalizedMatch(refSet, fields.set) || isExactNormalizedMatch(refSet, fields.series) || isTokenMatch(refSet, fields.consoleName))) score += 60;
-  if (refYear && isExactNormalizedMatch(refYear, fields.year)) score += 40;
-  if (refBrand && isExactNormalizedMatch(refBrand, fields.brand)) score += 25;
-  if (refSport && isExactNormalizedMatch(refSport, fields.sport)) score += 15;
+  if (refCardNumber && fields.cardNumber) {
+    const normalizedRefNumber = normalizeComparableCardNumber(refCardNumber);
+    const normalizedCandidateNumber = normalizeComparableCardNumber(fields.cardNumber);
+
+    if (normalizedRefNumber && normalizedCandidateNumber) {
+      if (normalizedRefNumber === normalizedCandidateNumber) {
+        score += 100;
+      } else if (areCardNumbersComparable(refCardNumber, fields.cardNumber)) {
+        score += 15;
+      } else {
+        score -= 10;
+      }
+    }
+  }
 
   const productName = normalizeString(fields.productName);
   const consoleName = normalizeString(fields.consoleName);
 
   if (productName && refPlayer && productName.includes(normalizeString(refPlayer))) score += 20;
-  if (productName && refCardNumber && productName.includes(refCardNumber)) score += 20;
+  if (productName && refCardNumber && normalizeComparableCardNumber(refCardNumber) && productName.includes(normalizeComparableCardNumber(refCardNumber))) score += 20;
+  if (productName && refSubset && normalizeString(refSubset) !== "" && productName.toLowerCase().includes(normalizeString(refSubset))) score += 15;
   if (productName && refParallel) {
     const normalizedParallel = normalizeString(refParallel);
     const bracketValue = normalizeString(inferParallelFromProductName(productName));
@@ -309,6 +369,7 @@ function resolveFirstSportsCardsProSearchEntry(searchResponse) {
 }
 
 module.exports = {
+  evaluateSearchEntry,
   resolveBestSportsCardsProSearchEntry,
   resolveFirstSportsCardsProSearchEntry,
 };
