@@ -11,6 +11,10 @@ async function updateSale(id, data) {
     throw new Error("Vente introuvable.");
   }
 
+  const totalItems = Array.isArray(data.items)
+    ? data.items.reduce((sum, item) => sum + Number(item.quantity || 0), 0)
+    : existingSale.totalItems;
+
   const sale = await prisma.sale.update({
     where: {
       id,
@@ -26,6 +30,7 @@ async function updateSale(id, data) {
       platformFees: Number(data.platformFees || 0),
       taxes: Number(data.taxes || 0),
       discount: Number(data.discount || 0),
+      totalItems,
       totalAmount: Number(data.totalAmount || existingSale.totalAmount),
       profit: Number(data.profit || existingSale.profit),
       notes: data.notes ?? existingSale.notes,

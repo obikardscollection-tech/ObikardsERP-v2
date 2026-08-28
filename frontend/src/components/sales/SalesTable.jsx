@@ -14,6 +14,15 @@ function formatAmount(value) {
 }
 
 function SalesTable({ sales = [], onView, onEdit, onDelete }) {
+  const getQuantityDisplay = (sale) => {
+    if (Number.isFinite(Number(sale.totalItems)) && Number(sale.totalItems) > 0) {
+      return Number(sale.totalItems);
+    }
+
+    const derivedQuantity = (sale.saleItems || []).reduce((total, item) => total + Number(item.quantity || 0), 0);
+    return derivedQuantity;
+  };
+
   return (
     <div className="overflow-hidden rounded-xl bg-white shadow">
       <div className="overflow-x-auto">
@@ -45,7 +54,7 @@ function SalesTable({ sales = [], onView, onEdit, onDelete }) {
                 <td className="px-6 py-4">{formatDate(sale.soldAt)}</td>
                 <td className="px-6 py-4">{sale.customer?.name || sale.customerName || sale.customer?.company || "-"}</td>
                 <td className="px-6 py-4">{getSalePlatformLabel(sale.platform) || "-"}</td>
-                <td className="px-6 py-4">{sale.totalItems ?? 0}</td>
+                <td className="px-6 py-4">{getQuantityDisplay(sale)}</td>
                 <td className="px-6 py-4">{formatAmount(sale.totalAmount)}</td>
                 <td className="px-6 py-4">{getStatusLabel(sale.status) || "-"}</td>
                 <td className="px-6 py-4">

@@ -7,6 +7,7 @@ async function getSale(id) {
     },
     include: {
       saleItems: true,
+      customer: true,
     },
   });
 

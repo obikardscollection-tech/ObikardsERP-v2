@@ -48,7 +48,12 @@ function SaleForm({ sale, inventoryItems = [], customers = [], onClose, onSaved,
         discount: sale.discount ?? 0,
         notes: sale.notes || "",
         soldAt: formatDateInput(sale.soldAt),
-        items: sale.saleItems?.map((item) => ({ inventoryId: item.inventoryId, quantity: item.quantity, notes: item.notes || "" })) || [],
+        items: sale.saleItems?.map((item) => ({
+          inventoryId: item.inventoryId,
+          quantity: item.quantity,
+          unitPrice: item.unitPrice ?? "",
+          notes: item.notes || "",
+        })) || [],
       });
     } else {
       setForm(defaultForm);
@@ -93,6 +98,13 @@ function SaleForm({ sale, inventoryItems = [], customers = [], onClose, onSaved,
       if (Number(item.quantity || 0) <= 0) {
         newErrors[`items.${index}.quantity`] = "La quantité doit être supérieure à 0.";
       }
+
+      const unitPrice = Number(item.unitPrice);
+      if (!item.unitPrice && item.unitPrice !== 0) {
+        newErrors[`items.${index}.unitPrice`] = "Le prix de vente est obligatoire pour chaque article.";
+      } else if (!Number.isFinite(unitPrice) || unitPrice <= 0) {
+        newErrors[`items.${index}.unitPrice`] = "Le prix de vente doit être un nombre supérieur à 0.";
+      }
     });
 
     setErrors(newErrors);
@@ -115,6 +127,7 @@ function SaleForm({ sale, inventoryItems = [], customers = [], onClose, onSaved,
       items: form.items.map((item) => ({
         inventoryId: item.inventoryId,
         quantity: Number(item.quantity || 0),
+        unitPrice: Number(item.unitPrice),
         notes: item.notes || null,
       })),
     };
@@ -147,7 +160,7 @@ function SaleForm({ sale, inventoryItems = [], customers = [], onClose, onSaved,
   }
 
   function addLine() {
-    setForm((previous) => ({ ...previous, items: [...previous.items, { inventoryId: "", quantity: 1, notes: "" }] }));
+    setForm((previous) => ({ ...previous, items: [...previous.items, { inventoryId: "", quantity: 1, unitPrice: "", notes: "" }] }));
   }
 
   return (
@@ -269,6 +282,12 @@ function SaleForm({ sale, inventoryItems = [], customers = [], onClose, onSaved,
                   <label className="mb-2 block text-sm text-slate-700">Quantité</label>
                   <input type="number" min="1" value={item.quantity} onChange={(event) => handleItemChange(index, "quantity", event.target.value)} className="w-full rounded-lg border border-slate-200 p-2.5" />
                   {errors[`items.${index}.quantity`] && <p className="mt-1 text-sm text-red-600">{errors[`items.${index}.quantity`]}</p>}
+                </div>
+
+                <div>
+                  <label className="mb-2 block text-sm text-slate-700">Prix de vente unitaire (€)</label>
+                  <input type="number" min="0" step="0.01" value={item.unitPrice ?? ""} onChange={(event) => handleItemChange(index, "unitPrice", event.target.value)} className="w-full rounded-lg border border-slate-200 p-2.5" />
+                  {errors[`items.${index}.unitPrice`] && <p className="mt-1 text-sm text-red-600">{errors[`items.${index}.unitPrice`]}</p>}
                 </div>
 
                 <div>

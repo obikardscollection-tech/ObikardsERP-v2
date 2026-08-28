@@ -4,6 +4,7 @@ async function getSales() {
   return prisma.sale.findMany({
     include: {
       saleItems: true,
+      customer: true,
     },
 
     orderBy: {

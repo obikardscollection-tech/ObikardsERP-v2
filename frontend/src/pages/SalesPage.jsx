@@ -123,7 +123,18 @@ function SalesPage() {
 
   const totalRevenue = useMemo(() => filteredSales.reduce((sum, sale) => sum + Number(sale.totalAmount || 0), 0), [filteredSales]);
   const totalProfit = useMemo(() => filteredSales.reduce((sum, sale) => sum + Number(sale.profit || 0), 0), [filteredSales]);
-  const totalItems = useMemo(() => filteredSales.reduce((sum, sale) => sum + Number(sale.totalItems || 0), 0), [filteredSales]);
+  const totalItems = useMemo(
+    () =>
+      filteredSales.reduce((sum, sale) => {
+        const itemsTotal = Number(sale.totalItems);
+        if (Number.isFinite(itemsTotal) && itemsTotal > 0) {
+          return sum + itemsTotal;
+        }
+
+        return sum + (sale.saleItems || []).reduce((itemSum, item) => itemSum + Number(item.quantity || 0), 0);
+      }, 0),
+    [filteredSales]
+  );
   const averageBasket = filteredSales.length ? totalRevenue / filteredSales.length : 0;
 
   return (
