@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 import {
   getExpenseCategoryLabel,
@@ -39,6 +39,10 @@ function ExpenseForm({ expense, suppliers = [], onClose, onSaved, addExpense, ed
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
 
+  const totalTtc = useMemo(() => {
+    return Number((Number(form.amountHT || 0) + Number(form.tax || 0)).toFixed(2));
+  }, [form.amountHT, form.tax]);
+
   useEffect(() => {
     if (expense) {
       setForm({
@@ -48,7 +52,7 @@ function ExpenseForm({ expense, suppliers = [], onClose, onSaved, addExpense, ed
         description: expense.description || "",
         amountHT: Number(expense.amountHT || 0),
         tax: Number(expense.tax || 0),
-        amountTTC: Number(expense.amountTTC || 0),
+        amountTTC: Number(expense.amountTTC || Number(expense.amountHT || 0) + Number(expense.tax || 0)),
         paymentMethod: expense.paymentMethod || "BANK_TRANSFER",
         paymentStatus: expense.paymentStatus || "PAID",
         expenseDate: formatDateInput(expense.expenseDate),
@@ -63,6 +67,13 @@ function ExpenseForm({ expense, suppliers = [], onClose, onSaved, addExpense, ed
     setErrors({});
   }, [expense]);
 
+  useEffect(() => {
+    setForm((previous) => ({
+      ...previous,
+      amountTTC: totalTtc,
+    }));
+  }, [totalTtc]);
+
   function handleChange(event) {
     const { name, value } = event.target;
     setForm((previous) => ({ ...previous, [name]: value }));
@@ -71,7 +82,12 @@ function ExpenseForm({ expense, suppliers = [], onClose, onSaved, addExpense, ed
 
   function handleNumberChange(event) {
     const { name, value } = event.target;
-    setForm((previous) => ({ ...previous, [name]: Number(value || 0) }));
+    const parsedValue = value === "" ? 0 : Number(value);
+
+    setForm((previous) => ({
+      ...previous,
+      [name]: Number.isFinite(parsedValue) ? parsedValue : 0,
+    }));
     setErrors((previous) => ({ ...previous, [name]: "" }));
   }
 
@@ -82,8 +98,8 @@ function ExpenseForm({ expense, suppliers = [], onClose, onSaved, addExpense, ed
       newErrors.category = "La catégorie est obligatoire.";
     }
 
-    if (!form.title.trim()) {
-      newErrors.title = "Le titre est obligatoire.";
+    if (!String(form.title || "").trim()) {
+      newErrors.title = "Le libellé est obligatoire.";
     }
 
     if (!form.paymentMethod) {
@@ -94,8 +110,22 @@ function ExpenseForm({ expense, suppliers = [], onClose, onSaved, addExpense, ed
       newErrors.expenseDate = "La date est obligatoire.";
     }
 
-    if (Number(form.amountTTC || 0) <= 0) {
+    if (!Number.isFinite(Number(form.amountHT)) || Number(form.amountHT) < 0) {
+      newErrors.amountHT = "Le montant HT est invalide.";
+    }
+
+    if (!Number.isFinite(Number(form.tax)) || Number(form.tax) < 0) {
+      newErrors.tax = "La TVA est invalide.";
+    }
+
+    const amountTTC = Number(form.amountTTC || 0);
+    if (amountTTC <= 0) {
       newErrors.amountTTC = "Le montant TTC doit être supérieur à 0.";
+    }
+
+    const computedTTC = Number((Number(form.amountHT || 0) + Number(form.tax || 0)).toFixed(2));
+    if (Math.abs(amountTTC - computedTTC) > 0.01) {
+      newErrors.amountTTC = "Le montant TTC doit correspondre à HT + TVA.";
     }
 
     setErrors(newErrors);
@@ -103,14 +133,18 @@ function ExpenseForm({ expense, suppliers = [], onClose, onSaved, addExpense, ed
   }
 
   function buildPayload() {
+    const normalizedAmountHT = Number(form.amountHT || 0);
+    const normalizedTax = Number(form.tax || 0);
+    const computedTTC = Number((normalizedAmountHT + normalizedTax).toFixed(2));
+
     return {
       category: form.category,
       supplierId: form.supplierId || undefined,
-      title: form.title,
-      description: form.description || null,
-      amountHT: Number(form.amountHT || 0),
-      tax: Number(form.tax || 0),
-      amountTTC: Number(form.amountTTC || 0),
+      title: String(form.title || "").trim(),
+      description: String(form.description || "").trim() || null,
+      amountHT: Number(normalizedAmountHT.toFixed(2)),
+      tax: Number(normalizedTax.toFixed(2)),
+      amountTTC: Number(computedTTC.toFixed(2)),
       paymentMethod: form.paymentMethod,
       paymentStatus: form.paymentStatus,
       expenseDate: form.expenseDate || new Date().toISOString(),
@@ -163,7 +197,7 @@ function ExpenseForm({ expense, suppliers = [], onClose, onSaved, addExpense, ed
       </div>
 
       <div>
-        <label className="mb-2 block text-sm font-medium text-slate-700">Titre *</label>
+        <label className="mb-2 block text-sm font-medium text-slate-700">Libellé *</label>
         <input type="text" name="title" value={form.title} onChange={handleChange} placeholder="Ex: Fournitures de bureau" className={`w-full rounded-lg border p-2.5 outline-none focus:border-blue-500 ${errors.title ? "border-red-500" : "border-slate-200"}`} />
         {errors.title && <p className="mt-1 text-sm text-red-600">{errors.title}</p>}
       </div>
@@ -176,19 +210,25 @@ function ExpenseForm({ expense, suppliers = [], onClose, onSaved, addExpense, ed
       <div className="grid gap-4 md:grid-cols-3">
         <div>
           <label className="mb-2 block text-sm font-medium text-slate-700">Montant HT</label>
-          <input type="number" name="amountHT" value={form.amountHT} onChange={handleNumberChange} placeholder="0.00" step="0.01" className="w-full rounded-lg border border-slate-200 p-2.5 outline-none focus:border-blue-500" />
+          <input type="number" name="amountHT" value={form.amountHT} onChange={handleNumberChange} placeholder="0.00" step="0.01" min="0" className={`w-full rounded-lg border p-2.5 outline-none focus:border-blue-500 ${errors.amountHT ? "border-red-500" : "border-slate-200"}`} />
+          {errors.amountHT && <p className="mt-1 text-sm text-red-600">{errors.amountHT}</p>}
         </div>
 
         <div>
           <label className="mb-2 block text-sm font-medium text-slate-700">TVA</label>
-          <input type="number" name="tax" value={form.tax} onChange={handleNumberChange} placeholder="0.00" step="0.01" className="w-full rounded-lg border border-slate-200 p-2.5 outline-none focus:border-blue-500" />
+          <input type="number" name="tax" value={form.tax} onChange={handleNumberChange} placeholder="0.00" step="0.01" min="0" className={`w-full rounded-lg border p-2.5 outline-none focus:border-blue-500 ${errors.tax ? "border-red-500" : "border-slate-200"}`} />
+          {errors.tax && <p className="mt-1 text-sm text-red-600">{errors.tax}</p>}
         </div>
 
         <div>
           <label className="mb-2 block text-sm font-medium text-slate-700">Montant TTC *</label>
-          <input type="number" name="amountTTC" value={form.amountTTC} onChange={handleNumberChange} placeholder="0.00" step="0.01" className={`w-full rounded-lg border p-2.5 outline-none focus:border-blue-500 ${errors.amountTTC ? "border-red-500" : "border-slate-200"}`} />
+          <input type="number" name="amountTTC" value={form.amountTTC} readOnly className={`w-full rounded-lg border p-2.5 bg-slate-50 outline-none ${errors.amountTTC ? "border-red-500" : "border-slate-200"}`} />
           {errors.amountTTC && <p className="mt-1 text-sm text-red-600">{errors.amountTTC}</p>}
         </div>
+      </div>
+
+      <div className="rounded-lg border border-blue-100 bg-blue-50 px-4 py-3 text-sm text-blue-800">
+        Total TTC calculé : <strong>{Number(totalTtc).toFixed(2)} EUR</strong>
       </div>
 
       <div>
