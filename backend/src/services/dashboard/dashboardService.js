@@ -8,9 +8,7 @@ const {
   splitByRanges,
 } = require("./dashboardFilters");
 const {
-  growthRate,
   ratio,
-  sumBy,
 } = require("./dashboardUtils");
 const {
   computeInventoryAggregates,
@@ -19,6 +17,7 @@ const {
   computeExpensesAggregates,
   computeOverview,
   computeComparisons,
+  computeOperations,
 } = require("./dashboardCalculators");
 const {
   createTimelineAccumulator,
@@ -36,7 +35,23 @@ async function getDashboardData(filters = {}) {
   const granularity = resolveGranularity(range, filters.granularity);
   const previousRange = getPreviousRange(range);
 
-  const { inventory, sales, purchases, expenses, customersCount } = await getDashboardSnapshot();
+  const {
+    inventoryGroups,
+    lowStockCount,
+    invalidQuantityCount,
+    sales,
+    purchases,
+    expenses,
+    customersCount,
+    cancelledSalesCount,
+    receptionsAggregate,
+    recentReceptions,
+    awaitingPurchasesCount,
+    stockMovementsAggregate,
+    stockEntriesAggregate,
+    stockExitsAggregate,
+    recentStockMovements,
+  } = await getDashboardSnapshot(range, previousRange);
 
   const {
     current: inRangeSales,
@@ -55,7 +70,11 @@ async function getDashboardData(filters = {}) {
 
   const financeTimelineAccumulator = createTimelineAccumulator(granularity);
 
-  const inventoryMetrics = computeInventoryAggregates(inventory);
+  const inventoryMetrics = computeInventoryAggregates(
+    inventoryGroups,
+    lowStockCount,
+    invalidQuantityCount
+  );
 
   const salesMetrics = computeSalesAggregates(inRangeSales, {
     onItem: (sale) => {
@@ -75,9 +94,9 @@ async function getDashboardData(filters = {}) {
     },
   });
 
-  const previousSalesAmount = sumBy(previousSales, (sale) => sale.totalAmount);
-  const previousPurchasesAmount = sumBy(previousPurchases, (purchase) => purchase.totalAmount);
-  const previousExpensesAmount = sumBy(previousExpenses, (expense) => expense.amountTTC);
+  const previousSalesMetrics = computeSalesAggregates(previousSales);
+  const previousPurchasesMetrics = computePurchasesAggregates(previousPurchases);
+  const previousExpensesMetrics = computeExpensesAggregates(previousExpenses);
 
   const { breakdowns, activeSportsCount, activeSalesPlatformsCount, activePurchasePlatformsCount } = buildBreakdowns({
     salesByPlatformMap: salesMetrics.salesByPlatformMap,
@@ -100,13 +119,26 @@ async function getDashboardData(filters = {}) {
     activePurchasePlatformsCount,
   });
 
-  const comparisons = computeComparisons({
-    totalSalesAmount: salesMetrics.totalSalesAmount,
-    totalPurchasesAmount: purchasesMetrics.totalPurchasesAmount,
-    totalExpensesAmount: expensesMetrics.totalExpensesAmount,
-    previousSalesAmount,
-    previousPurchasesAmount,
-    previousExpensesAmount,
+  const previousOverview = computeOverview({
+    inventory: inventoryMetrics,
+    sales: previousSalesMetrics,
+    purchases: previousPurchasesMetrics,
+    expenses: previousExpensesMetrics,
+    customersCount,
+    activeSportsCount,
+    activeSalesPlatformsCount: previousSalesMetrics.salesByPlatformMap.size,
+    activePurchasePlatformsCount: previousPurchasesMetrics.purchasesByPlatformMap.size,
+  });
+
+  const comparisons = computeComparisons(overview, previousOverview);
+  const operations = computeOperations({
+    receptionsAggregate,
+    recentReceptions,
+    awaitingPurchasesCount,
+    stockMovementsAggregate,
+    stockEntriesAggregate,
+    stockExitsAggregate,
+    recentStockMovements,
   });
 
   const alerts = buildAlerts({
@@ -114,12 +146,12 @@ async function getDashboardData(filters = {}) {
     invalidQuantityCount: inventoryMetrics.invalidQuantityCount,
     salesCount: salesMetrics.totalSalesCount,
     purchasesCount: purchasesMetrics.totalPurchasesCount,
-    netCashFlow: overview.netCashFlow,
+    netCashFlow: overview.operatingBalance,
     expenseGrowthRate: comparisons.expensesGrowthRate,
     expensesCount: expensesMetrics.totalExpensesCount,
-    cancelledSalesRatio: ratio(salesMetrics.cancelledSalesCount, salesMetrics.totalSalesCount),
+    cancelledSalesRatio: ratio(cancelledSalesCount, salesMetrics.totalSalesCount + cancelledSalesCount),
     salesGrowthRate: comparisons.salesGrowthRate,
-    previousSalesAmount,
+    previousSalesAmount: previousSalesMetrics.totalSalesAmount,
   });
 
   const recentActivity = buildRecentActivity({
@@ -141,6 +173,7 @@ async function getDashboardData(filters = {}) {
     },
     overview,
     comparisons,
+    operations,
     charts: {
       financeTimeline: finalizeTimeline(financeTimelineAccumulator),
       transactionsByType: {

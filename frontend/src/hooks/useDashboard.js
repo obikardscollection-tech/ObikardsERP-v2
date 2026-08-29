@@ -25,18 +25,42 @@ const INITIAL_DATA = {
     totalExpensesAmount: 0,
     totalCustomers: 0,
     grossProfit: 0,
+    operatingBalance: 0,
     netCashFlow: 0,
     averageOrderValue: 0,
     marginRate: 0,
     sellThroughRate: 0,
+    lowQuantityCount: 0,
+    invalidQuantityCount: 0,
     activeSportsCount: 0,
     activeSalesPlatformsCount: 0,
     activePurchasePlatformsCount: 0,
   },
   comparisons: {
     salesGrowthRate: 0,
+    grossProfitGrowthRate: 0,
+    marginRateGrowthRate: 0,
+    averageOrderValueGrowthRate: 0,
+    salesCountGrowthRate: 0,
     purchasesGrowthRate: 0,
     expensesGrowthRate: 0,
+    operatingBalanceGrowthRate: 0,
+    sellThroughRateGrowthRate: 0,
+  },
+  operations: {
+    receptions: {
+      count: 0,
+      receivedQuantity: 0,
+      awaitingPurchasesCount: 0,
+      recent: [],
+    },
+    stockMovements: {
+      count: 0,
+      entriesQuantity: 0,
+      exitsQuantity: 0,
+      netQuantity: 0,
+      recent: [],
+    },
   },
   charts: {
     financeTimeline: [],
@@ -107,6 +131,12 @@ export function useDashboard(filters = {}) {
   }, [filters, loadDashboard]);
 
   useEffect(() => {
+    if (filters.period === "custom" && (!filters.from || !filters.to)) {
+      setLoading(false);
+      setError(null);
+      return;
+    }
+
     loadDashboard();
   }, [loadDashboard, filters]);
 

@@ -25,6 +25,28 @@ function normalizeDateInput(value) {
     return null;
   }
 
+  if (typeof value === "string") {
+    const dateOnlyMatch = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+
+    if (dateOnlyMatch) {
+      const [, yearText, monthText, dayText] = dateOnlyMatch;
+      const year = Number(yearText);
+      const month = Number(monthText);
+      const day = Number(dayText);
+      const parsedDate = new Date(year, month - 1, day);
+
+      if (
+        parsedDate.getFullYear() !== year
+        || parsedDate.getMonth() !== month - 1
+        || parsedDate.getDate() !== day
+      ) {
+        return null;
+      }
+
+      return parsedDate;
+    }
+  }
+
   const parsed = new Date(value);
   if (Number.isNaN(parsed.getTime())) {
     return null;
@@ -44,24 +66,40 @@ function parseDateRange(filters = {}) {
   const now = new Date();
   const defaultEnd = endOfDay(now);
 
+  if (!SUPPORTED_PERIODS.includes(period)) {
+    const error = new Error(`Periode non supportee: ${period}`);
+    error.statusCode = 400;
+    throw error;
+  }
+
   if (period === "custom") {
     const fromDate = normalizeDateInput(filters.from);
     const toDate = normalizeDateInput(filters.to);
 
-    if (fromDate && toDate) {
-      return {
-        period,
-        from: startOfDay(fromDate),
-        to: endOfDay(toDate),
-      };
+    if (!fromDate || !toDate) {
+      const error = new Error("Les dates from et to sont obligatoires pour une periode custom.");
+      error.statusCode = 400;
+      throw error;
     }
+
+    if (fromDate > toDate) {
+      const error = new Error("La date from doit etre inferieure ou egale a to.");
+      error.statusCode = 400;
+      throw error;
+    }
+
+    return {
+      period,
+      from: startOfDay(fromDate),
+      to: endOfDay(toDate),
+    };
   }
 
-  const days = PERIOD_CONFIG[period] || PERIOD_CONFIG["30d"];
+  const days = PERIOD_CONFIG[period];
   const from = startOfDay(addDays(now, -(days - 1)));
 
   return {
-    period: PERIOD_CONFIG[period] ? period : "30d",
+    period,
     from,
     to: defaultEnd,
   };

@@ -1,48 +1,34 @@
 const { toNumber, ratio, growthRate, pushAggregate } = require("./dashboardUtils");
 
-function computeInventoryAggregates(inventory) {
+function computeInventoryAggregates(inventoryGroups, lowStockCount, invalidQuantityCount) {
   const inventoryBySportMap = new Map();
-  let totalQuantity = 0;
+  let totalItems = 0;
   let estimatedStockValue = 0;
   let inStockQuantity = 0;
-  let lowQuantityCount = 0;
-  let invalidQuantityCount = 0;
 
-  for (const item of inventory) {
-    const quantity = toNumber(item.quantity);
-    totalQuantity += quantity;
-
-    if (quantity < 0) {
-      invalidQuantityCount += 1;
-    }
-
-    if (item.status !== "IN_STOCK") {
-      continue;
-    }
-
-    if (quantity <= 1) {
-      lowQuantityCount += 1;
-    }
-
-    const stockValue = toNumber(item.purchasePrice) * quantity;
+  for (const group of inventoryGroups) {
+    const quantity = toNumber(group._sum?.quantity);
+    const referenceCount = toNumber(group._count?.id);
+    const stockValue = toNumber(group.purchasePrice) * quantity;
+    totalItems += referenceCount;
     estimatedStockValue += stockValue;
     inStockQuantity += quantity;
 
     pushAggregate(
       inventoryBySportMap,
-      item.sport || "UNSPECIFIED",
+      group.sport || "UNSPECIFIED",
       stockValue,
-      1,
+      referenceCount,
       quantity
     );
   }
 
   return {
-    totalItems: inventory.length,
-    totalQuantity,
+    totalItems,
+    totalQuantity: inStockQuantity,
     estimatedStockValue,
     inStockQuantity,
-    lowQuantityCount,
+    lowQuantityCount: lowStockCount,
     invalidQuantityCount,
     inventoryBySportMap,
   };
@@ -157,7 +143,7 @@ function computeOverview({
   activeSalesPlatformsCount,
   activePurchasePlatformsCount,
 }) {
-  const netCashFlow = sales.totalSalesAmount - purchases.totalPurchasesAmount - expenses.totalExpensesAmount;
+  const operatingBalance = sales.totalSalesAmount - purchases.totalPurchasesAmount - expenses.totalExpensesAmount;
   const averageOrderValue = sales.totalSalesCount > 0
     ? sales.totalSalesAmount / sales.totalSalesCount
     : 0;
@@ -182,28 +168,56 @@ function computeOverview({
     totalExpensesAmount: expenses.totalExpensesAmount,
     totalCustomers: customersCount,
     grossProfit: sales.grossProfit,
-    netCashFlow,
+    operatingBalance,
+    netCashFlow: operatingBalance,
     averageOrderValue,
     marginRate,
     sellThroughRate,
+    lowQuantityCount: inventory.lowQuantityCount,
+    invalidQuantityCount: inventory.invalidQuantityCount,
     activeSportsCount,
     activeSalesPlatformsCount,
     activePurchasePlatformsCount,
   };
 }
 
-function computeComparisons({
-  totalSalesAmount,
-  totalPurchasesAmount,
-  totalExpensesAmount,
-  previousSalesAmount,
-  previousPurchasesAmount,
-  previousExpensesAmount,
+function computeOperations({
+  receptionsAggregate,
+  recentReceptions,
+  awaitingPurchasesCount,
+  stockMovementsAggregate,
+  stockEntriesAggregate,
+  stockExitsAggregate,
+  recentStockMovements,
 }) {
   return {
-    salesGrowthRate: growthRate(totalSalesAmount, previousSalesAmount),
-    purchasesGrowthRate: growthRate(totalPurchasesAmount, previousPurchasesAmount),
-    expensesGrowthRate: growthRate(totalExpensesAmount, previousExpensesAmount),
+    receptions: {
+      count: toNumber(receptionsAggregate?._count?.id),
+      receivedQuantity: toNumber(receptionsAggregate?._sum?.totalQuantity),
+      awaitingPurchasesCount: toNumber(awaitingPurchasesCount),
+      recent: recentReceptions,
+    },
+    stockMovements: {
+      count: toNumber(stockMovementsAggregate?._count?.id),
+      entriesQuantity: toNumber(stockEntriesAggregate?._sum?.quantity),
+      exitsQuantity: Math.abs(toNumber(stockExitsAggregate?._sum?.quantity)),
+      netQuantity: toNumber(stockMovementsAggregate?._sum?.quantity),
+      recent: recentStockMovements,
+    },
+  };
+}
+
+function computeComparisons(current, previous) {
+  return {
+    salesGrowthRate: growthRate(current.totalSalesAmount, previous.totalSalesAmount),
+    grossProfitGrowthRate: growthRate(current.grossProfit, previous.grossProfit),
+    marginRateGrowthRate: growthRate(current.marginRate, previous.marginRate),
+    averageOrderValueGrowthRate: growthRate(current.averageOrderValue, previous.averageOrderValue),
+    salesCountGrowthRate: growthRate(current.totalSalesCount, previous.totalSalesCount),
+    purchasesGrowthRate: growthRate(current.totalPurchasesAmount, previous.totalPurchasesAmount),
+    expensesGrowthRate: growthRate(current.totalExpensesAmount, previous.totalExpensesAmount),
+    operatingBalanceGrowthRate: growthRate(current.operatingBalance, previous.operatingBalance),
+    sellThroughRateGrowthRate: null,
   };
 }
 
@@ -214,4 +228,5 @@ module.exports = {
   computeExpensesAggregates,
   computeOverview,
   computeComparisons,
+  computeOperations,
 };

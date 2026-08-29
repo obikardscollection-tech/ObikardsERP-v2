@@ -14,7 +14,7 @@ const METRIC_COLORS = {
 };
 
 const METRIC_LABELS = {
-  grossFlow: "Flux net",
+  grossFlow: "Solde d'operations",
   salesAmount: "Ventes",
   purchasesAmount: "Achats",
   expensesAmount: "Depenses",
@@ -30,45 +30,67 @@ function DashboardChartsSkeleton() {
   );
 }
 
-function TrendPath({ values, color }) {
-  if (values.length < 2) {
+function TrendPath({ values, labels, color }) {
+  if (values.length === 0) {
     return (
-      <svg viewBox="0 0 100 44" className="h-36 w-full">
-        <line x1="0" y1="40" x2="100" y2="40" stroke="#cbd5e1" strokeWidth="1.5" />
-      </svg>
+      <div className="flex h-44 items-center justify-center border-y border-slate-100 text-sm text-slate-500">
+        Aucune operation sur la periode
+      </div>
     );
   }
 
   const maxValue = Math.max(...values, 1);
   const minValue = Math.min(...values, 0);
   const range = maxValue - minValue || 1;
+  const yForValue = (value) => 190 - ((value - minValue) / range) * 170;
 
   const points = values.map((value, index) => {
-    const x = (index / (values.length - 1)) * 100;
-    const y = 38 - ((value - minValue) / range) * 30;
+    const x = values.length === 1 ? 320 : 10 + (index / (values.length - 1)) * 620;
+    const y = yForValue(value);
     return `${x},${y}`;
   });
 
+  const middleIndex = Math.floor((labels.length - 1) / 2);
+
   return (
-    <svg viewBox="0 0 100 44" className="h-36 w-full" preserveAspectRatio="none">
-      <defs>
-        <linearGradient id="trend-fill" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor={color} stopOpacity="0.25" />
-          <stop offset="100%" stopColor={color} stopOpacity="0" />
-        </linearGradient>
-      </defs>
-      <polyline
-        fill="none"
-        stroke={color}
-        strokeWidth="2"
-        strokeLinecap="round"
-        points={points.join(" ")}
-      />
-      <polygon
-        fill="url(#trend-fill)"
-        points={`0,40 ${points.join(" ")} 100,40`}
-      />
-    </svg>
+    <div>
+      <div className="flex gap-3">
+        <div className="flex h-44 w-20 shrink-0 flex-col justify-between py-1 text-right text-[11px] text-slate-500">
+          <span>{formatCurrency(maxValue)}</span>
+          <span>{formatCurrency((maxValue + minValue) / 2)}</span>
+          <span>{formatCurrency(minValue)}</span>
+        </div>
+        <svg viewBox="0 0 640 200" className="h-44 min-w-0 flex-1" preserveAspectRatio="none" role="img" aria-label="Evolution de la metrique selectionnee">
+          <defs>
+            <linearGradient id="trend-fill" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor={color} stopOpacity="0.2" />
+              <stop offset="100%" stopColor={color} stopOpacity="0" />
+            </linearGradient>
+          </defs>
+          {[20, 105, 190].map((y) => (
+            <line key={y} x1="10" y1={y} x2="630" y2={y} stroke="#e2e8f0" strokeWidth="1" />
+          ))}
+          {minValue < 0 && maxValue > 0 ? (
+            <line x1="10" y1={yForValue(0)} x2="630" y2={yForValue(0)} stroke="#94a3b8" strokeWidth="1.5" strokeDasharray="5 5" />
+          ) : null}
+          <polygon fill="url(#trend-fill)" points={`10,190 ${points.join(" ")} 630,190`} />
+          <polyline fill="none" stroke={color} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" points={points.join(" ")} />
+          {values.map((value, index) => {
+            const [x, y] = points[index].split(",");
+            return (
+              <circle key={`${labels[index]}-${index}`} cx={x} cy={y} r="4" fill="white" stroke={color} strokeWidth="3">
+                <title>{`${formatDateLabel(labels[index])}: ${formatCurrency(value)}`}</title>
+              </circle>
+            );
+          })}
+        </svg>
+      </div>
+      <div className="ml-[92px] mt-2 flex justify-between text-[11px] text-slate-500">
+        <span>{formatDateLabel(labels[0])}</span>
+        {labels.length > 2 ? <span>{formatDateLabel(labels[middleIndex])}</span> : null}
+        {labels.length > 1 ? <span>{formatDateLabel(labels[labels.length - 1])}</span> : null}
+      </div>
+    </div>
   );
 }
 
@@ -109,6 +131,10 @@ function DashboardChartsSectionBase({
   const chartValues = useMemo(
     () => timeline.map((entry) => Number(entry[selectedMetric]) || 0),
     [timeline, selectedMetric]
+  );
+  const chartLabels = useMemo(
+    () => timeline.map((entry) => entry.period),
+    [timeline]
   );
 
   const metricTotal = useMemo(
@@ -158,7 +184,11 @@ function DashboardChartsSectionBase({
           </div>
         </header>
 
-        <TrendPath values={chartValues} color={METRIC_COLORS[selectedMetric] || "#0f766e"} />
+        <TrendPath
+          values={chartValues}
+          labels={chartLabels}
+          color={METRIC_COLORS[selectedMetric] || "#0f766e"}
+        />
       </section>
 
       <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">

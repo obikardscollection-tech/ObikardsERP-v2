@@ -4,7 +4,7 @@ function buildSaleWhere(range = null) {
   const where = {
     isCancelled: false,
     status: {
-      not: "CANCELLED",
+      notIn: ["CANCELLED", "REFUNDED", "PARTIALLY_REFUNDED"],
     },
   };
 
@@ -17,6 +17,48 @@ function buildSaleWhere(range = null) {
 
     if (range?.to) {
       where.soldAt.lte = range.to;
+    }
+  }
+
+  return where;
+}
+
+function buildPurchaseWhere(range = null) {
+  const where = {
+    status: {
+      not: "CANCELLED",
+    },
+  };
+
+  if (range?.from || range?.to) {
+    where.purchasedAt = {};
+
+    if (range?.from) {
+      where.purchasedAt.gte = range.from;
+    }
+
+    if (range?.to) {
+      where.purchasedAt.lte = range.to;
+    }
+  }
+
+  return where;
+}
+
+function buildExpenseWhere(range = null) {
+  const where = {
+    paymentStatus: "PAID",
+  };
+
+  if (range?.from || range?.to) {
+    where.expenseDate = {};
+
+    if (range?.from) {
+      where.expenseDate.gte = range.from;
+    }
+
+    if (range?.to) {
+      where.expenseDate.lte = range.to;
     }
   }
 
@@ -108,22 +150,8 @@ async function getSalesTimeline(range) {
 }
 
 async function getPurchasesTimeline(range) {
-  const where = {};
-
-  if (range?.from || range?.to) {
-    where.purchasedAt = {};
-
-    if (range?.from) {
-      where.purchasedAt.gte = range.from;
-    }
-
-    if (range?.to) {
-      where.purchasedAt.lte = range.to;
-    }
-  }
-
   return prisma.purchase.findMany({
-    where,
+    where: buildPurchaseWhere(range),
     select: {
       purchasedAt: true,
       totalAmount: true,
@@ -556,6 +584,9 @@ async function getInventoryWithRecentMarketSnapshots() {
 }
 
 module.exports = {
+  buildSaleWhere,
+  buildPurchaseWhere,
+  buildExpenseWhere,
   getSalesAggregate,
   getTopSaleByAmount,
   getTopSaleByProfit,

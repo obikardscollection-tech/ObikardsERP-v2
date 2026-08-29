@@ -51,15 +51,6 @@ export function DashboardSummary({ overview, generatedAt, loading = false }) {
         </div>
       ) : (
         <div>
-          <div className="mb-4 rounded-lg bg-slate-100 p-3">
-            <p className="text-sm text-slate-700">
-              Valeur de stock estimee (base prix d'achat des articles IN_STOCK):
-            </p>
-            <p className="mt-1 text-xl font-semibold text-slate-900">
-              {formatCurrency(overview.estimatedStockValue)}
-            </p>
-          </div>
-
           <div className="space-y-2">
             {rows.map((row) => (
               <div key={row.label} className="flex items-center justify-between text-sm">

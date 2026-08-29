@@ -6,8 +6,9 @@ import {
   HandCoins,
   Package,
   Percent,
+  Receipt,
   ShoppingBag,
-  Users,
+  ShoppingCart,
 } from "lucide-react";
 import {
   formatCompactNumber,
@@ -17,6 +18,14 @@ import {
 } from "./dashboardFormatters";
 
 function KpiTrend({ value }) {
+  if (value === null || value === undefined) {
+    return (
+      <span className="inline-flex items-center rounded-full bg-slate-100 px-2 py-1 text-xs font-semibold text-slate-600">
+        N/A
+      </span>
+    );
+  }
+
   const numericValue = Number(value) || 0;
   const isPositive = numericValue >= 0;
   const Icon = isPositive ? ArrowUpRight : ArrowDownRight;
@@ -49,10 +58,11 @@ function DashboardKpiSectionBase({ overview, comparisons, loading = false }) {
   const cards = useMemo(
     () => [
       {
-        id: "net-cash-flow",
-        label: "Flux net",
-        value: formatCurrency(overview.netCashFlow),
+        id: "operating-balance",
+        label: "Solde d'operations",
+        value: formatCurrency(overview.operatingBalance),
         hint: "Ventes - achats - depenses",
+        trend: comparisons.operatingBalanceGrowthRate,
         Icon: HandCoins,
         tone: "from-emerald-500/15 to-emerald-50",
       },
@@ -61,6 +71,7 @@ function DashboardKpiSectionBase({ overview, comparisons, loading = false }) {
         label: "Profit brut",
         value: formatCurrency(overview.grossProfit),
         hint: "Marge cumulative",
+        trend: comparisons.grossProfitGrowthRate,
         Icon: CircleDollarSign,
         tone: "from-cyan-500/15 to-cyan-50",
       },
@@ -69,6 +80,7 @@ function DashboardKpiSectionBase({ overview, comparisons, loading = false }) {
         label: "Taux de marge",
         value: formatPercent(overview.marginRate),
         hint: "Profit / ventes",
+        trend: comparisons.marginRateGrowthRate,
         Icon: Percent,
         tone: "from-amber-500/20 to-amber-50",
       },
@@ -77,6 +89,7 @@ function DashboardKpiSectionBase({ overview, comparisons, loading = false }) {
         label: "Panier moyen",
         value: formatCurrency(overview.averageOrderValue),
         hint: `${formatNumber(overview.totalSalesCount)} ventes`,
+        trend: comparisons.averageOrderValueGrowthRate,
         Icon: ShoppingBag,
         tone: "from-indigo-500/15 to-indigo-50",
       },
@@ -84,20 +97,40 @@ function DashboardKpiSectionBase({ overview, comparisons, loading = false }) {
         id: "sell-through",
         label: "Sell-through",
         value: formatPercent(overview.sellThroughRate),
-        hint: `${formatCompactNumber(overview.totalSoldItems)} articles vendus`,
+        hint: `${formatCompactNumber(overview.totalSoldItems)} vendus / stock actuel`,
+        trend: comparisons.sellThroughRateGrowthRate,
         Icon: Package,
         tone: "from-sky-500/15 to-sky-50",
       },
       {
-        id: "customers",
-        label: "Clients actifs",
-        value: formatNumber(overview.totalCustomers),
-        hint: "Base client ERP",
-        Icon: Users,
+        id: "sales",
+        label: "Chiffre d'affaires",
+        value: formatCurrency(overview.totalSalesAmount),
+        hint: `${formatNumber(overview.totalSalesCount)} ventes comptabilisees`,
+        trend: comparisons.salesGrowthRate,
+        Icon: ShoppingBag,
         tone: "from-teal-500/15 to-teal-50",
       },
+      {
+        id: "purchases",
+        label: "Achats",
+        value: formatCurrency(overview.totalPurchasesAmount),
+        hint: `${formatNumber(overview.totalPurchasesCount)} achats comptabilises`,
+        trend: comparisons.purchasesGrowthRate,
+        Icon: ShoppingCart,
+        tone: "from-blue-500/15 to-blue-50",
+      },
+      {
+        id: "expenses",
+        label: "Depenses payees",
+        value: formatCurrency(overview.totalExpensesAmount),
+        hint: `${formatNumber(overview.totalExpensesCount)} depenses comptabilisees`,
+        trend: comparisons.expensesGrowthRate,
+        Icon: Receipt,
+        tone: "from-rose-500/15 to-rose-50",
+      },
     ],
-    [overview]
+    [comparisons, overview]
   );
 
   if (loading) {
@@ -126,9 +159,7 @@ function DashboardKpiSectionBase({ overview, comparisons, loading = false }) {
 
             <div className="flex items-center justify-between gap-2 text-xs text-slate-600">
               <span>{card.hint}</span>
-              {card.id === "net-cash-flow" ? <KpiTrend value={comparisons.salesGrowthRate} /> : null}
-              {card.id === "gross-profit" ? <KpiTrend value={comparisons.purchasesGrowthRate * -1} /> : null}
-              {card.id === "margin-rate" ? <KpiTrend value={comparisons.expensesGrowthRate * -1} /> : null}
+              <KpiTrend value={card.trend} />
             </div>
           </article>
         );

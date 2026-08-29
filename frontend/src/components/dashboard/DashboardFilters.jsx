@@ -5,6 +5,14 @@ const PERIOD_OPTIONS = [
   { value: "30d", label: "30 jours" },
   { value: "90d", label: "90 jours" },
   { value: "365d", label: "12 mois" },
+  { value: "custom", label: "Personnalisee" },
+];
+
+const GRANULARITY_OPTIONS = [
+  { value: "", label: "Automatique" },
+  { value: "day", label: "Jour" },
+  { value: "week", label: "Semaine" },
+  { value: "month", label: "Mois" },
 ];
 
 const ACTIVITY_OPTIONS = [
@@ -15,7 +23,7 @@ const ACTIVITY_OPTIONS = [
 ];
 
 const METRIC_OPTIONS = [
-  { value: "grossFlow", label: "Flux net" },
+  { value: "grossFlow", label: "Solde d'operations" },
   { value: "salesAmount", label: "Ventes" },
   { value: "purchasesAmount", label: "Achats" },
   { value: "expensesAmount", label: "Depenses" },
@@ -25,6 +33,12 @@ export function DashboardFilters({
   loading = false,
   period,
   onPeriodChange,
+  from,
+  onFromChange,
+  to,
+  onToChange,
+  granularity,
+  onGranularityChange,
   activityType,
   onActivityTypeChange,
   search,
@@ -62,7 +76,7 @@ export function DashboardFilters({
         </div>
 
         <div className="grid grid-cols-1 gap-4 xl:grid-cols-12">
-          <div className="xl:col-span-4">
+          <div className="xl:col-span-5">
             <p className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
               <Funnel className="h-3.5 w-3.5" />
               Fenetre temporelle
@@ -84,9 +98,33 @@ export function DashboardFilters({
                 </button>
               ))}
             </div>
+            {period === "custom" ? (
+              <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
+                <label className="text-xs font-medium text-slate-600">
+                  Du
+                  <input
+                    type="date"
+                    value={from}
+                    onChange={(event) => onFromChange(event.target.value)}
+                    disabled={loading}
+                    className="mt-1 h-10 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm outline-none focus:border-slate-500"
+                  />
+                </label>
+                <label className="text-xs font-medium text-slate-600">
+                  Au
+                  <input
+                    type="date"
+                    value={to}
+                    onChange={(event) => onToChange(event.target.value)}
+                    disabled={loading}
+                    className="mt-1 h-10 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm outline-none focus:border-slate-500"
+                  />
+                </label>
+              </div>
+            ) : null}
           </div>
 
-          <div className="xl:col-span-3">
+          <div className="xl:col-span-2">
             <label className="mb-2 block text-xs font-semibold uppercase tracking-wide text-slate-500" htmlFor="dashboard-activity-filter">
               Type d'activite
             </label>
@@ -105,7 +143,7 @@ export function DashboardFilters({
             </select>
           </div>
 
-          <div className="xl:col-span-3">
+          <div className="xl:col-span-2">
             <label className="mb-2 block text-xs font-semibold uppercase tracking-wide text-slate-500" htmlFor="dashboard-search-filter">
               Recherche rapide
             </label>
@@ -123,7 +161,7 @@ export function DashboardFilters({
             </div>
           </div>
 
-          <div className="xl:col-span-2">
+          <div className="xl:col-span-1">
             <label className="mb-2 block text-xs font-semibold uppercase tracking-wide text-slate-500" htmlFor="dashboard-metric-filter">
               Courbe
             </label>
@@ -135,6 +173,25 @@ export function DashboardFilters({
               className="h-10 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-700 outline-none transition focus:border-slate-500"
             >
               {METRIC_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="xl:col-span-2">
+            <label className="mb-2 block text-xs font-semibold uppercase tracking-wide text-slate-500" htmlFor="dashboard-granularity-filter">
+              Granularite
+            </label>
+            <select
+              id="dashboard-granularity-filter"
+              value={granularity}
+              onChange={(event) => onGranularityChange(event.target.value)}
+              disabled={loading}
+              className="h-10 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-700 outline-none transition focus:border-slate-500"
+            >
+              {GRANULARITY_OPTIONS.map((option) => (
                 <option key={option.value} value={option.value}>
                   {option.label}
                 </option>

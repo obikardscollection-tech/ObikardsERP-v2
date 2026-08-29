@@ -5,22 +5,31 @@ import { DashboardAlerts } from "../components/dashboard/DashboardAlerts";
 import { DashboardChartsSection } from "../components/dashboard/DashboardChartsSection";
 import { DashboardFilters } from "../components/dashboard/DashboardFilters";
 import { DashboardKpiSection } from "../components/dashboard/DashboardKpiSection";
+import { DashboardOperationsSection } from "../components/dashboard/DashboardOperationsSection";
 import { DashboardRecentActivity } from "../components/dashboard/DashboardRecentActivity";
 import { DashboardSection } from "../components/dashboard/DashboardSection";
 import { DashboardSummary } from "../components/dashboard/DashboardSummary";
-import { formatDateTime } from "../components/dashboard/dashboardFormatters";
+import { formatDate, formatDateTime } from "../components/dashboard/dashboardFormatters";
 import { useDashboard } from "../hooks/useDashboard";
 
 export default function DashboardPage() {
   const [period, setPeriod] = useState("30d");
+  const [from, setFrom] = useState("");
+  const [to, setTo] = useState("");
+  const [granularity, setGranularity] = useState("");
   const [activityType, setActivityType] = useState("ALL");
   const [search, setSearch] = useState("");
   const [metric, setMetric] = useState("grossFlow");
   const dashboardFilters = useMemo(
-    () => ({ period }),
-    [period]
+    () => ({
+      period,
+      ...(period === "custom" ? { from, to } : {}),
+      ...(granularity ? { granularity } : {}),
+    }),
+    [from, granularity, period, to]
   );
   const { loading, isRefreshing, error, data, refresh } = useDashboard(dashboardFilters);
+  const canLoadDashboard = period !== "custom" || Boolean(from && to);
 
   const filteredActivities = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -50,17 +59,26 @@ export default function DashboardPage() {
   }, [activityType, data.recentActivity, search]);
 
   const visibleLoadingState = loading && !data.generatedAt;
+  const showDashboardContent = visibleLoadingState || Boolean(data.generatedAt);
 
   const headerSubtext = useMemo(() => {
     if (!data.generatedAt) {
       return "Indicateurs business dynamiques de votre ERP";
     }
 
-    return `Derniere synchronisation: ${formatDateTime(data.generatedAt)}`;
-  }, [data.generatedAt]);
+    const applied = data.filters?.applied;
+    const appliedRange = applied?.from && applied?.to
+      ? ` | Periode appliquee: ${formatDate(applied.from)} au ${formatDate(applied.to)}`
+      : "";
+
+    return `Derniere synchronisation: ${formatDateTime(data.generatedAt)}${appliedRange}`;
+  }, [data.filters?.applied, data.generatedAt]);
 
   const resetFilters = () => {
     setPeriod("30d");
+    setFrom("");
+    setTo("");
+    setGranularity("");
     setActivityType("ALL");
     setSearch("");
     setMetric("grossFlow");
@@ -88,8 +106,8 @@ export default function DashboardPage() {
               </div>
 
               <button
-                onClick={refresh}
-                disabled={loading || isRefreshing}
+                onClick={() => refresh()}
+                disabled={loading || isRefreshing || !canLoadDashboard}
                 className="inline-flex items-center justify-center gap-2 rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 <RefreshCw className={`h-4 w-4 ${(loading || isRefreshing) ? "animate-spin" : ""}`} />
@@ -102,6 +120,12 @@ export default function DashboardPage() {
             loading={visibleLoadingState}
             period={period}
             onPeriodChange={setPeriod}
+            from={from}
+            onFromChange={setFrom}
+            to={to}
+            onToChange={setTo}
+            granularity={granularity}
+            onGranularityChange={setGranularity}
             activityType={activityType}
             onActivityTypeChange={setActivityType}
             search={search}
@@ -119,51 +143,66 @@ export default function DashboardPage() {
             </div>
           )}
 
-          <DashboardSection
-            title="Indicateurs cle"
-            subtitle="Performance commerciale, stock et rentabilite"
-          >
-            <DashboardKpiSection
-              loading={visibleLoadingState}
-              overview={data.overview}
-              comparisons={data.comparisons}
-            />
-          </DashboardSection>
+          {showDashboardContent ? (
+            <>
+              <DashboardSection
+                title="Pilotage operationnel"
+                subtitle="Stock actuel, receptions et mouvements sur la periode appliquee"
+              >
+                <DashboardOperationsSection
+                  loading={visibleLoadingState}
+                  overview={data.overview}
+                  operations={data.operations}
+                />
+              </DashboardSection>
 
-          <DashboardSection
-            title="Visualisations"
-            subtitle="Tendances financieres et repartitions multi-dimensions"
-          >
-            <DashboardChartsSection
-              loading={visibleLoadingState}
-              timeline={data?.charts?.financeTimeline || []}
-              selectedMetric={metric}
-              breakdowns={data.breakdowns}
-              transactions={data.charts?.transactionsByType}
-            />
-          </DashboardSection>
+              <DashboardSection
+                title="Indicateurs financiers"
+                subtitle="Performance commerciale et rentabilite"
+              >
+                <DashboardKpiSection
+                  loading={visibleLoadingState}
+                  overview={data.overview}
+                  comparisons={data.comparisons}
+                />
+              </DashboardSection>
 
-          <div className="grid grid-cols-1 gap-6 2xl:grid-cols-12">
-            <div className="2xl:col-span-8">
-              <DashboardRecentActivity
-                loading={visibleLoadingState}
-                activities={filteredActivities}
-              />
-            </div>
+              <DashboardSection
+                title="Visualisations"
+                subtitle="Tendances financieres et repartitions multi-dimensions"
+              >
+                <DashboardChartsSection
+                  loading={visibleLoadingState}
+                  timeline={data?.charts?.financeTimeline || []}
+                  selectedMetric={metric}
+                  breakdowns={data.breakdowns}
+                  transactions={data.charts?.transactionsByType}
+                />
+              </DashboardSection>
 
-            <div className="space-y-6 2xl:col-span-4">
-              <DashboardSummary
-                loading={visibleLoadingState}
-                overview={data.overview}
-                generatedAt={data.generatedAt}
-              />
+              <div className="grid grid-cols-1 gap-6 2xl:grid-cols-12">
+                <div className="2xl:col-span-8">
+                  <DashboardRecentActivity
+                    loading={visibleLoadingState}
+                    activities={filteredActivities}
+                  />
+                </div>
 
-              <DashboardAlerts
-                loading={visibleLoadingState}
-                alerts={data.alerts}
-              />
-            </div>
-          </div>
+                <div className="space-y-6 2xl:col-span-4">
+                  <DashboardSummary
+                    loading={visibleLoadingState}
+                    overview={data.overview}
+                    generatedAt={data.generatedAt}
+                  />
+
+                  <DashboardAlerts
+                    loading={visibleLoadingState}
+                    alerts={data.alerts}
+                  />
+                </div>
+              </div>
+            </>
+          ) : null}
         </div>
       </main>
     </div>
