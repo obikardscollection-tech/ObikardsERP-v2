@@ -2,6 +2,7 @@ model Reception {
   id String @id @default(cuid())
 
   receptionNumber String @unique
+  idempotencyKey  String? @unique
 
   purchaseId String
   purchase   Purchase @relation(fields: [purchaseId], references: [id], onDelete: Cascade)

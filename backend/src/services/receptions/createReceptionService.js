@@ -13,15 +13,117 @@ const {
 } = require("./updatePurchaseReceptionStateService");
 const { generateReference } = require("../common/referenceGeneratorService");
 
-async function createReception(data) {
-  return prisma.$transaction(async (tx) => {
-    const purchaseId = data.purchaseId;
+const MAX_SERIALIZABLE_ATTEMPTS = 3;
+const RECEPTION_RESULT_INCLUDE = {
+  purchase: true,
+  receptionItems: {
+    include: {
+      purchaseItem: true,
+      inventory: true,
+    },
+  },
+};
 
-    if (!purchaseId) {
-      throw new Error("purchaseId est obligatoire.");
+function normalizeIdempotencyKey(value) {
+  if (value === undefined || value === null) {
+    return null;
+  }
+
+  const key = String(value).trim();
+  return key || null;
+}
+
+function buildReceptionPayloadIdentity(purchaseId, items) {
+  return JSON.stringify({
+    purchaseId,
+    items: items
+      .map((item) => ({
+        purchaseItemId: item.purchaseItemId,
+        quantityReceived: Number(item.quantityReceived),
+      }))
+      .sort((left, right) =>
+        left.purchaseItemId.localeCompare(right.purchaseItemId)
+      ),
+  });
+}
+
+function assertIdempotentPayloadMatches(reception, purchaseId, items) {
+  const requestedIdentity = buildReceptionPayloadIdentity(purchaseId, items);
+  const existingIdentity = buildReceptionPayloadIdentity(
+    reception.purchaseId,
+    reception.receptionItems
+  );
+
+  if (requestedIdentity !== existingIdentity) {
+    const error = new Error(
+      "Cette cle d'idempotence est deja associee a une reception avec un payload different."
+    );
+    error.code = "RECEPTION_IDEMPOTENCY_PAYLOAD_MISMATCH";
+    throw error;
+  }
+}
+
+async function findReceptionByIdempotencyKey(client, idempotencyKey) {
+  return client.reception.findUnique({
+    where: { idempotencyKey },
+    include: RECEPTION_RESULT_INCLUDE,
+  });
+}
+
+function isRetryableTransactionError(error) {
+  return error?.code === "P2034";
+}
+
+async function runSerializableTransaction(operation, client = prisma) {
+  for (let attempt = 1; attempt <= MAX_SERIALIZABLE_ATTEMPTS; attempt += 1) {
+    try {
+      return await client.$transaction(operation, {
+        isolationLevel: "Serializable",
+      });
+    } catch (error) {
+      if (!isRetryableTransactionError(error)) {
+        throw error;
+      }
+
+      if (attempt === MAX_SERIALIZABLE_ATTEMPTS) {
+        const conflictError = new Error(
+          "Conflit de reception concurrente. Veuillez reessayer."
+        );
+        conflictError.code = "RECEPTION_TRANSACTION_CONFLICT";
+        conflictError.cause = error;
+        throw conflictError;
+      }
     }
+  }
 
-    const purchase = await tx.purchase.findUnique({
+  throw new Error("Transaction de reception non executee.");
+}
+
+async function createReceptionTransaction(tx, data) {
+  const purchaseId = data.purchaseId;
+
+  if (!purchaseId) {
+    throw new Error("purchaseId est obligatoire.");
+  }
+
+  const items = normalizeReceptionItems(
+    data.items || data.receptionItems
+  );
+  const idempotencyKey = normalizeIdempotencyKey(data.idempotencyKey);
+
+  if (idempotencyKey) {
+    const existingReception = await findReceptionByIdempotencyKey(
+      tx,
+      idempotencyKey
+    );
+
+    if (existingReception) {
+      assertIdempotentPayloadMatches(existingReception, purchaseId, items);
+      return existingReception;
+    }
+  }
+
+  const purchase = await tx.purchase.findUnique({
       where: {
         id: purchaseId,
       },
@@ -34,10 +136,6 @@ async function createReception(data) {
     if (!purchase) {
       throw new Error("Achat introuvable.");
     }
-
-    const items = normalizeReceptionItems(
-      data.items || data.receptionItems
-    );
 
     const receivedQuantities =
       await getReceivedQuantities(tx, purchaseId);
@@ -53,6 +151,7 @@ async function createReception(data) {
     const reception = await tx.reception.create({
       data: {
         receptionNumber,
+        idempotencyKey,
         purchaseId,
         totalQuantity: plan.totalQuantity,
         remainingQuantity: plan.remainingQuantity,
@@ -82,6 +181,7 @@ async function createReception(data) {
         {
           ...item,
           id: receptionItem.id,
+          receptionId: receptionItem.receptionId,
         }
       );
 
@@ -115,19 +215,45 @@ async function createReception(data) {
       where: {
         id: reception.id,
       },
-      include: {
-        purchase: true,
-        receptionItems: {
-          include: {
-            purchaseItem: true,
-            inventory: true,
-          },
-        },
-      },
+      include: RECEPTION_RESULT_INCLUDE,
     });
-  });
+}
+
+async function createReception(data) {
+  const idempotencyKey = normalizeIdempotencyKey(data.idempotencyKey);
+
+  try {
+    return await runSerializableTransaction((tx) =>
+      createReceptionTransaction(tx, data)
+    );
+  } catch (error) {
+    if (!idempotencyKey || error?.code !== "P2002") {
+      throw error;
+    }
+
+    const existingReception = await findReceptionByIdempotencyKey(
+      prisma,
+      idempotencyKey
+    );
+
+    if (!existingReception) {
+      throw error;
+    }
+
+    const items = normalizeReceptionItems(
+      data.items || data.receptionItems
+    );
+    assertIdempotentPayloadMatches(
+      existingReception,
+      data.purchaseId,
+      items
+    );
+    return existingReception;
+  }
 }
 
 module.exports = {
   createReception,
+  isRetryableTransactionError,
+  runSerializableTransaction,
 };
