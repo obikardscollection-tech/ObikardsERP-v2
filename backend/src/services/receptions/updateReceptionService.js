@@ -6,7 +6,7 @@ const {
   validateReceptionPlan,
 } = require("./receptionCalculationsService");
 const {
-  deleteReceptionInventories,
+  assertReceptionCanBeChanged,
 } = require("./receptionInventoryCleanupService");
 const {
   createInventoryFromReceptionItem,
@@ -81,7 +81,7 @@ async function updateReception(id, data) {
       receivedQuantities
     );
 
-    await deleteReceptionInventories(tx, id);
+    await assertReceptionCanBeChanged(tx, id);
 
     await tx.receptionItem.deleteMany({
       where: {

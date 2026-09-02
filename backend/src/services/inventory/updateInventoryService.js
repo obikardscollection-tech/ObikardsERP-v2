@@ -3,6 +3,7 @@ const prisma = require("../../lib/prisma");
 const inventoryMapper = require("./mappers/inventoryMapper");
 const { resolveInventoryMarketIntegration } = require("./marketAutoLinkService");
 const { createMarketSnapshot } = require("../../modules/market/snapshots");
+const { applyInventoryQuantityDelta } = require("../stock/createMovementService");
 
 /**
  * Merge current inventory item with incoming update payload.
@@ -40,21 +41,63 @@ async function updateInventory(id, data) {
     throw new Error("Inventory introuvable.");
   }
 
-  const mappedData = inventoryMapper(data);
+  const mappedData = inventoryMapper({
+    ...existingItem,
+    askingPrice: existingItem.salePrice,
+    ...data,
+  });
+  const titleFields = ["year", "brand", "player"];
+
+  if (data.sport === undefined) {
+    mappedData.category = existingItem.category;
+  }
+
+  if (data.title !== undefined) {
+    mappedData.title = data.title;
+  } else if (!titleFields.some((field) => data[field] !== undefined)) {
+    mappedData.title = existingItem.title;
+  }
+
+  const quantityProvided = Object.prototype.hasOwnProperty.call(data, "quantity");
+
+  if (!quantityProvided) {
+    delete mappedData.quantity;
+  }
+
+  const quantityWasChanged = quantityProvided && Number(existingItem.quantity || 0) !== Number(mappedData.quantity || 0);
   const marketInput = createInventoryMarketInput(existingItem, data, mappedData);
   const marketIntegration = await resolveInventoryMarketIntegration(marketInput);
 
   const item = await prisma.$transaction(async (tx) => {
+    const inventoryUpdateData = { ...mappedData, ...marketIntegration.patch };
+
+    if (quantityWasChanged) {
+      delete inventoryUpdateData.quantity;
+    }
+
     const updatedItem = await tx.inventory.update({
       where: {
         id,
       },
-
-      data: {
-        ...mappedData,
-        ...marketIntegration.patch,
-      },
+      data: inventoryUpdateData,
     });
+
+    if (quantityWasChanged) {
+      const delta = Number(mappedData.quantity ?? 0) - Number(existingItem.quantity ?? 0);
+
+      const result = await applyInventoryQuantityDelta({
+        tx,
+        inventoryId: id,
+        delta,
+        type: "ADJUSTMENT",
+        source: "INVENTORY",
+        reason: "INVENTORY_QUANTITY_UPDATE",
+        notes: "Mise à jour de quantité de l'inventaire",
+      });
+
+      updatedItem.quantity = result.newQuantity;
+      updatedItem.status = result.status;
+    }
 
     if (marketIntegration.refreshResult) {
       await createMarketSnapshot({

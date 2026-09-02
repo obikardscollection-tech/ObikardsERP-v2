@@ -1,4 +1,5 @@
 const prisma = require("../../lib/prisma");
+const { applyInventoryQuantityDelta } = require("./createMovementService");
 
 async function adjustStock({
   inventoryId,
@@ -21,50 +22,23 @@ async function adjustStock({
   }
 
   return prisma.$transaction(async (tx) => {
-    const inventory = await tx.inventory.findUnique({
-      where: {
-        id: inventoryId,
-      },
-    });
-
-    if (!inventory) {
-      throw new Error("Article introuvable.");
-    }
-
-    const previousQuantity = inventory.quantity;
-    const newQuantity = previousQuantity + quantity;
-
-    if (newQuantity < 0) {
-      throw new Error("Le stock ne peut pas être négatif.");
-    }
-
-    await tx.inventory.update({
-      where: {
-        id: inventoryId,
-      },
-      data: {
-        quantity: newQuantity,
-      },
-    });
-
-    const movement = await tx.stockMovement.create({
-      data: {
-        inventoryId,
-        type,
-        source,
-        quantity,
-        previousQuantity,
-        newQuantity,
-        reason,
-        userId,
-      },
+    const result = await applyInventoryQuantityDelta({
+      tx,
+      inventoryId,
+      delta: quantity,
+      type,
+      source,
+      reason,
+      userId,
+      notes: reason || "Ajustement manuel du stock",
     });
 
     return {
       inventoryId,
-      previousQuantity,
-      newQuantity,
-      movement,
+      previousQuantity: result.previousQuantity,
+      newQuantity: result.newQuantity,
+      movement: result.movement,
+      status: result.status,
     };
   });
 }

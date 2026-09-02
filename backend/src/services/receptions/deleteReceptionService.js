@@ -1,7 +1,7 @@
 const prisma = require("../../lib/prisma");
 
 const {
-  deleteReceptionInventories,
+  assertReceptionCanBeChanged,
 } = require("./receptionInventoryCleanupService");
 const {
   updatePurchaseReceptionState,
@@ -19,7 +19,7 @@ async function deleteReception(id) {
       throw new Error("Reception introuvable.");
     }
 
-    await deleteReceptionInventories(tx, id);
+    await assertReceptionCanBeChanged(tx, id);
 
     await tx.reception.delete({
       where: {

@@ -5,10 +5,24 @@ async function deletePurchase(id) {
     where: {
       id,
     },
+    select: {
+      id: true,
+      _count: {
+        select: {
+          receptions: true,
+        },
+      },
+    },
   });
 
   if (!existingPurchase) {
     throw new Error("Achat introuvable.");
+  }
+
+  if (existingPurchase._count.receptions > 0) {
+    throw new Error(
+      "Impossible de supprimer un achat partiellement ou totalement receptionne. L'historique de stock doit etre conserve."
+    );
   }
 
   await prisma.purchase.delete({

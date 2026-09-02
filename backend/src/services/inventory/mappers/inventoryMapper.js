@@ -1,3 +1,17 @@
+function normalizeQuantity(value, fallback = 0) {
+  if (value === undefined || value === null || value === "") {
+    return fallback;
+  }
+
+  const parsed = Number(value);
+
+  if (!Number.isFinite(parsed) || !Number.isInteger(parsed) || parsed < 0) {
+    throw new Error("La quantité doit être un entier positif ou nul.");
+  }
+
+  return parsed;
+}
+
 function inventoryMapper(data) {
   return {
     // Général
@@ -71,9 +85,7 @@ function inventoryMapper(data) {
     confidence: data.confidence || null,
 
     // Stock
-    quantity: data.quantity
-      ? Number(data.quantity)
-      : 1,
+    quantity: normalizeQuantity(data.quantity, 0),
 
     status: data.status || "IN_STOCK",
     location: data.location || null,

@@ -4,9 +4,11 @@
  */
 
 const { generateReference } = require("../common/referenceGeneratorService");
+const {
+  createInventoryFromReceptionItem,
+} = require("./receptionInventoryService");
 
 async function autoCreateReception(tx, purchase) {
-  // Ne créer une réception automatique que si le statut est RECEIVED
   if (purchase.status !== "RECEIVED") {
     return null;
   }
@@ -15,7 +17,6 @@ async function autoCreateReception(tx, purchase) {
     return null;
   }
 
-  // Calculer les quantités totales
   const totalQuantity = purchase.purchaseItems.reduce(
     (total, item) => total + Number(item.quantity || 0),
     0
@@ -28,51 +29,51 @@ async function autoCreateReception(tx, purchase) {
       receptionNumber,
       purchaseId: purchase.id,
       totalQuantity,
-      remainingQuantity: 0, // RECEIVED = all received
+      remainingQuantity: 0,
       notes: `Réception complète pour achat reçu ${purchase.purchaseNumber}`,
       receivedAt: purchase.purchasedAt,
     },
   });
 
-  // Créer les items de réception avec les quantités reçues
   for (const purchaseItem of purchase.purchaseItems) {
     const quantity = Number(purchaseItem.quantity || 0);
 
-    await tx.receptionItem.create({
+    const receptionItem = await tx.receptionItem.create({
       data: {
         receptionId: reception.id,
         purchaseItemId: purchaseItem.id,
         quantityReceived: quantity,
         quantityRemaining: 0,
         notes: null,
-        inventoryCreated: false, // Sera marqué comme true après création d'inventaire
+        inventoryCreated: false,
       },
     });
 
-    // Créer les items d'inventaire
-    const sku = purchaseItem.skuCode || `SKU-${purchase.id}-${purchaseItem.id}`;
-    await tx.inventory.create({
+    await createInventoryFromReceptionItem(
+      tx,
+      purchase,
+      purchaseItem,
+      receptionItem
+    );
+
+    await tx.receptionItem.update({
+      where: {
+        id: receptionItem.id,
+      },
       data: {
-        sku: sku,
-        category: "PURCHASED",
-        title: purchaseItem.name || "Article",
-        quantity: quantity,
-        purchasePrice: Number(purchaseItem.unitPrice || 0),
-        salePrice: Number(purchaseItem.unitPrice || 0) * 1.3,
-        status: "IN_STOCK",
+        inventoryCreated: true,
+      },
+    });
+
+    await tx.purchaseItem.update({
+      where: {
+        id: purchaseItem.id,
+      },
+      data: {
+        inventoryCreated: true,
       },
     });
   }
-
-  // Marquer tous les items comme créés
-  await tx.receptionItem.updateMany({
-    where: {
-      receptionId: reception.id,
-    },
-    data: {
-      inventoryCreated: true,
-    },
-  });
 
   return tx.reception.findUnique({
     where: {
