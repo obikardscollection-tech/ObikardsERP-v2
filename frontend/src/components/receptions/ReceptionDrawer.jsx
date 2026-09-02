@@ -4,7 +4,7 @@ import ReceptionForm from "./ReceptionForm";
 import ReceptionItems from "./ReceptionItems";
 import ReceptionTimeline from "./ReceptionTimeline";
 
-function ReceptionDrawer({ open, reception, purchases = [], onClose, onSaved, addReception, editReception }) {
+function ReceptionDrawer({ open, reception, initialPurchaseId, purchases = [], onClose, onSaved, addReception, editReception }) {
   if (!open) {
     return null;
   }
@@ -22,6 +22,7 @@ function ReceptionDrawer({ open, reception, purchases = [], onClose, onSaved, ad
 
         <ReceptionForm
           reception={reception}
+          initialPurchaseId={initialPurchaseId}
           purchases={purchases}
           onClose={onClose}
           onSaved={onSaved}

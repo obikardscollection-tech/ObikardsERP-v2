@@ -37,13 +37,6 @@ const platforms = [
   "OTHER",
 ];
 
-const statuses = [
-  "PENDING",
-  "RECEIVED",
-  "PARTIALLY_RECEIVED",
-  "CANCELLED",
-];
-
 function formatDateInput(value) {
   if (!value) {
     return "";
@@ -187,7 +180,6 @@ function PurchaseForm({
     const payload = {
       supplierId: form.supplierId,
       platform: form.platform,
-      status: form.status,
       shippingCost: Number(form.shippingCost || 0),
       taxes: Number(form.taxes || 0),
       discount: Number(form.discount || 0),
@@ -280,18 +272,10 @@ function PurchaseForm({
           ))}
         </select>
 
-        <select
-          className="w-full rounded-lg border p-3"
-          name="status"
-          value={form.status}
-          onChange={handleChange}
-        >
-          {statuses.map((status) => (
-            <option key={status} value={status}>
-              {getPurchaseStatusLabel(status)}
-            </option>
-          ))}
-        </select>
+        <div className="rounded-lg border bg-slate-50 p-3 text-slate-700">
+          <span className="text-xs font-medium uppercase text-slate-500">Statut derive</span>
+          <p>{getPurchaseStatusLabel(form.status)}</p>
+        </div>
 
         <input
           className="w-full rounded-lg border p-3"

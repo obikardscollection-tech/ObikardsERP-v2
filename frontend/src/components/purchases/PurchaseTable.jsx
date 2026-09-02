@@ -1,5 +1,6 @@
 import {
   Eye,
+  PackageCheck,
   Pencil,
   Trash2,
 } from "lucide-react";
@@ -21,6 +22,7 @@ function PurchaseTable({
   purchases = [],
   onView,
   onEdit,
+  onReceive,
   onDelete,
 }) {
   return (
@@ -114,6 +116,18 @@ function PurchaseTable({
 
                 <td className="px-6 py-4">
                   <div className="flex justify-center gap-3">
+                    {["PENDING", "PARTIALLY_RECEIVED"].includes(purchase.status) ? (
+                      <button
+                        type="button"
+                        onClick={() => onReceive(purchase)}
+                        className="text-emerald-600 hover:text-emerald-800"
+                        title="Receptionner"
+                        aria-label={`Receptionner ${purchase.purchaseNumber || "l'achat"}`}
+                      >
+                        <PackageCheck size={18} />
+                      </button>
+                    ) : null}
+
                     <button
                       type="button"
                       onClick={() => onView(purchase)}

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 
 import Sidebar from "../components/layout/Sidebar";
@@ -16,6 +17,8 @@ import {
 } from "../services/receptionService";
 
 function ReceptionPage() {
+  const location = useLocation();
+  const navigate = useNavigate();
   const {
     loading,
     refreshing,
@@ -64,6 +67,7 @@ function ReceptionPage() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [selectedReception, setSelectedReception] = useState(null);
+  const [initialPurchaseId, setInitialPurchaseId] = useState("");
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [receptionToDelete, setReceptionToDelete] = useState(null);
   const [receiveAllConfirmOpen, setReceiveAllConfirmOpen] = useState(false);
@@ -83,13 +87,28 @@ function ReceptionPage() {
     loadPurchases();
   }, []);
 
+  useEffect(() => {
+    const purchaseId = location.state?.purchaseId;
+
+    if (!purchaseId) {
+      return;
+    }
+
+    setSelectedReception(null);
+    setInitialPurchaseId(purchaseId);
+    setDrawerOpen(true);
+    navigate(location.pathname, { replace: true, state: null });
+  }, [location.pathname, location.state, navigate]);
+
   function handleCreate() {
     setSelectedReception(null);
+    setInitialPurchaseId("");
     setDrawerOpen(true);
   }
 
   function handleEdit(reception) {
     setSelectedReception(reception);
+    setInitialPurchaseId("");
     setDrawerOpen(true);
   }
 
@@ -101,6 +120,7 @@ function ReceptionPage() {
   function handleCloseDrawer() {
     setDrawerOpen(false);
     setSelectedReception(null);
+    setInitialPurchaseId("");
   }
 
   function handleCloseDetails() {
@@ -261,6 +281,7 @@ function ReceptionPage() {
       <ReceptionDrawer
         open={drawerOpen}
         reception={selectedReception}
+        initialPurchaseId={initialPurchaseId}
         purchases={purchases}
         onClose={handleCloseDrawer}
         onSaved={handleSaved}

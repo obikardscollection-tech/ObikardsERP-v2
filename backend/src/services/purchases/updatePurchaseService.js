@@ -33,7 +33,7 @@ async function updatePurchase(id, data) {
     data: {
       supplierId: data.supplierId,
       platform: data.platform,
-      status: data.status,
+      status: existingPurchase.status,
 
       shippingCost: data.shippingCost || 0,
       taxes: data.taxes || 0,

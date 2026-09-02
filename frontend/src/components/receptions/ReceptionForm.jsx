@@ -22,7 +22,7 @@ function createIdempotencyKey() {
   return globalThis.crypto.randomUUID();
 }
 
-function ReceptionForm({ reception, purchases = [], onClose, onSaved, addReception, editReception }) {
+function ReceptionForm({ reception, initialPurchaseId = "", purchases = [], onClose, onSaved, addReception, editReception }) {
   const isEditing = Boolean(reception);
   const [idempotencyKey] = useState(createIdempotencyKey);
   const [form, setForm] = useState(defaultForm);
@@ -43,11 +43,11 @@ function ReceptionForm({ reception, purchases = [], onClose, onSaved, addRecepti
         })) || [],
       });
     } else {
-      setForm(defaultForm);
+      setForm({ ...defaultForm, purchaseId: initialPurchaseId });
     }
 
     setErrors({});
-  }, [reception]);
+  }, [reception, initialPurchaseId]);
 
   useEffect(() => {
     async function loadPurchaseItems() {

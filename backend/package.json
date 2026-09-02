@@ -10,6 +10,7 @@
     "start": "node src/server.js",
     "auth:create-admin": "node src/scripts/createAdmin.js",
     "test:auth": "node --test test/auth.integration.test.js",
+    "test:purchase-workflow": "node --test test/purchase-workflow.integration.test.js",
     "test:reception": "node --test test/reception-concurrency.integration.test.js",
     "validate:sportscardspro": "node src/scripts/validateSportsCardsPro.js"
   },

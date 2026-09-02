@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 
 import Sidebar from "../components/layout/Sidebar";
@@ -14,6 +15,7 @@ import usePurchases from "../hooks/usePurchases";
 import useSuppliers from "../hooks/useSuppliers";
 
 function PurchasePage() {
+  const navigate = useNavigate();
   const {
     purchases,
     filteredPurchases,
@@ -52,6 +54,10 @@ function PurchasePage() {
   function handleView(purchase) {
     setSelectedPurchase(purchase);
     setDetailsOpen(true);
+  }
+
+  function handleReceive(purchase) {
+    navigate("/receptions", { state: { purchaseId: purchase.id } });
   }
 
   function handleCloseDrawer() {
@@ -124,6 +130,7 @@ function PurchasePage() {
             purchases={filteredPurchases}
             onView={handleView}
             onEdit={handleEdit}
+            onReceive={handleReceive}
             onDelete={handleDelete}
           />
         )}
