@@ -1,14 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import {
-  getBenefitsDistribution,
-  getProfitEvolution,
-  getPurchasesEvolution,
-  getRevenueEvolution,
-  getRoiEvolution,
-  getSalesDistribution,
-  getSalesEvolution,
-  getStockEvolution,
+  getChartsOverview,
 } from "../services/chartsStatisticsService";
 
 const INITIAL_CHARTS = {
@@ -39,10 +32,6 @@ function getErrorMessage(error, fallbackMessage) {
   return error?.response?.data?.message || error?.message || fallbackMessage;
 }
 
-function toChartData(result) {
-  return Array.isArray(result?.data) ? result.data : [];
-}
-
 export default function useChartsStatistics(filters = {}) {
   const [charts, setCharts] = useState(INITIAL_CHARTS);
   const [loading, setLoading] = useState(true);
@@ -62,89 +51,16 @@ export default function useChartsStatistics(filters = {}) {
       setLoading(true);
     }
 
-    const [
-      revenueResult,
-      profitResult,
-      roiResult,
-      purchasesResult,
-      salesResult,
-      stockResult,
-      salesDistributionResult,
-      benefitsDistributionResult,
-    ] = await Promise.allSettled([
-      getRevenueEvolution(requestFilters),
-      getProfitEvolution(requestFilters),
-      getRoiEvolution(requestFilters),
-      getPurchasesEvolution(requestFilters),
-      getSalesEvolution(requestFilters),
-      getStockEvolution(requestFilters),
-      getSalesDistribution(requestFilters),
-      getBenefitsDistribution(requestFilters),
-    ]);
-
-    const results = [
-      revenueResult,
-      profitResult,
-      roiResult,
-      purchasesResult,
-      salesResult,
-      stockResult,
-      salesDistributionResult,
-      benefitsDistributionResult,
-    ];
-
-    const failedResults = results.filter((result) => result.status === "rejected");
-
-    setCharts({
-      revenue: revenueResult.status === "fulfilled" ? toChartData(revenueResult.value) : [],
-      profit: profitResult.status === "fulfilled" ? toChartData(profitResult.value) : [],
-      roi: roiResult.status === "fulfilled" ? toChartData(roiResult.value) : [],
-      purchases: {
-        data: purchasesResult.status === "fulfilled" ? toChartData(purchasesResult.value) : [],
-        quantites:
-          purchasesResult.status === "fulfilled"
-            ? toChartData(purchasesResult.value?.meta?.quantites)
-            : [],
-      },
-      sales: salesResult.status === "fulfilled" ? toChartData(salesResult.value) : [],
-      stock: {
-        data: stockResult.status === "fulfilled" ? toChartData(stockResult.value) : [],
-        net: stockResult.status === "fulfilled" ? toChartData(stockResult.value?.meta?.net) : [],
-        entries:
-          stockResult.status === "fulfilled" ? toChartData(stockResult.value?.meta?.entries) : [],
-        outputs:
-          stockResult.status === "fulfilled" ? toChartData(stockResult.value?.meta?.outputs) : [],
-      },
-      distributions: {
-        salesByPlatform:
-          salesDistributionResult.status === "fulfilled"
-            ? toChartData(salesDistributionResult.value?.byPlatform)
-            : [],
-        salesByStatus:
-          salesDistributionResult.status === "fulfilled"
-            ? toChartData(salesDistributionResult.value?.byStatus)
-            : [],
-        benefitsBySport:
-          benefitsDistributionResult.status === "fulfilled"
-            ? toChartData(benefitsDistributionResult.value?.bySport)
-            : [],
-        benefitsByBrand:
-          benefitsDistributionResult.status === "fulfilled"
-            ? toChartData(benefitsDistributionResult.value?.byBrand)
-            : [],
-        benefitsBySupplier:
-          benefitsDistributionResult.status === "fulfilled"
-            ? toChartData(benefitsDistributionResult.value?.bySupplier)
-            : [],
-      },
-    });
-
-    if (failedResults.length > 0) {
-      const firstError = failedResults[0]?.reason;
-      setError(getErrorMessage(firstError, "Impossible de charger les charts statistiques."));
-      failedResults.forEach((entry) => {
-        console.error(entry.reason);
+    try {
+      const result = await getChartsOverview(requestFilters);
+      setCharts({
+        ...INITIAL_CHARTS,
+        ...result,
       });
+    } catch (requestError) {
+      console.error(requestError);
+      setCharts(INITIAL_CHARTS);
+      setError(getErrorMessage(requestError, "Impossible de charger les charts statistiques."));
     }
 
     setLoading(false);

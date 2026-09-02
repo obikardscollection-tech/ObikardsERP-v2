@@ -408,6 +408,7 @@ async function getSalesByDimension(dimension, filters = {}) {
 }
 
 module.exports = {
+  aggregateByDimension,
   getBusinessAnalysis,
   getTopRanking,
   getSalesDistribution,

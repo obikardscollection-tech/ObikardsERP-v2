@@ -179,5 +179,9 @@ async function getChartEvolution(metric, filters = {}) {
 }
 
 module.exports = {
+  bucketPurchases,
+  bucketSales,
+  bucketStockMovements,
   getChartEvolution,
+  mapSalesEvolutionMetric,
 };

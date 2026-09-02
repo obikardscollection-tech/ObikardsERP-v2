@@ -1,13 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 
-import {
-  getSalesByBrand,
-  getSalesByPlatform,
-  getSalesByPlayer,
-  getSalesBySport,
-  getSalesBySupplier,
-  getSalesByYear,
-} from "../services/businessStatisticsService";
+import { getBusinessDistributions } from "../services/businessStatisticsService";
 
 const INITIAL_DISTRIBUTIONS = {
   bySport: [],
@@ -20,10 +13,6 @@ const INITIAL_DISTRIBUTIONS = {
 
 function getErrorMessage(error, fallbackMessage) {
   return error?.response?.data?.message || error?.message || fallbackMessage;
-}
-
-function toDistributionData(result) {
-  return Array.isArray(result?.data) ? result.data : [];
 }
 
 export default function useBusinessDistributions(filters = {}) {
@@ -45,39 +34,16 @@ export default function useBusinessDistributions(filters = {}) {
       setLoading(true);
     }
 
-    const [sportResult, playerResult, brandResult, supplierResult, platformResult, yearResult] = await Promise.allSettled([
-      getSalesBySport(requestFilters),
-      getSalesByPlayer(requestFilters),
-      getSalesByBrand(requestFilters),
-      getSalesBySupplier(requestFilters),
-      getSalesByPlatform(requestFilters),
-      getSalesByYear(requestFilters),
-    ]);
-
-    const failedResults = [
-      sportResult,
-      playerResult,
-      brandResult,
-      supplierResult,
-      platformResult,
-      yearResult,
-    ].filter((result) => result.status === "rejected");
-
-    setDistributions({
-      bySport: sportResult.status === "fulfilled" ? toDistributionData(sportResult.value) : [],
-      byPlayer: playerResult.status === "fulfilled" ? toDistributionData(playerResult.value) : [],
-      byBrand: brandResult.status === "fulfilled" ? toDistributionData(brandResult.value) : [],
-      bySupplier: supplierResult.status === "fulfilled" ? toDistributionData(supplierResult.value) : [],
-      byPlatform: platformResult.status === "fulfilled" ? toDistributionData(platformResult.value) : [],
-      byYear: yearResult.status === "fulfilled" ? toDistributionData(yearResult.value) : [],
-    });
-
-    if (failedResults.length > 0) {
-      const firstError = failedResults[0]?.reason;
-      setError(getErrorMessage(firstError, "Impossible de charger les distributions business."));
-      failedResults.forEach((entry) => {
-        console.error(entry.reason);
+    try {
+      const result = await getBusinessDistributions(requestFilters);
+      setDistributions({
+        ...INITIAL_DISTRIBUTIONS,
+        ...result.distributions,
       });
+    } catch (requestError) {
+      console.error(requestError);
+      setDistributions(INITIAL_DISTRIBUTIONS);
+      setError(getErrorMessage(requestError, "Impossible de charger les distributions business."));
     }
 
     setLoading(false);

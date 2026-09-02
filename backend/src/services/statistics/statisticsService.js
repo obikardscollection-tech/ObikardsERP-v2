@@ -21,6 +21,8 @@ const {
 } = require("./businessStatisticsService");
 const { getChartEvolution } = require("./chartStatisticsService");
 const { getMarketAnalysis } = require("./marketStatisticsService");
+const { getBusinessDistributions } = require("./businessDistributionsService");
+const { getChartsOverview } = require("./chartsOverviewService");
 
 module.exports = {
   SUPPORTED_PERIODS,
@@ -38,4 +40,6 @@ module.exports = {
   getBenefitsDistribution,
   getSalesByDimension,
   getMarketAnalysis,
+  getBusinessDistributions,
+  getChartsOverview,
 };

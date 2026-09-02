@@ -107,13 +107,7 @@ function ExpensesPage() {
   }
 
   async function handleSaved() {
-    try {
-      await loadExpenses();
-      toast.success("Dépense enregistrée avec succès.");
-    } catch (err) {
-      console.error(err);
-      toast.error("Impossible de rafraîchir la liste.");
-    }
+    toast.success("Dépense enregistrée avec succès.");
   }
 
   return (

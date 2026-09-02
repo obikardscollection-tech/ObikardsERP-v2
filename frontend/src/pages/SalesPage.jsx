@@ -112,13 +112,7 @@ function SalesPage() {
   }
 
   async function handleSaved() {
-    try {
-      await loadSales();
-      toast.success("Vente enregistrée avec succès.");
-    } catch (err) {
-      console.error(err);
-      toast.error("Impossible de rafraîchir la liste.");
-    }
+    toast.success("Vente enregistrée avec succès.");
   }
 
   const totalRevenue = useMemo(() => filteredSales.reduce((sum, sale) => sum + Number(sale.totalAmount || 0), 0), [filteredSales]);

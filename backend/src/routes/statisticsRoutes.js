@@ -9,6 +9,8 @@ router.get("/temporal", statisticsController.getTemporalAnalysis);
 router.get("/stock", statisticsController.getStockStatistics);
 
 router.get("/business/:dimension", statisticsController.getBusinessAnalysis);
+router.get("/business-distributions", statisticsController.getBusinessDistributions);
+router.get("/charts-overview", statisticsController.getChartsOverview);
 
 router.get("/tops/:category", statisticsController.getTopRanking);
 

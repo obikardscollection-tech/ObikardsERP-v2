@@ -72,6 +72,30 @@ async function getBusinessAnalysis(req, res) {
   }
 }
 
+async function getBusinessDistributions(req, res) {
+  try {
+    const data = await statisticsService.getBusinessDistributions(buildFilters(req));
+
+    return res.json(data);
+  } catch (error) {
+    console.error(error);
+
+    return sendError(res, error);
+  }
+}
+
+async function getChartsOverview(req, res) {
+  try {
+    const data = await statisticsService.getChartsOverview(buildFilters(req));
+
+    return res.json(data);
+  } catch (error) {
+    console.error(error);
+
+    return sendError(res, error);
+  }
+}
+
 async function getTopRanking(req, res) {
   try {
     const data = await statisticsService.getTopRanking(
@@ -296,6 +320,8 @@ module.exports = {
   getTemporalAnalysis,
   getStockStatistics,
   getBusinessAnalysis,
+  getBusinessDistributions,
+  getChartsOverview,
   getTopRanking,
   getRevenueEvolution,
   getProfitEvolution,

@@ -2,6 +2,14 @@ import api from "./api";
 
 const API_URL = "/statistics/charts";
 
+export async function getBusinessDistributions(filters = {}) {
+  const { data } = await api.get("/statistics/business-distributions", {
+    params: filters,
+  });
+
+  return data;
+}
+
 async function getSalesByPath(path, filters = {}) {
   const { data } = await api.get(`${API_URL}/${path}`, {
     params: filters,
