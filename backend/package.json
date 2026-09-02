@@ -3,15 +3,20 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
+  "engines": {
+    "node": ">=22.12.0 <25"
+  },
   "scripts": {
+    "test": "node --require ./test/setupTestEnv.js --test --test-concurrency=1 test/*.test.js && node --require ./test/setupTestEnv.js test/verifyTestDatabaseClean.js",
+    "test:db:prepare": "node test/prepareTestDatabase.js",
     "prisma:generate": "prisma generate",
     "postinstall": "npm run prisma:generate",
     "dev": "nodemon src/server.js",
     "start": "node src/server.js",
     "auth:create-admin": "node src/scripts/createAdmin.js",
-    "test:auth": "node --test test/auth.integration.test.js",
-    "test:purchase-workflow": "node --test test/purchase-workflow.integration.test.js",
-    "test:reception": "node --test test/reception-concurrency.integration.test.js",
+    "test:auth": "node --require ./test/setupTestEnv.js --test test/auth.integration.test.js",
+    "test:purchase-workflow": "node --require ./test/setupTestEnv.js --test test/purchase-workflow.integration.test.js",
+    "test:reception": "node --require ./test/setupTestEnv.js --test test/reception-concurrency.integration.test.js",
     "validate:sportscardspro": "node src/scripts/validateSportsCardsPro.js"
   },
   "keywords": [],
