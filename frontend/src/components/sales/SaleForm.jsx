@@ -18,7 +18,7 @@ const defaultForm = {
 };
 
 const platforms = ["EBAY", "WHATNOT", "WOOCOMMERCE", "CARDMARKET", "WEBSITE", "DIRECT", "CARD_SHOW", "FACEBOOK", "INSTAGRAM", "SHOP", "DISTRIBUTOR", "OTHER"];
-const statuses = ["PENDING", "PAID", "SHIPPED", "CANCELLED"];
+const statuses = ["PENDING", "PAID", "SHIPPED"];
 
 function formatDateInput(value) {
   if (!value) {
@@ -202,9 +202,7 @@ function SaleForm({ sale, inventoryItems = [], customers = [], onClose, onSaved,
                     ? "Payée"
                     : status === "SHIPPED"
                       ? "Expédiée"
-                      : status === "CANCELLED"
-                        ? "Annulée"
-                        : status}
+                      : status}
               </option>
             ))}
           </select>

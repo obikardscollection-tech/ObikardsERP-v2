@@ -1,4 +1,4 @@
-import { Eye, Pencil, Trash2 } from "lucide-react";
+import { Eye, Pencil, XCircle } from "lucide-react";
 import { getSalePlatformLabel, getStatusLabel } from "../../constants/labels";
 
 function formatDate(value) {
@@ -83,10 +83,10 @@ function SalesTable({ sales = [], onView, onEdit, onDelete }) {
                       type="button"
                       onClick={() => onDelete(sale)}
                       className="text-red-600 hover:text-red-800"
-                      title="Supprimer"
-                      aria-label={`Supprimer ${sale.orderNumber || "la vente"}`}
+                      title="Annuler"
+                      aria-label={`Annuler ${sale.orderNumber || "la vente"}`}
                     >
-                      <Trash2 size={18} />
+                      <XCircle size={18} />
                     </button>
                   </div>
                 </td>

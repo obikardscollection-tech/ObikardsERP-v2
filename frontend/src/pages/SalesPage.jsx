@@ -103,11 +103,11 @@ function SalesPage() {
 
     try {
       await removeSale(saleToDelete.id);
-      toast.success("Vente supprimée avec succès.");
+      toast.success("Vente annulée avec succès.");
       handleCloseDeleteModal();
     } catch (err) {
       console.error(err);
-      toast.error("Impossible de supprimer la vente.");
+      toast.error("Impossible d'annuler la vente.");
     }
   }
 
