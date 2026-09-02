@@ -15,119 +15,15 @@ const {
   updatePurchaseReceptionState,
 } = require("./updatePurchaseReceptionStateService");
 const { generateReference } = require("../common/referenceGeneratorService");
+const { createReception } = require("./createReceptionService");
 
 async function updateReception(id, data) {
-  // Check if this is a virtual reception (ID starts with "virtual-")
   if (id.startsWith("virtual-")) {
-    // Extract purchaseId from virtual ID format: "virtual-{purchaseId}"
     const purchaseId = id.replace("virtual-", "");
-    
-    // Create a real reception instead of modifying virtual one
-    return prisma.$transaction(async (tx) => {
-      const purchase = await tx.purchase.findUnique({
-        where: { id: purchaseId },
-        include: {
-          supplier: true,
-          purchaseItems: true,
-          receptions: true,
-        },
-      });
 
-      if (!purchase) {
-        throw new Error("Achat introuvable.");
-      }
-
-      const items = normalizeReceptionItems(
-        data.items || data.receptionItems
-      );
-
-      // Get already received quantities from existing receptions
-      const receivedQuantities =
-        await getReceivedQuantities(tx, purchaseId, null);
-
-      const plan = validateReceptionPlan(
-        purchase,
-        items,
-        receivedQuantities
-      );
-
-      const receptionNumber = await generateReference("REC", tx);
-
-      const reception = await tx.reception.create({
-        data: {
-          receptionNumber,
-          purchaseId,
-          totalQuantity: plan.totalQuantity,
-          remainingQuantity: plan.remainingQuantity,
-          notes: data.notes || null,
-          receivedAt: data.receivedAt
-            ? new Date(data.receivedAt)
-            : new Date(),
-        },
-      });
-
-      for (const item of plan.items) {
-        const receptionItem =
-          await tx.receptionItem.create({
-            data: {
-              receptionId: reception.id,
-              purchaseItemId: item.purchaseItemId,
-              quantityReceived: item.quantityReceived,
-              quantityRemaining: item.quantityRemaining,
-              notes: item.notes || null,
-            },
-          });
-
-        const inventory = await createInventoryFromReceptionItem(
-          tx,
-          purchase,
-          item.purchaseItem,
-          {
-            ...item,
-            id: receptionItem.id,
-          }
-        );
-
-        const linkedInventoryCount =
-          await tx.inventory.count({
-            where: {
-              id: inventory.id,
-              receptionItemId: receptionItem.id,
-            },
-          });
-
-        if (linkedInventoryCount === 0) {
-          throw new Error(
-            "Création inventaire non exécutée pour la réception complète."
-          );
-        }
-
-        await tx.receptionItem.update({
-          where: {
-            id: receptionItem.id,
-          },
-          data: {
-            inventoryCreated: true,
-          },
-        });
-      }
-
-      await updatePurchaseReceptionState(tx, purchaseId);
-
-      return tx.reception.findUnique({
-        where: {
-          id: reception.id,
-        },
-        include: {
-          purchase: true,
-          receptionItems: {
-            include: {
-              purchaseItem: true,
-              inventory: true,
-            },
-          },
-        },
-      });
+    return createReception({
+      ...data,
+      purchaseId,
     });
   }
 
@@ -230,6 +126,7 @@ async function updateReception(id, data) {
         {
           ...item,
           id: receptionItem.id,
+          receptionId: receptionItem.receptionId,
         }
       );
 

@@ -1,57 +1,8 @@
-async function generateReceptionSku(tx, receptionItemId) {
-  // Use receptionItemId in SKU to ensure uniqueness per reception item
-  const timestamp = Date.now();
-  return `REC-${timestamp}-${receptionItemId.substring(0, 8)}`;
-}
-
-function buildInventoryData({
-  purchase,
-  purchaseItem,
-  receptionItem,
-}) {
-  const inventoryData =
-    receptionItem.inventoryData ||
-    receptionItem.inventory ||
-    {};
-
-  const category =
-    inventoryData.category ||
-    inventoryData.sport ||
-    "RECEPTION";
-
-  return {
-    category,
-    title: inventoryData.title || purchaseItem.name,
-
-    purchaseItemId: purchaseItem.id,
-    receptionItemId: receptionItem.id,
-
-    purchasePrice: Number(purchaseItem.unitPrice || 0),
-    quantity: Number(receptionItem.quantityReceived),
-    status: "IN_STOCK",
-
-    purchaseDate: purchase.purchasedAt,
-    purchaseSource: purchase.platform,
-    supplier:
-      purchase.supplier?.name ||
-      purchase.supplier?.company ||
-      null,
-
-    notes: receptionItem.notes || purchaseItem.notes || null,
-
-    sport: inventoryData.sport || null,
-    year: inventoryData.year
-      ? Number(inventoryData.year)
-      : null,
-    brand: inventoryData.brand || null,
-    series: inventoryData.series || null,
-    product: inventoryData.product || null,
-    player: inventoryData.player || null,
-    team: inventoryData.team || null,
-    cardNumber: inventoryData.cardNumber || null,
-    condition: undefined,
-  };
-}
+const { applyInventoryQuantityDelta } = require("../stock/createMovementService");
+const {
+  buildInventoryData,
+  buildReceptionSku,
+} = require("./receptionInventoryDataService");
 
 async function createInventoryFromReceptionItem(
   tx,
@@ -65,23 +16,24 @@ async function createInventoryFromReceptionItem(
     );
   }
 
-  const inventoryData = buildInventoryData({
+  const inventoryData = await buildInventoryData(
+    tx,
     purchase,
     purchaseItem,
-    receptionItem,
-  });
-
-  const sku = await generateReceptionSku(tx, receptionItem.id);
+    receptionItem
+  );
+  const sku = buildReceptionSku(purchaseItem, receptionItem);
 
   const inventory = await tx.inventory.create({
     data: {
       sku,
+      cardReferenceId: inventoryData.cardReferenceId,
       category: inventoryData.category,
       title: inventoryData.title,
       purchaseItemId: inventoryData.purchaseItemId,
       receptionItemId: inventoryData.receptionItemId,
       purchasePrice: inventoryData.purchasePrice,
-      quantity: inventoryData.quantity,
+      quantity: 0,
       status: inventoryData.status,
       purchaseDate: inventoryData.purchaseDate,
       purchaseSource: inventoryData.purchaseSource,
@@ -91,10 +43,16 @@ async function createInventoryFromReceptionItem(
       year: inventoryData.year,
       brand: inventoryData.brand,
       series: inventoryData.series,
+      subset: inventoryData.subset,
       product: inventoryData.product,
       player: inventoryData.player,
       team: inventoryData.team,
       cardNumber: inventoryData.cardNumber,
+      parallel: inventoryData.parallel,
+      variant: inventoryData.variant,
+      rookie: inventoryData.rookie,
+      autograph: inventoryData.autograph,
+      memorabilia: inventoryData.memorabilia,
       frontPhoto: null,
       backPhoto: null,
       extraPhotos: null,
@@ -105,6 +63,25 @@ async function createInventoryFromReceptionItem(
     throw new Error(
       "Impossible de créer l'inventaire: création non confirmée."
     );
+  }
+
+  const receivedQuantity = Number(inventoryData.quantity || 0);
+
+  if (receivedQuantity > 0) {
+    const result = await applyInventoryQuantityDelta({
+      tx,
+      inventoryId: inventory.id,
+      delta: receivedQuantity,
+      type: "RECEIPT",
+      source: "PURCHASE",
+      reason: "RECEPTION",
+      notes: `Réception ${purchase?.purchaseNumber || "achat"}`,
+      purchaseId: purchase?.id || null,
+      receptionId: receptionItem?.receptionId || null,
+    });
+
+    inventory.quantity = result.newQuantity;
+    inventory.status = result.status;
   }
 
   return inventory;

@@ -18,8 +18,13 @@ function formatDateInput(value) {
   return new Date(value).toISOString().slice(0, 10);
 }
 
+function createIdempotencyKey() {
+  return globalThis.crypto.randomUUID();
+}
+
 function ReceptionForm({ reception, purchases = [], onClose, onSaved, addReception, editReception }) {
   const isEditing = Boolean(reception);
+  const [idempotencyKey] = useState(createIdempotencyKey);
   const [form, setForm] = useState(defaultForm);
   const [loading, setLoading] = useState(false);
   const [purchaseItems, setPurchaseItems] = useState([]);
@@ -155,6 +160,7 @@ function ReceptionForm({ reception, purchases = [], onClose, onSaved, addRecepti
   function buildPayload() {
     return {
       purchaseId: form.purchaseId,
+      ...(!isEditing || reception?.isVirtual ? { idempotencyKey } : {}),
       receivedAt: form.receivedAt || undefined,
       notes: form.notes || null,
       items: form.items.map((item) => ({
@@ -185,7 +191,7 @@ function ReceptionForm({ reception, purchases = [], onClose, onSaved, addRecepti
       onClose();
     } catch (err) {
       console.error(err);
-      toast.error("Impossible d'enregistrer la réception.");
+      toast.error(err.response?.data?.message || "Impossible d'enregistrer la réception.");
     } finally {
       setLoading(false);
     }
