@@ -15,6 +15,7 @@ import { NavLink, useNavigate } from "react-router-dom";
 import GlobalSearchBar from "../globalSearch/GlobalSearchBar";
 import GlobalSearchResults from "../globalSearch/GlobalSearchResults";
 import useGlobalSearch from "../../hooks/useGlobalSearch";
+import UserSessionPanel from "./UserSessionPanel";
 
 const menu = [
   {
@@ -243,9 +244,7 @@ function Sidebar() {
         })}
       </nav>
 
-      <div className="border-t border-slate-800 p-4 text-xs text-slate-500">
-        © Obikards ERP
-      </div>
+      <UserSessionPanel />
     </aside>
   );
 }

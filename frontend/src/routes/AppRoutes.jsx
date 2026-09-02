@@ -1,5 +1,6 @@
 import { lazy, Suspense } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
+import ProtectedRoute from "./ProtectedRoute";
 
 const Dashboard = lazy(() => import("../pages/Dashboard"));
 const Inventory = lazy(() => import("../pages/Inventory"));
@@ -13,6 +14,7 @@ const Statistics = lazy(() => import("../pages/Statistics"));
 const SportsCardsProPage = lazy(() =>
   import("../pages/SportsCardsPro/SportsCardsProPage")
 );
+const Login = lazy(() => import("../pages/Login"));
 
 function AppRoutes() {
   return (
@@ -24,18 +26,20 @@ function AppRoutes() {
       }
     >
       <Routes>
-        <Route path="/" element={<Navigate to="/dashboard" replace />} />
-
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/inventory" element={<Inventory />} />
-        <Route path="/customers" element={<Customers />} />
-        <Route path="/suppliers" element={<Suppliers />} />
-        <Route path="/purchases" element={<Purchases />} />
-        <Route path="/receptions" element={<Receptions />} />
-        <Route path="/sales" element={<Sales />} />
-        <Route path="/expenses" element={<Expenses />} />
-        <Route path="/statistics" element={<Statistics />} />
-        <Route path="/sports-cards-pro" element={<SportsCardsProPage />} />
+        <Route path="/login" element={<Login />} />
+        <Route element={<ProtectedRoute />}>
+          <Route path="/" element={<Navigate to="/dashboard" replace />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/inventory" element={<Inventory />} />
+          <Route path="/customers" element={<Customers />} />
+          <Route path="/suppliers" element={<Suppliers />} />
+          <Route path="/purchases" element={<Purchases />} />
+          <Route path="/receptions" element={<Receptions />} />
+          <Route path="/sales" element={<Sales />} />
+          <Route path="/expenses" element={<Expenses />} />
+          <Route path="/statistics" element={<Statistics />} />
+          <Route path="/sports-cards-pro" element={<SportsCardsProPage />} />
+        </Route>
       </Routes>
     </Suspense>
   );
