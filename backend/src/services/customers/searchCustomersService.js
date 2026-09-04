@@ -37,6 +37,16 @@ function buildSearchFilters(query) {
 async function searchCustomers(query, limit) {
   return prisma.customer.findMany({
     where: buildSearchFilters(query),
+    select: {
+      id: true,
+      customerNumber: true,
+      firstName: true,
+      lastName: true,
+      company: true,
+      email: true,
+      phone: true,
+      city: true,
+    },
     orderBy: [
       {
         lastName: "asc",

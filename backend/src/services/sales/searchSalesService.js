@@ -82,9 +82,21 @@ function buildSearchFilters(query) {
 async function searchSales(query, limit) {
   return prisma.sale.findMany({
     where: buildSearchFilters(query),
-    include: {
-      customer: true,
-      saleItems: true,
+    select: {
+      id: true,
+      orderNumber: true,
+      customerName: true,
+      platform: true,
+      status: true,
+      totalAmount: true,
+      soldAt: true,
+      customer: {
+        select: {
+          firstName: true,
+          lastName: true,
+          company: true,
+        },
+      },
     },
     orderBy: {
       soldAt: "desc",

@@ -42,6 +42,20 @@ function buildSearchFilters(query) {
 async function searchInventory(query, limit) {
   return prisma.inventory.findMany({
     where: buildSearchFilters(query),
+    select: {
+      id: true,
+      sku: true,
+      title: true,
+      player: true,
+      brand: true,
+      sport: true,
+      team: true,
+      series: true,
+      cardNumber: true,
+      status: true,
+      year: true,
+      quantity: true,
+    },
     orderBy: {
       createdAt: "desc",
     },

@@ -1,6 +1,6 @@
 const searchService = require("../services/search");
 
-async function search(req, res) {
+async function search(req, res, next) {
   try {
     const payload = await searchService.searchGlobalEntities(req.query.q, {
       limitPerCategory: req.query.limitPerCategory,
@@ -8,11 +8,7 @@ async function search(req, res) {
 
     return res.json(payload);
   } catch (error) {
-    console.error(error);
-
-    return res.status(500).json({
-      message: error.message,
-    });
+    return next(error);
   }
 }
 

@@ -51,16 +51,20 @@ function buildSearchFilters(query) {
 async function searchReceptions(query, limit) {
   return prisma.reception.findMany({
     where: buildSearchFilters(query),
-    include: {
+    select: {
+      id: true,
+      receptionNumber: true,
+      receivedAt: true,
+      notes: true,
       purchase: {
-        include: {
-          supplier: true,
-        },
-      },
-      receptionItems: {
-        include: {
-          purchaseItem: true,
-          inventory: true,
+        select: {
+          purchaseNumber: true,
+          supplier: {
+            select: {
+              name: true,
+              company: true,
+            },
+          },
         },
       },
     },

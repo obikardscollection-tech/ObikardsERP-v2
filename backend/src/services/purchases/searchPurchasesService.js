@@ -74,11 +74,19 @@ function buildSearchFilters(query) {
 async function searchPurchases(query, limit) {
   return prisma.purchase.findMany({
     where: buildSearchFilters(query),
-    include: {
-      supplier: true,
-      purchaseItems: {
-        include: {
-          inventory: true,
+    select: {
+      id: true,
+      purchaseNumber: true,
+      status: true,
+      platform: true,
+      totalAmount: true,
+      currency: true,
+      notes: true,
+      purchasedAt: true,
+      supplier: {
+        select: {
+          name: true,
+          company: true,
         },
       },
     },

@@ -89,8 +89,21 @@ function buildSearchFilters(query) {
 async function searchExpenses(query, limit) {
   return prisma.expense.findMany({
     where: buildSearchFilters(query),
-    include: {
-      supplier: true,
+    select: {
+      id: true,
+      expenseNumber: true,
+      title: true,
+      category: true,
+      paymentMethod: true,
+      paymentStatus: true,
+      amountTTC: true,
+      expenseDate: true,
+      supplier: {
+        select: {
+          name: true,
+          company: true,
+        },
+      },
     },
     orderBy: {
       expenseDate: "desc",

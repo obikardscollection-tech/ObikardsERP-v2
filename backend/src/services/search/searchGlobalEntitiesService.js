@@ -6,6 +6,9 @@ const receptionsService = require("../receptions");
 const salesService = require("../sales");
 const expensesService = require("../expenses");
 
+const DEFAULT_LIMIT_PER_CATEGORY = 6;
+const MAX_LIMIT_PER_CATEGORY = 10;
+
 const CATEGORY_DEFINITIONS = {
   cards: {
     label: "Cartes",
@@ -65,14 +68,7 @@ function toDateLabel(value) {
   return parsed.toLocaleDateString("fr-FR");
 }
 
-function buildSearchText(parts) {
-  return parts
-    .filter((part) => part !== null && part !== undefined && part !== "")
-    .map((part) => String(part).toLowerCase())
-    .join(" ");
-}
-
-function createResult(category, id, title, subtitle, meta, searchable) {
+function createResult(category, id, title, subtitle, meta) {
   const definition = CATEGORY_DEFINITIONS[category];
 
   return {
@@ -83,88 +79,42 @@ function createResult(category, id, title, subtitle, meta, searchable) {
     subtitle: subtitle || "",
     meta: meta.filter(Boolean),
     to: definition.to,
-    searchable,
   };
 }
 
 function mapCard(item) {
-  const searchable = buildSearchText([
-    item?.sku,
-    item?.title,
-    item?.player,
-    item?.brand,
-    item?.sport,
-    item?.team,
-    item?.series,
-    item?.cardNumber,
-    item?.status,
-    item?.year,
-  ]);
-
   return createResult(
     "cards",
     item?.id,
     item?.title || item?.sku || "Carte",
     [item?.sku, item?.player, item?.brand].filter(Boolean).join(" - "),
-    [`Stock: ${Number(item?.quantity || 0)}`, item?.status],
-    searchable
+    [`Stock: ${Number(item?.quantity || 0)}`, item?.status]
   );
 }
 
 function mapClient(item) {
   const customerName = [item?.firstName, item?.lastName].filter(Boolean).join(" ").trim();
 
-  const searchable = buildSearchText([
-    item?.customerNumber,
-    customerName,
-    item?.firstName,
-    item?.lastName,
-    item?.company,
-    item?.email,
-    item?.phone,
-    item?.city,
-  ]);
-
   return createResult(
     "clients",
     item?.id,
     customerName || item?.company || item?.customerNumber || "Client",
     [item?.customerNumber, item?.email].filter(Boolean).join(" - "),
-    [item?.phone, item?.city],
-    searchable
+    [item?.phone, item?.city]
   );
 }
 
 function mapSupplier(item) {
-  const searchable = buildSearchText([
-    item?.supplierNumber,
-    item?.name,
-    item?.company,
-    item?.email,
-    item?.phone,
-    item?.city,
-  ]);
-
   return createResult(
     "suppliers",
     item?.id,
     item?.name || item?.company || item?.supplierNumber || "Fournisseur",
     [item?.supplierNumber, item?.email].filter(Boolean).join(" - "),
-    [item?.phone, item?.city],
-    searchable
+    [item?.phone, item?.city]
   );
 }
 
 function mapPurchase(item) {
-  const searchable = buildSearchText([
-    item?.purchaseNumber,
-    item?.status,
-    item?.platform,
-    item?.supplier?.name,
-    item?.supplier?.company,
-    item?.notes,
-  ]);
-
   return createResult(
     "purchases",
     item?.id,
@@ -174,28 +124,19 @@ function mapPurchase(item) {
       `Total: ${Number(item?.totalAmount || 0).toFixed(2)} ${item?.currency || "EUR"}`,
       toDateLabel(item?.purchasedAt),
       item?.status,
-    ],
-    searchable
+    ]
   );
 }
 
 function mapReception(item) {
   const supplier = item?.purchase?.supplier?.name || item?.purchase?.supplier?.company || "";
 
-  const searchable = buildSearchText([
-    item?.receptionNumber,
-    item?.purchase?.purchaseNumber,
-    supplier,
-    item?.notes,
-  ]);
-
   return createResult(
     "receptions",
     item?.id,
     item?.receptionNumber || "Reception",
     [item?.purchase?.purchaseNumber, supplier].filter(Boolean).join(" - "),
-    [toDateLabel(item?.receivedAt), item?.status],
-    searchable
+    [toDateLabel(item?.receivedAt)]
   );
 }
 
@@ -206,42 +147,24 @@ function mapSale(item) {
     item?.customerName ||
     "";
 
-  const searchable = buildSearchText([
-    item?.orderNumber,
-    customer,
-    item?.platform,
-    item?.status,
-  ]);
-
   return createResult(
     "sales",
     item?.id,
     item?.orderNumber || "Vente",
     [customer, item?.platform].filter(Boolean).join(" - "),
-    [`Total: ${Number(item?.totalAmount || 0).toFixed(2)} EUR`, toDateLabel(item?.soldAt), item?.status],
-    searchable
+    [`Total: ${Number(item?.totalAmount || 0).toFixed(2)} EUR`, toDateLabel(item?.soldAt), item?.status]
   );
 }
 
 function mapExpense(item) {
   const supplier = item?.supplier?.name || item?.supplier?.company || "";
 
-  const searchable = buildSearchText([
-    item?.expenseNumber,
-    item?.title,
-    supplier,
-    item?.category,
-    item?.paymentMethod,
-    item?.paymentStatus,
-  ]);
-
   return createResult(
     "expenses",
     item?.id,
     item?.expenseNumber || item?.title || "Depense",
     [supplier, item?.category].filter(Boolean).join(" - "),
-    [`Montant: ${Number(item?.amountTTC || 0).toFixed(2)} EUR`, toDateLabel(item?.expenseDate), item?.paymentStatus],
-    searchable
+    [`Montant: ${Number(item?.amountTTC || 0).toFixed(2)} EUR`, toDateLabel(item?.expenseDate), item?.paymentStatus]
   );
 }
 
@@ -285,10 +208,10 @@ function parseLimitPerCategory(limitPerCategory) {
   const parsed = Number(limitPerCategory);
 
   if (!Number.isFinite(parsed) || parsed <= 0) {
-    return 6;
+    return DEFAULT_LIMIT_PER_CATEGORY;
   }
 
-  return Math.floor(parsed);
+  return Math.min(Math.floor(parsed), MAX_LIMIT_PER_CATEGORY);
 }
 
 async function searchGlobalEntities(rawQuery, options = {}) {
@@ -306,25 +229,15 @@ async function searchGlobalEntities(rawQuery, options = {}) {
     };
   }
 
-  const settled = await Promise.allSettled(
+  const results = await Promise.all(
     GLOBAL_SEARCH_CATEGORY_ORDER.map((category) =>
       fetchCategoryResults(category, query, limitPerCategory)
     )
   );
 
-  const categories = createEmptyCategories();
-
-  settled.forEach((entry, index) => {
-    const category = GLOBAL_SEARCH_CATEGORY_ORDER[index];
-
-    if (entry.status === "fulfilled") {
-      categories[category] = entry.value;
-      return;
-    }
-
-    console.error(entry.reason);
-    categories[category] = [];
-  });
+  const categories = Object.fromEntries(
+    GLOBAL_SEARCH_CATEGORY_ORDER.map((category, index) => [category, results[index]])
+  );
 
   const total = GLOBAL_SEARCH_CATEGORY_ORDER.reduce(
     (sum, category) => sum + categories[category].length,

@@ -36,6 +36,15 @@ function buildSearchFilters(query) {
 async function searchSuppliers(query, limit) {
   return prisma.supplier.findMany({
     where: buildSearchFilters(query),
+    select: {
+      id: true,
+      supplierNumber: true,
+      name: true,
+      company: true,
+      email: true,
+      phone: true,
+      city: true,
+    },
     orderBy: {
       name: "asc",
     },
