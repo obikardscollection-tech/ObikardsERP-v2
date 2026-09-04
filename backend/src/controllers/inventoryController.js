@@ -74,6 +74,37 @@ async function deleteInventory(req, res) {
   }
 }
 
+async function uploadInventoryPhoto(req, res, next) {
+  try {
+    const item = await inventoryService.uploadInventoryPhoto(req.params.id, req.params.slot, req.file);
+    return res.status(201).json(item);
+  } catch (error) {
+    if (error.statusCode) return res.status(error.statusCode).json({ error: error.message });
+    return next(error);
+  }
+}
+
+async function getInventoryPhoto(req, res, next) {
+  try {
+    const photo = await inventoryService.getInventoryPhoto(req.params.id, req.params.filename);
+    res.type(photo.contentType);
+    return res.sendFile(photo.filePath);
+  } catch (error) {
+    if (error.statusCode) return res.status(error.statusCode).json({ error: error.message });
+    return next(error);
+  }
+}
+
+async function deleteInventoryPhoto(req, res, next) {
+  try {
+    const item = await inventoryService.deleteInventoryPhoto(req.params.id, req.params.filename);
+    return res.json(item);
+  } catch (error) {
+    if (error.statusCode) return res.status(error.statusCode).json({ error: error.message });
+    return next(error);
+  }
+}
+
 async function importInventoryCsv(req, res) {
   try {
     const report = await inventoryService.importInventoryFromCsv(req.file);
@@ -114,4 +145,7 @@ module.exports = {
   deleteInventory,
   importInventoryCsv,
   previewInventoryCsv,
+  uploadInventoryPhoto,
+  getInventoryPhoto,
+  deleteInventoryPhoto,
 };

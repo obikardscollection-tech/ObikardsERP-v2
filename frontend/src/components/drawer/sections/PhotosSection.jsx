@@ -1,93 +1,133 @@
-export default function PhotosSection({ setForm }) {
+import { useEffect, useState } from "react";
+import toast from "react-hot-toast";
+import { Image, Trash2 } from "lucide-react";
+import {
+  getInventoryPhotoUrl,
+  removeInventoryPhoto,
+} from "../../../services/inventoryService";
+
+function PhotoPreview({ inventoryId, photo, label, removing, onRemove }) {
+  const [source, setSource] = useState("");
+
+  useEffect(() => {
+    if (!(photo instanceof File)) {
+      setSource(getInventoryPhotoUrl(inventoryId, photo));
+      return undefined;
+    }
+
+    const objectUrl = URL.createObjectURL(photo);
+    setSource(objectUrl);
+    return () => URL.revokeObjectURL(objectUrl);
+  }, [inventoryId, photo]);
+
+  return (
+    <div className="relative overflow-hidden rounded-lg border border-slate-200 bg-slate-50">
+      <img src={source} alt={label} className="aspect-[4/3] w-full object-contain" />
+      <button
+        type="button"
+        onClick={onRemove}
+        disabled={removing}
+        className="absolute right-2 top-2 rounded-md bg-white p-2 text-rose-600 shadow disabled:opacity-50"
+        aria-label={`Supprimer ${label}`}
+        title={`Supprimer ${label}`}
+      >
+        <Trash2 className="h-4 w-4" />
+      </button>
+    </div>
+  );
+}
+
+export default function PhotosSection({ form, setForm, inventoryId }) {
+  const [removing, setRemoving] = useState("");
+
   function update(field, value) {
-    setForm((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
+    setForm((previous) => ({ ...previous, [field]: value }));
+  }
+
+  async function removePhoto(field, photo) {
+    if (photo instanceof File || !inventoryId) {
+      update(
+        field,
+        field === "extraPhotos"
+          ? form.extraPhotos.filter((entry) => entry !== photo)
+          : null
+      );
+      return;
+    }
+
+    try {
+      setRemoving(photo);
+      const updated = await removeInventoryPhoto(inventoryId, photo);
+      update(field, updated[field] || (field === "extraPhotos" ? [] : null));
+    } catch (error) {
+      toast.error(error?.response?.data?.error || "Impossible de supprimer la photo.");
+    } finally {
+      setRemoving("");
+    }
   }
 
   return (
-    <div className="bg-white rounded-xl border p-6 mt-6">
-
-      <h2 className="text-xl font-semibold mb-6">
-        📷 Photos
-      </h2>
-
-      <div className="grid grid-cols-2 gap-6">
-
-        <div>
-
-          <label className="block text-sm font-medium mb-2">
-            Photo recto
-          </label>
-
-          <input
-            type="file"
-            accept="image/*"
-            onChange={(e) =>
-              update("frontPhoto", e.target.files[0] || null)
-            }
-            className="w-full border rounded-lg p-3"
-          />
-
-        </div>
-
-        <div>
-
-          <label className="block text-sm font-medium mb-2">
-            Photo verso
-          </label>
-
-          <input
-            type="file"
-            accept="image/*"
-            onChange={(e) =>
-              update("backPhoto", e.target.files[0] || null)
-            }
-            className="w-full border rounded-lg p-3"
-          />
-
-        </div>
-
+    <section className="mt-6 rounded-lg border border-slate-200 bg-white p-6">
+      <div className="mb-6 flex items-center gap-2">
+        <Image className="h-5 w-5 text-slate-600" />
+        <h2 className="text-xl font-semibold">Photos</h2>
       </div>
 
-      <div className="mt-6">
+      <div className="grid gap-6 sm:grid-cols-2">
+        {[
+          { field: "frontPhoto", label: "Photo recto" },
+          { field: "backPhoto", label: "Photo verso" },
+        ].map(({ field, label }) => (
+          <div key={field} className="space-y-3">
+            <label className="block text-sm font-medium">{label}</label>
+            {form[field] ? (
+              <PhotoPreview
+                inventoryId={inventoryId}
+                photo={form[field]}
+                label={label}
+                removing={removing === form[field]}
+                onRemove={() => removePhoto(field, form[field])}
+              />
+            ) : null}
+            <input
+              type="file"
+              accept="image/png,image/jpeg,image/webp"
+              onChange={(event) => update(field, event.target.files[0] || null)}
+              className="w-full rounded-lg border p-3 text-sm"
+            />
+          </div>
+        ))}
+      </div>
 
-        <label className="block text-sm font-medium mb-2">
-          Photos supplémentaires
-        </label>
-
+      <div className="mt-6 space-y-3">
+        <label className="block text-sm font-medium">Photos supplémentaires</label>
         <input
           type="file"
           multiple
-          accept="image/*"
-          onChange={(e) =>
-            update(
-              "extraPhotos",
-              Array.from(e.target.files || [])
-            )
-          }
-          className="w-full border rounded-lg p-3"
+          accept="image/png,image/jpeg,image/webp"
+          onChange={(event) => update("extraPhotos", [
+            ...form.extraPhotos.filter((entry) => typeof entry === "string"),
+            ...Array.from(event.target.files || []),
+          ])}
+          className="w-full rounded-lg border p-3 text-sm"
         />
-
+        {form.extraPhotos.length > 0 ? (
+          <div className="grid gap-3 sm:grid-cols-3">
+            {form.extraPhotos.map((photo, index) => (
+              <PhotoPreview
+                key={photo instanceof File ? `${photo.name}-${photo.lastModified}` : photo}
+                inventoryId={inventoryId}
+                photo={photo}
+                label={`Photo supplementaire ${index + 1}`}
+                removing={removing === photo}
+                onRemove={() => removePhoto("extraPhotos", photo)}
+              />
+            ))}
+          </div>
+        ) : (
+          <p className="text-sm text-slate-500">Aucune photo supplementaire.</p>
+        )}
       </div>
-
-      <div className="mt-8 rounded-xl border-2 border-dashed border-slate-300 p-8 text-center">
-
-        <div className="text-5xl mb-3">
-          📸
-        </div>
-
-        <p className="font-medium">
-          Prévisualisation des photos
-        </p>
-
-        <p className="text-sm text-gray-500 mt-2">
-          Les aperçus et le glisser-déposer seront ajoutés dans un prochain sprint.
-        </p>
-
-      </div>
-
-    </div>
+    </section>
   );
 }

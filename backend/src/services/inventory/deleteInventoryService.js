@@ -1,4 +1,9 @@
 const prisma = require("../../lib/prisma");
+const {
+  removeStagedInventoryPhotoFiles,
+  restoreStagedInventoryPhotoFiles,
+  stageInventoryPhotoFiles,
+} = require("./inventoryPhotoService");
 
 async function deleteInventory(id) {
   const inventory = await prisma.inventory.findUnique({
@@ -21,11 +26,20 @@ async function deleteInventory(id) {
     throw new Error("Impossible de supprimer un inventory ayant un historique de mouvement de stock.");
   }
 
-  await prisma.inventory.delete({
-    where: {
-      id,
-    },
-  });
+  const stagedFiles = await stageInventoryPhotoFiles(inventory);
+
+  try {
+    await prisma.inventory.delete({
+      where: {
+        id,
+      },
+    });
+  } catch (error) {
+    await restoreStagedInventoryPhotoFiles(stagedFiles);
+    throw error;
+  }
+
+  await removeStagedInventoryPhotoFiles(stagedFiles);
 
   return {
     success: true,

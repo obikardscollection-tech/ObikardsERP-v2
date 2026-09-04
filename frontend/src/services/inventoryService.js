@@ -37,6 +37,24 @@ export async function updateInventory(id, item) {
   return data;
 }
 
+export async function uploadInventoryPhoto(id, slot, file) {
+  const formData = new FormData();
+  formData.append("photo", file);
+  const { data } = await api.post(`${API_URL}/${id}/photos/${slot}`, formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+  return data;
+}
+
+export async function removeInventoryPhoto(id, filename) {
+  const { data } = await api.delete(`${API_URL}/${id}/photos/${encodeURIComponent(filename)}`);
+  return data;
+}
+
+export function getInventoryPhotoUrl(id, filename) {
+  return `${api.defaults.baseURL || ""}${API_URL}/${id}/photos/${encodeURIComponent(filename)}`;
+}
+
 export async function refreshInventoryMarket(id, payload = null) {
   const { data } = await api.post(`${API_URL}/${id}/market/refresh`, payload || {});
   return data;

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import {
   createInventory,
+  uploadInventoryPhoto,
   updateInventory,
 } from "../../services/inventoryService";
 
@@ -204,6 +205,10 @@ export default function AddInventoryDrawer({
   location: item.location ?? "",
   priority: item.priority ?? "",
   notes: item.notes ?? "",
+
+  frontPhoto: item.frontPhoto ?? null,
+  backPhoto: item.backPhoto ?? null,
+  extraPhotos: Array.isArray(item.extraPhotos) ? item.extraPhotos : [],
 });
     } else {
       setForm(initialForm);
@@ -213,13 +218,27 @@ export default function AddInventoryDrawer({
   if (!open) return null;
 
   async function handleSave() {
+    let savedItem = null;
+
     try {
       setSaving(true);
 
       if (isEdit) {
-        await updateInventory(item.id, form);
+        savedItem = await updateInventory(item.id, form);
       } else {
-        await createInventory(form);
+        savedItem = await createInventory(form);
+      }
+
+      if (form.frontPhoto instanceof File) {
+        savedItem = await uploadInventoryPhoto(savedItem.id, "front", form.frontPhoto);
+      }
+
+      if (form.backPhoto instanceof File) {
+        savedItem = await uploadInventoryPhoto(savedItem.id, "back", form.backPhoto);
+      }
+
+      for (const photo of form.extraPhotos.filter((entry) => entry instanceof File)) {
+        savedItem = await uploadInventoryPhoto(savedItem.id, "extra", photo);
       }
 
       setForm(initialForm);
@@ -233,9 +252,13 @@ export default function AddInventoryDrawer({
       console.error(error);
 
       toast.error(
-        error?.response?.data?.error ??
+        error?.response?.data?.error ?? error?.response?.data?.message ??
           "Erreur lors de l'enregistrement."
       );
+
+      if (savedItem && onCreated) {
+        await onCreated();
+      }
     } finally {
       setSaving(false);
     }
@@ -390,6 +413,7 @@ export default function AddInventoryDrawer({
           <PhotosSection
             form={form}
             setForm={setForm}
+            inventoryId={item?.id}
           />
         </div>
 
