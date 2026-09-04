@@ -8,6 +8,7 @@ import {
   Truck,
   Users,
   Receipt,
+  DatabaseBackup,
 } from "lucide-react";
 
 import { NavLink, useNavigate } from "react-router-dom";
@@ -16,6 +17,7 @@ import GlobalSearchBar from "../globalSearch/GlobalSearchBar";
 import GlobalSearchResults from "../globalSearch/GlobalSearchResults";
 import useGlobalSearch from "../../hooks/useGlobalSearch";
 import UserSessionPanel from "./UserSessionPanel";
+import useAuth from "../../hooks/useAuth";
 
 const menu = [
   {
@@ -68,9 +70,16 @@ const menu = [
     label: "Dépenses",
     to: "/expenses",
   },
+  {
+    icon: DatabaseBackup,
+    label: "Backup / Restore",
+    to: "/backups",
+    adminOnly: true,
+  },
 ];
 
 function Sidebar() {
+  const { user } = useAuth();
   const navigate = useNavigate();
   const searchContainerRef = useRef(null);
   const searchInputRef = useRef(null);
@@ -222,7 +231,7 @@ function Sidebar() {
       </div>
 
       <nav className="flex-1 p-4">
-        {menu.map((item) => {
+        {menu.filter((item) => !item.adminOnly || user?.role === "ADMIN").map((item) => {
           const Icon = item.icon;
 
           return (

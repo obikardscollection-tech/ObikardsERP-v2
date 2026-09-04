@@ -15,6 +15,7 @@ dist/
 backend/dist/
 frontend/dist/
 backend/data/inventory-photos/
+backend/data/backups/
 
 # OS
 .DS_Store

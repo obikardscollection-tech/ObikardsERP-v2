@@ -6,6 +6,7 @@ const authRoutes = require("./routes/authRoutes");
 const { authenticate } = require("./middlewares/authenticate");
 const { originGuard } = require("./middlewares/originGuard");
 const { enforceRouteAuthorization } = require("./middlewares/routeAuthorization");
+const { maintenanceBarrier } = require("./middlewares/maintenanceBarrier");
 const { registerBusinessRoutes } = require("./routes/registerBusinessRoutes");
 
 function createApp() {
@@ -21,6 +22,7 @@ function createApp() {
   app.use(express.json({ limit: "1mb" }));
   app.use(cookieParser());
   app.use(originGuard);
+  app.use(maintenanceBarrier);
 
   app.get("/", (req, res) => {
     res.json({ app: "Obikards ERP", version: "0.1.0", status: "OK" });

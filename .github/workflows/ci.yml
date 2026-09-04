@@ -29,6 +29,7 @@ jobs:
       DIRECT_URL: postgresql://unused:unused@127.0.0.1:5432/obikards_dev
       TEST_DATABASE_URL: postgresql://obikards_test:obikards_test_password@127.0.0.1:5432/obikards_test
       TEST_DIRECT_URL: postgresql://obikards_test:obikards_test_password@127.0.0.1:5432/obikards_test
+      TEST_RESTORE_DATABASE_URL: postgresql://obikards_test:obikards_test_password@127.0.0.1:5432/obikards_restore_test
       AUTH_COOKIE_SECURE: "false"
       FRONTEND_ORIGIN: http://localhost:5173
     defaults:
@@ -41,6 +42,13 @@ jobs:
           node-version: 22.12.0
           cache: npm
           cache-dependency-path: backend/package-lock.json
+      - name: Install PostgreSQL 16 clients
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes postgresql-client-16
+          pg_dump --version
+          pg_restore --version
+          psql --version
       - run: npm ci
       - run: npm run prisma:generate
       - run: npx prisma validate
@@ -48,6 +56,10 @@ jobs:
           DATABASE_URL: ${{ env.TEST_DATABASE_URL }}
           DIRECT_URL: ${{ env.TEST_DIRECT_URL }}
       - run: npm run test:db:prepare
+      - name: Create isolated restore database
+        run: psql --host 127.0.0.1 --username obikards_test --dbname obikards_test --command "CREATE DATABASE obikards_restore_test"
+        env:
+          PGPASSWORD: obikards_test_password
       - run: npm test
 
   frontend:

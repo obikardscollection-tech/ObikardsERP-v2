@@ -1,3 +1,4 @@
+const { beginMutation } = require("../backup/maintenanceLock");
 const path = require("path");
 
 const prisma = require("../../lib/prisma");
@@ -397,7 +398,7 @@ async function persistRowErrors(jobId, errorEntries) {
   });
 }
 
-async function executeSportsCardsProSync(input = {}) {
+async function executeSportsCardsProSyncInternal(input = {}) {
   const source = normalizeImportSource(input.source);
   const filePath = resolveFilePath(input.filePath);
   const provider = await ensureSportsCardsProProvider();
@@ -515,6 +516,15 @@ async function executeSportsCardsProSync(input = {}) {
     }
 
     throw error;
+  }
+}
+
+async function executeSportsCardsProSync(input = {}) {
+  const endMutation = beginMutation();
+  try {
+    return await executeSportsCardsProSyncInternal(input);
+  } finally {
+    endMutation();
   }
 }
 

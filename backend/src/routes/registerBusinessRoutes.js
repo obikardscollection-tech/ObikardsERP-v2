@@ -18,6 +18,7 @@ const marketAnalyticsRoutes = require("./marketAnalyticsRoutes");
 const marketReferenceRoutes = require("./marketReferenceRoutes");
 const marketImportJobRoutes = require("./marketImportJobRoutes");
 const marketImportErrorRoutes = require("./marketImportErrorRoutes");
+const backupRoutes = require("./backupRoutes");
 
 const routes = [
   ["/inventory", inventoryRoutes],
@@ -40,6 +41,7 @@ const routes = [
   ["/market/references", marketReferenceRoutes],
   ["/market/import-jobs", marketImportJobRoutes],
   ["/market/import-errors", marketImportErrorRoutes],
+  ["/backups", backupRoutes],
 ];
 
 function registerBusinessRoutes(app) {
