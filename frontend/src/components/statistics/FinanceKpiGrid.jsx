@@ -16,6 +16,7 @@ export default function FinanceKpiGrid({ data, loading, error }) {
           previousValue={previous[kpi.key]}
           variation={comparaison[kpi.key]}
           format={kpi.format}
+          inverseTrend={kpi.inverseTrend}
           loading={loading}
           error={error}
         />

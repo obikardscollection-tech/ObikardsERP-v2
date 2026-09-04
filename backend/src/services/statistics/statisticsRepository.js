@@ -83,6 +83,20 @@ async function getSalesAggregate(range) {
   });
 }
 
+async function getExpensesAggregate(range) {
+  return prisma.expense.aggregate({
+    where: buildExpenseWhere(range),
+    _sum: {
+      amountHT: true,
+      tax: true,
+      amountTTC: true,
+    },
+    _count: {
+      id: true,
+    },
+  });
+}
+
 async function getTopSaleByAmount(range) {
   return prisma.sale.findFirst({
     where: buildSaleWhere(range),
@@ -145,6 +159,36 @@ async function getSalesTimeline(range) {
     },
     orderBy: {
       soldAt: "asc",
+    },
+  });
+}
+
+async function getExpensesTimeline(range) {
+  return prisma.expense.findMany({
+    where: buildExpenseWhere(range),
+    select: {
+      expenseDate: true,
+      amountHT: true,
+      tax: true,
+      amountTTC: true,
+    },
+    orderBy: {
+      expenseDate: "asc",
+    },
+  });
+}
+
+async function getExpensesByCategory(range) {
+  return prisma.expense.groupBy({
+    by: ["category"],
+    where: buildExpenseWhere(range),
+    _sum: {
+      amountHT: true,
+      tax: true,
+      amountTTC: true,
+    },
+    _count: {
+      id: true,
     },
   });
 }
@@ -588,10 +632,13 @@ module.exports = {
   buildPurchaseWhere,
   buildExpenseWhere,
   getSalesAggregate,
+  getExpensesAggregate,
   getTopSaleByAmount,
   getTopSaleByProfit,
   getSalesProfitabilityEntries,
   getSalesTimeline,
+  getExpensesTimeline,
+  getExpensesByCategory,
   getPurchasesTimeline,
   getStockMovementsTimeline,
   getSalesByPlatform,

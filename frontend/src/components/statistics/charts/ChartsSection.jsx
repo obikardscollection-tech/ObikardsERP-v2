@@ -1,4 +1,5 @@
 import DistributionCharts from "./DistributionCharts";
+import ExpensesChart from "./ExpensesChart";
 import ProfitChart from "./ProfitChart";
 import PurchasesChart from "./PurchasesChart";
 import RevenueChart from "./RevenueChart";
@@ -9,7 +10,7 @@ import StockChart from "./StockChart";
 function LoadingChartsGrid() {
   return (
     <div className="grid grid-cols-1 gap-6 2xl:grid-cols-2">
-      {Array.from({ length: 6 }).map((_, index) => (
+      {Array.from({ length: 7 }).map((_, index) => (
         <article key={index} className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
           <div className="animate-pulse space-y-3">
             <div className="h-4 w-56 rounded bg-slate-200" />
@@ -43,6 +44,12 @@ export default function ChartsSection({ charts, loading = false, error = "" }) {
         <ProfitChart data={charts.profit} />
         <RoiChart data={charts.roi} />
         <PurchasesChart data={charts.purchases.data} quantites={charts.purchases.quantites} />
+        <ExpensesChart
+          data={charts.expenses.data}
+          ht={charts.expenses.ht}
+          taxes={charts.expenses.taxes}
+          count={charts.expenses.count}
+        />
         <SalesChart data={charts.sales} />
         <StockChart
           data={charts.stock.data}

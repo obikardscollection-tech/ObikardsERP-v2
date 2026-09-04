@@ -36,7 +36,7 @@ function formatSaleSummary(sale) {
   };
 }
 
-function computeFinancialMetricsFromAggregate(aggregate, extras = {}) {
+function computeFinancialMetricsFromAggregate(aggregate, expenseAggregate = {}, extras = {}) {
   const revenueTTC = toNumber(aggregate?._sum?.totalAmount);
   const taxes = toNumber(aggregate?._sum?.taxes);
   const shippingCost = toNumber(aggregate?._sum?.shippingCost);
@@ -47,6 +47,10 @@ function computeFinancialMetricsFromAggregate(aggregate, extras = {}) {
   const purchaseCost = revenueTTC - grossProfit;
   const revenueHT = Math.max(0, revenueTTC - taxes);
   const netProfit = grossProfit - shippingCost - platformFees;
+  const expenseHT = toNumber(expenseAggregate?._sum?.amountHT);
+  const expenseTax = toNumber(expenseAggregate?._sum?.tax);
+  const expenseTTC = toNumber(expenseAggregate?._sum?.amountTTC);
+  const expensesCount = toNumber(expenseAggregate?._count?.id);
 
   return {
     chiffreAffairesHT: revenueHT,
@@ -54,6 +58,11 @@ function computeFinancialMetricsFromAggregate(aggregate, extras = {}) {
     coutAchat: purchaseCost,
     beneficeBrut: grossProfit,
     beneficeNet: netProfit,
+    depensesHT: expenseHT,
+    tvaDepenses: expenseTax,
+    depensesTTC: expenseTTC,
+    nombreDepenses: expensesCount,
+    resultatApresDepenses: netProfit - expenseTTC,
     margeEur: grossProfit,
     margePct: ratio(grossProfit, revenueTTC),
     roiPct: ratio(grossProfit, purchaseCost),
@@ -83,8 +92,9 @@ function computeFinancialMetricsFromAggregate(aggregate, extras = {}) {
 
 async function getFinancialIndicators(filters = {}) {
   const range = getRangeFromFilters(filters);
-  const [aggregate, topSaleAmount, topSaleProfit, profitabilitySales] = await Promise.all([
+  const [aggregate, expenseAggregate, topSaleAmount, topSaleProfit, profitabilitySales] = await Promise.all([
     statisticsRepository.getSalesAggregate(range),
+    statisticsRepository.getExpensesAggregate(range),
     statisticsRepository.getTopSaleByAmount(range),
     statisticsRepository.getTopSaleByProfit(range),
     statisticsRepository.getSalesProfitabilityEntries(range),
@@ -112,7 +122,7 @@ async function getFinancialIndicators(filters = {}) {
 
   return {
     range: formatRange(range),
-    metrics: computeFinancialMetricsFromAggregate(aggregate, {
+    metrics: computeFinancialMetricsFromAggregate(aggregate, expenseAggregate, {
       plusGrosseVente: topSaleAmount,
       plusGrosBenefice: topSaleProfit,
       ventePlusRentable: bestRoiSale,
@@ -128,6 +138,14 @@ function buildTemporalComparaison(currentMetrics, previousMetrics) {
     coutAchat: growthRate(currentMetrics.coutAchat, previousMetrics.coutAchat),
     beneficeBrut: growthRate(currentMetrics.beneficeBrut, previousMetrics.beneficeBrut),
     beneficeNet: growthRate(currentMetrics.beneficeNet, previousMetrics.beneficeNet),
+    depensesHT: growthRate(currentMetrics.depensesHT, previousMetrics.depensesHT),
+    tvaDepenses: growthRate(currentMetrics.tvaDepenses, previousMetrics.tvaDepenses),
+    depensesTTC: growthRate(currentMetrics.depensesTTC, previousMetrics.depensesTTC),
+    nombreDepenses: growthRate(currentMetrics.nombreDepenses, previousMetrics.nombreDepenses),
+    resultatApresDepenses: growthRate(
+      currentMetrics.resultatApresDepenses,
+      previousMetrics.resultatApresDepenses
+    ),
     ticketMoyen: growthRate(currentMetrics.ticketMoyen, previousMetrics.ticketMoyen),
     panierMoyen: growthRate(currentMetrics.panierMoyen, previousMetrics.panierMoyen),
     margePct: growthRate(currentMetrics.margePct, previousMetrics.margePct),
@@ -143,13 +161,15 @@ function buildTemporalComparaison(currentMetrics, previousMetrics) {
 
 async function buildTemporalSlice(range) {
   const previousRange = getPreviousRange(range);
-  const [currentAggregate, previousAggregate] = await Promise.all([
+  const [currentAggregate, previousAggregate, currentExpenseAggregate, previousExpenseAggregate] = await Promise.all([
     statisticsRepository.getSalesAggregate(range),
     statisticsRepository.getSalesAggregate(previousRange),
+    statisticsRepository.getExpensesAggregate(range),
+    statisticsRepository.getExpensesAggregate(previousRange),
   ]);
 
-  const currentMetrics = computeFinancialMetricsFromAggregate(currentAggregate);
-  const previousMetrics = computeFinancialMetricsFromAggregate(previousAggregate);
+  const currentMetrics = computeFinancialMetricsFromAggregate(currentAggregate, currentExpenseAggregate);
+  const previousMetrics = computeFinancialMetricsFromAggregate(previousAggregate, previousExpenseAggregate);
 
   return {
     range: formatRange(range),

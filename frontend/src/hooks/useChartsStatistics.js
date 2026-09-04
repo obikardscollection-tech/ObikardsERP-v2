@@ -12,6 +12,12 @@ const INITIAL_CHARTS = {
     data: [],
     quantites: [],
   },
+  expenses: {
+    data: [],
+    ht: [],
+    taxes: [],
+    count: [],
+  },
   sales: [],
   stock: {
     data: [],
@@ -25,6 +31,7 @@ const INITIAL_CHARTS = {
     benefitsBySport: [],
     benefitsByBrand: [],
     benefitsBySupplier: [],
+    expensesByCategory: [],
   },
 };
 

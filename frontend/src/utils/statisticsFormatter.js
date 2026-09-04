@@ -40,8 +40,8 @@ export function formatVariation(value) {
   return `${prefix}${formatPercent(numericValue)}`;
 }
 
-export function getVariationClasses(value) {
-  const numericValue = Number(value) || 0;
+export function getVariationClasses(value, inverseTrend = false) {
+  const numericValue = (Number(value) || 0) * (inverseTrend ? -1 : 1);
 
   if (numericValue > 0) {
     return "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200";

@@ -62,6 +62,32 @@ function bucketPurchases(entries, granularity) {
   return Array.from(bucketMap.values()).sort((a, b) => a.period.localeCompare(b.period));
 }
 
+function bucketExpenses(entries, granularity) {
+  const bucketMap = new Map();
+
+  for (const entry of entries) {
+    const period = buildTimeKey(entry.expenseDate, granularity);
+
+    if (!bucketMap.has(period)) {
+      bucketMap.set(period, {
+        period,
+        montantHT: 0,
+        tva: 0,
+        montantTTC: 0,
+        nombreDepenses: 0,
+      });
+    }
+
+    const bucket = bucketMap.get(period);
+    bucket.montantHT += toNumber(entry.amountHT);
+    bucket.tva += toNumber(entry.tax);
+    bucket.montantTTC += toNumber(entry.amountTTC);
+    bucket.nombreDepenses += 1;
+  }
+
+  return Array.from(bucketMap.values()).sort((a, b) => a.period.localeCompare(b.period));
+}
+
 function bucketStockMovements(entries, granularity) {
   const bucketMap = new Map();
 
@@ -179,6 +205,7 @@ async function getChartEvolution(metric, filters = {}) {
 }
 
 module.exports = {
+  bucketExpenses,
   bucketPurchases,
   bucketSales,
   bucketStockMovements,

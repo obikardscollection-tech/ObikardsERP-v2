@@ -1,6 +1,7 @@
 import SalesPlatformTable from "./SalesPlatformTable";
 import SalesStatusTable from "./SalesStatusTable";
 import BenefitsTable from "./BenefitsTable";
+import ExpenseCategoriesTable from "./ExpenseCategoriesTable";
 
 export default function DistributionCharts({ distributions }) {
   return (
@@ -10,6 +11,7 @@ export default function DistributionCharts({ distributions }) {
       <BenefitsTable title="Benefices par sport" data={distributions.benefitsBySport} />
       <BenefitsTable title="Benefices par marque" data={distributions.benefitsByBrand} />
       <BenefitsTable title="Benefices par fournisseur" data={distributions.benefitsBySupplier} />
+      <ExpenseCategoriesTable data={distributions.expensesByCategory} />
     </section>
   );
 }

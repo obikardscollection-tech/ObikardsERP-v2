@@ -25,6 +25,35 @@ export const KPI_DEFINITIONS = [
     format: "currency",
   },
   {
+    key: "depensesHT",
+    label: "Depenses HT",
+    format: "currency",
+    inverseTrend: true,
+  },
+  {
+    key: "tvaDepenses",
+    label: "TVA sur depenses",
+    format: "currency",
+    inverseTrend: true,
+  },
+  {
+    key: "depensesTTC",
+    label: "Depenses TTC",
+    format: "currency",
+    inverseTrend: true,
+  },
+  {
+    key: "nombreDepenses",
+    label: "Nombre de depenses",
+    format: "number",
+    inverseTrend: true,
+  },
+  {
+    key: "resultatApresDepenses",
+    label: "Resultat apres depenses",
+    format: "currency",
+  },
+  {
     key: "roiPct",
     label: "ROI",
     format: "percent",
